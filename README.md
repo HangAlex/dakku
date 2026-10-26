@@ -13,7 +13,9 @@ a subscription or a wall of charts. So I made my own. Start a timer and an egg s
 wobbles, cracks at half time, peeks out near the end, then hatches. Give up and the egg goes cold. Every duck you hatch
 floats on your pond, so after a few weeks of studying there's a whole crowd of them bobbing around.
 
-It runs on my own PC at home and I use it every day as an app on my iPhone. My friends use it too.
+It runs on my own PC at home and I use it every day as an app on my iPhone. Playing around with the idea of having others use it too
+
+My goal is to build long term study habits one duck at a time!
 
 > **Status:** a personal project I'm still building. The code isn't up yet; this page shows what it looks like.
 
