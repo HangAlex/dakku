@@ -17,6 +17,14 @@ It runs on my own PC at home and I use it every day as an app on my iPhone. Play
 
 My goal is to build long term study habits one duck at a time!
 
+## Try it
+
+**[hangalex.github.io/dakku-demo](https://hangalex.github.io/dakku-demo/)**: a playable demo, full of made-up ducks,
+that runs right in your browser. Start a timer and hatch a duck, join Mina while she studies, switch on Halloween. Nothing
+you do leaves your phone. On iPhone, tap Share → **Add to Home Screen** to use it like an app.
+
+<p align="center"><img src="media/demo-qr.png" width="220" alt="QR code for the demo"></p>
+
 > **Status:** a personal project I'm still building. The code isn't up yet; this page shows what it looks like.
 
 ---
