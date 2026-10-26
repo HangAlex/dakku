@@ -1,5 +1,7 @@
 <p align="center"><img src="media/hero.webp" alt="Dakku: a study timer where every focus session hatches a little duck into your pond"></p>
 
+<p align="center"><a href="https://hangalex.github.io/dakku-demo/"><b>▶ Try the demo</b></a> · runs in your browser, nothing to install</p>
+
 <p align="center">
   <img src="media/hatch.webp" width="290" alt="An egg cracking open and hatching into a witch duck as the timer runs out">
   &nbsp;
