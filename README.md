@@ -65,7 +65,11 @@ Turn on as many as you like. Each one finds its own spot on the water and the du
 
 ## Forty ducks
 
-<p align="center"><img src="media/gallery.png" width="320" alt="The duck gallery"></p>
+<p align="center">
+  <img src="media/gallery.png" width="290" alt="The duck gallery">
+  &nbsp;
+  <img src="media/godzilla.png" width="290" alt="The Godzilla duck enlarged in the gallery: King of the Monsters, and of the pond.">
+</p>
 
 Pick a duck before you start, or let it be a surprise. There are forty of them: Dakku's own ten (a sailor, a ninja, a
 fox mask from the shrine festival, an astronaut…), fan-art outfits of characters I like from games and anime, and
