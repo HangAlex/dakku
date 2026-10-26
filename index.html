@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en" data-theme="ai">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Demo · 鴨 Dakku</title>
+  <meta name="description" content="A focus timer where every session hatches a little duck, on every device.">
+  <meta name="theme-color" content="#0F1727">
+  <meta name="color-scheme" content="dark">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Dakku">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="app.css">
+  <script src="demo/snapshot.js"></script>
+  <script src="demo/fake-server.js"></script>
+  <script src="kinds.js" defer></script>
+  <script src="art.js" defer></script>
+  <script src="qr.js" defer></script>
+  <script src="app.js" defer></script>
+  <script src="lofi.js" defer></script>
+</head>
+<body>
+  <div class="petals" aria-hidden="true"><i style="--x:4%;--d:17s;--w:-3s"></i><i style="--x:13%;--d:23s;--w:-11s"></i><i style="--x:22%;--d:19s;--w:-6s"></i><i style="--x:31%;--d:26s;--w:-15s"></i><i style="--x:40%;--d:21s;--w:-2s"></i><i style="--x:49%;--d:18s;--w:-9s"></i><i style="--x:58%;--d:24s;--w:-14s"></i><i style="--x:67%;--d:20s;--w:-5s"></i><i style="--x:76%;--d:27s;--w:-18s"></i><i style="--x:85%;--d:22s;--w:-8s"></i><i style="--x:94%;--d:19s;--w:-12s"></i><i style="--x:36%;--d:29s;--w:-21s"></i><b style="--x:18%;--d:31s;--w:-4s">♡</b><b style="--x:63%;--d:35s;--w:-19s">✦</b><b style="--x:81%;--d:33s;--w:-11s">♡</b><b style="--x:45%;--d:38s;--w:-27s">✧</b></div>
+  <div class="boot" id="boot" aria-hidden="true"><span class="seal">鴨</span></div>
+
+  <!-- ───────────── Sign in ───────────── -->
+  <section class="gate" id="gate" hidden>
+    <div class="gate-card">
+      <span class="seal big" aria-hidden="true">鴨</span>
+      <h1 class="gate-title"><span class="jp">鴨</span> Dakku</h1>
+      <p class="gate-lede">Focus, and a duck hatches. On every device.</p>
+      <p class="gate-friend" id="gate-friend" hidden>To get in, open the invite link you were sent, or type the 6-digit code from Dakku on your other device (Settings → <b>Add a device</b>).</p>
+      <form id="login-form" class="gate-form" autocomplete="on">
+        <input class="sr-only" type="text" name="username" value="mori" autocomplete="username" tabindex="-1" aria-hidden="true">
+        <label for="login-code" id="login-label">Passcode or pairing code</label>
+        <input id="login-code" name="password" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="five words, or 6 digits" required>
+        <button class="btn primary wide" type="submit" id="login-btn">Enter the forest</button>
+        <p class="form-msg" id="login-msg" role="alert"></p>
+      </form>
+      <p class="gate-tip" id="gate-tip" hidden>
+        <b>Tip:</b> add Dakku to your Home Screen first: tap <span class="ios-share" aria-label="Share"></span> then <b>Add to Home Screen</b>. Open it from there and sign in once.
+      </p>
+      <details class="gate-help" id="gate-help">
+        <summary>Where do I find the code?</summary>
+        <p>On the PC that runs Dakku, open <b>http://localhost:8640</b>, then <b>設定 Settings → Add a device</b> for a 6-digit pairing code. The five-word passcode is under <b>Show passcode</b> on the same page.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- ───────────── Joining from an invite ───────────── -->
+  <section class="gate" id="join-gate" hidden>
+    <div class="gate-card">
+      <span class="seal big" aria-hidden="true">共</span>
+      <h1 class="gate-title" id="join-title">Study together</h1>
+      <p class="gate-lede" id="join-lede">You've been invited to Dakku: a focus timer where every session hatches a little duck.</p>
+      <form id="join-form" class="gate-form">
+        <label for="join-name">Your name</label>
+        <input id="join-name" type="text" maxlength="30" autocomplete="nickname" placeholder="What your friends call you" required>
+        <div class="join-look">
+          <span class="badge-preview" id="join-badge" aria-hidden="true">?</span>
+          <div>
+            <div class="pick-label">Your colour</div>
+            <div class="swatches" id="join-colors"></div>
+          </div>
+        </div>
+        <p class="muted small">This badge goes on your ducks in shared ponds, so everyone can see which are yours.</p>
+        <button class="btn primary wide" type="submit" id="join-btn">Join</button>
+        <p class="form-msg" id="join-msg" role="alert"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- ───────────── Can't reach the PC ───────────── -->
+  <section class="gate" id="unreachable" hidden>
+    <div class="gate-card">
+      <span class="seal big muted" aria-hidden="true">鴨</span>
+      <h1 class="gate-title">Can't reach your forest</h1>
+      <p class="gate-lede">Dakku lives on your PC at home. Check that:</p>
+      <ul class="checklist">
+        <li>Tailscale is switched on on this device</li>
+        <li>Your PC at home is on and connected</li>
+      </ul>
+      <button class="btn primary wide" id="retry-btn">Try again</button>
+      <p class="form-msg" id="retry-msg"></p>
+    </div>
+  </section>
+
+  <!-- ───────────── The app ───────────── -->
+  <div class="app" id="app" hidden>
+    <header class="topbar">
+      <a class="brand" href="#plant" aria-label="Dakku home"><span class="seal small" aria-hidden="true">鴨</span><span class="brand-name">Dakku</span></a>
+      <button class="sync" id="sync" type="button" title="Sync now"><i aria-hidden="true"></i><span id="sync-label">Synced</span></button>
+    </header>
+
+    <nav class="tabbar" id="tabbar" aria-label="Sections">
+      <a href="#plant" data-tab="plant"><span class="k" aria-hidden="true">孵</span><span class="l">Hatch</span></a>
+      <a href="#forest" data-tab="forest"><span class="k" aria-hidden="true">池</span><span class="l">Pond</span></a>
+      <a href="#together" data-tab="together"><span class="k" aria-hidden="true">共</span><span class="l">Together</span></a>
+      <a href="#stats" data-tab="stats"><span class="k" aria-hidden="true">記</span><span class="l">Stats</span></a>
+      <a href="#log" data-tab="log"><span class="k" aria-hidden="true">録</span><span class="l">Log</span></a>
+      <a href="#settings" data-tab="settings"><span class="k" aria-hidden="true">設</span><span class="l">Settings</span></a>
+    </nav>
+
+    <main class="views">
+      <!-- 植 Plant -->
+      <section class="view plant" id="view-plant" data-view="plant">
+        <div class="plant-grid">
+          <div class="plant-main">
+            <div class="today" id="today"></div>
+            <div class="dial-wrap" id="dial-wrap">
+              <svg class="dial" id="dial" viewBox="0 0 300 300" role="slider" aria-label="Minutes" aria-valuemin="5" aria-valuemax="180" tabindex="0">
+                <circle class="dial-face" cx="150" cy="150" r="118"/>
+                <g id="dial-ticks"></g>
+                <circle class="dial-track" cx="150" cy="150" r="134"/>
+                <path class="dial-arc" id="dial-arc" d=""/>
+                <circle class="dial-knob" id="dial-knob" cx="150" cy="16" r="12"/>
+              </svg>
+              <div class="grow" id="grow"></div>
+              <div class="cheer-pops" id="cheer-pops" aria-live="polite"></div>
+              <button class="icon-btn lofi-btn" type="button" id="lofi-btn" aria-label="Lofi" aria-pressed="false" title="Play lofi"><span aria-hidden="true">♪</span></button>
+            </div>
+            <div class="clock" id="clock">25:00</div>
+            <div class="clock-sub" id="clock-sub">&nbsp;</div>
+            <div class="lofi-now" id="lofi" hidden>
+              <span class="lofi-song"><b id="lofi-title"></b> <span id="lofi-by"></span></span>
+              <span class="lofi-ctls">
+                <button class="lofi-ctl" type="button" id="lofi-prev" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2.6v14H6zM19 5.2v13.6L9 12z"/></svg></button>
+                <button class="lofi-ctl play" type="button" id="lofi-play" aria-label="Pause" title="Pause"></button>
+                <button class="lofi-ctl" type="button" id="lofi-next" aria-label="Skip" title="Skip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.4 5H18v14h-2.6zM5 5.2v13.6L15 12z"/></svg></button>
+                <input class="lofi-vol" type="range" id="lofi-vol" min="0" max="100" step="1" value="80" aria-label="Volume" title="Volume">
+              </span>
+            </div>
+
+            <div class="controls" id="idle-controls">
+              <div class="seg" id="mode-seg" role="radiogroup" aria-label="Mode">
+                <button type="button" data-mode="timer" role="radio">Timer</button>
+                <button type="button" data-mode="pomo" role="radio">Pomodoro</button>
+                <button type="button" data-mode="stopwatch" role="radio">Stopwatch</button>
+              </div>
+              <div class="presets" id="presets"></div>
+              <div class="pomo-pick" id="pomo-pick" hidden></div>
+              <div class="pick">
+                <div class="pick-label">Tag</div>
+                <div class="chips scroll" id="tag-chips"></div>
+              </div>
+              <div class="pick">
+                <div class="pick-label">Duck</div>
+                <div class="species-row scroll" id="species-row"></div>
+              </div>
+              <label class="open-toggle" id="open-row" hidden><input type="checkbox" id="open-sessions"> <span>Friends can join this session</span></label>
+              <button class="btn primary plant-btn" type="button" id="plant-btn"><span class="jp">孵す</span><span>Hatch</span></button>
+            </div>
+
+            <div class="controls" id="run-controls" hidden>
+              <div class="run-meta" id="run-meta"></div>
+              <div class="party" id="party" hidden></div>
+              <div class="run-buttons">
+                <button class="btn" type="button" id="pause-btn">Pause</button>
+                <button class="btn undo" type="button" id="undo-btn" hidden>Cancel · 10</button>
+                <button class="btn" type="button" id="finish-btn">Finish</button>
+                <button class="btn ghost danger" type="button" id="giveup-btn">Give up</button>
+              </div>
+            </div>
+          </div>
+
+          <aside class="plant-side">
+            <div class="card welcome" id="welcome" hidden></div>
+            <div class="card live" id="live-card" hidden>
+              <div class="card-head"><h2><span class="jp">今</span> Studying now</h2><a class="link" href="#together">Together →</a></div>
+              <div id="live-rooms"></div>
+            </div>
+            <div class="card today-forest">
+              <div class="card-head"><h2><span class="jp">今日</span> Today's ducks</h2><a class="link" href="#forest">Pond →</a></div>
+              <div id="today-trees"></div>
+            </div>
+            <div class="card recent">
+              <div class="card-head"><h2><span class="jp">最近</span> Recent</h2><a class="link" href="#log">Log →</a></div>
+              <div id="recent"></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 池 Pond -->
+      <section class="view" id="view-forest" data-view="forest" hidden>
+        <div class="view-head">
+          <h1><span class="jp">池</span> Pond</h1>
+          <div class="seg" id="range-seg" role="radiogroup" aria-label="Period">
+            <button type="button" data-range="day" role="radio">Day</button>
+            <button type="button" data-range="week" role="radio">Week</button>
+            <button type="button" data-range="month" role="radio">Month</button>
+            <button type="button" data-range="year" role="radio">Year</button>
+          </div>
+        </div>
+        <div class="range-nav">
+          <button class="icon-btn" type="button" id="range-prev" aria-label="Earlier">‹</button>
+          <div class="range-label" id="range-label"></div>
+          <button class="icon-btn" type="button" id="range-next" aria-label="Later">›</button>
+        </div>
+        <div class="forest-stage" id="forest-stage"></div>
+        <div class="tiles" id="forest-tiles"></div>
+        <div class="card" id="forest-tags-card">
+          <div class="card-head"><h2><span class="jp">内訳</span> By tag</h2></div>
+          <div id="forest-tags"></div>
+        </div>
+        <div class="share-row"><button class="btn" type="button" id="forest-share"><span class="i-share" aria-hidden="true"></span> Share this pond</button></div>
+      </section>
+
+      <!-- 共 Together -->
+      <section class="view together" id="view-together" data-view="together" hidden>
+        <div class="view-head">
+          <h1><span class="jp">共</span> Together</h1>
+          <div class="chips" id="group-chips"></div>
+        </div>
+        <div id="together-empty" hidden></div>
+        <div id="together-main">
+          <div class="card">
+            <div class="card-head"><h2><span class="jp">今</span> Studying now</h2></div>
+            <div id="rooms"></div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <h2 id="group-pond-title"><span class="jp">池</span> Your pond together</h2>
+              <div class="seg small" id="group-range" role="radiogroup" aria-label="Period">
+                <button type="button" data-grange="week" role="radio">Week</button>
+                <button type="button" data-grange="month" role="radio">Month</button>
+                <button type="button" data-grange="all" role="radio">All</button>
+              </div>
+            </div>
+            <div class="forest-stage group-stage" id="group-stage"></div>
+            <div class="legend" id="group-legend"></div>
+            <div class="tiles" id="group-tiles"></div>
+          </div>
+          <div class="stats-grid">
+            <div class="card span2">
+              <div class="card-head">
+                <h2><span class="jp">順位</span> Leaderboard</h2>
+                <div class="seg small" id="board-range" role="radiogroup" aria-label="Period">
+                  <button type="button" data-brange="week" role="radio">Week</button>
+                  <button type="button" data-brange="month" role="radio">Month</button>
+                  <button type="button" data-brange="total" role="radio">All time</button>
+                </div>
+              </div>
+              <div id="board"></div>
+            </div>
+            <div class="card span2">
+              <div class="card-head"><h2><span class="jp">科目</span> What everyone studies</h2></div>
+              <div id="board-tags"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2><span class="jp">仲間</span> People</h2><span class="card-tools" id="group-tools"></span></div>
+            <div id="group-people"></div>
+          </div>
+          <div class="share-row"><button class="btn" type="button" id="group-share"><span class="i-share" aria-hidden="true"></span> Share this pond</button></div>
+        </div>
+      </section>
+
+      <!-- 記録 Stats -->
+      <section class="view" id="view-stats" data-view="stats" hidden>
+        <div class="view-head">
+          <h1><span class="jp">記録</span> Stats</h1>
+          <button class="btn small" type="button" id="stats-share"><span class="i-share" aria-hidden="true"></span> Share</button>
+        </div>
+        <div class="profile" id="profile"></div>
+        <div class="stats-grid">
+          <div class="card span2">
+            <div class="card-head"><h2><span class="jp">今週</span> This week</h2><span class="muted" id="week-total"></span></div>
+            <div id="week"></div>
+          </div>
+          <div class="card span2" data-chart="bars">
+            <div class="card-head">
+              <h2><span class="jp">毎日</span> Daily focus</h2>
+              <div class="card-tools">
+                <div class="seg small" id="bars-seg" role="radiogroup" aria-label="Days shown">
+                  <button type="button" data-n="14" role="radio">2W</button>
+                  <button type="button" data-n="30" role="radio">30D</button>
+                  <button type="button" data-n="90" role="radio">90D</button>
+                </div>
+                <button class="link table-toggle" type="button">Table</button>
+              </div>
+            </div>
+            <div class="chart" id="bars"></div>
+          </div>
+          <div class="card span2" data-chart="heat">
+            <div class="card-head"><h2><span class="jp">継続</span> Consistency</h2><button class="link table-toggle" type="button">Table</button></div>
+            <div class="chart" id="heat"></div>
+          </div>
+          <div class="card" data-chart="tags">
+            <div class="card-head"><h2><span class="jp">科目</span> Tags</h2><button class="link table-toggle" type="button">Table</button></div>
+            <div class="chart" id="tags"></div>
+          </div>
+          <div class="card" data-chart="hours">
+            <div class="card-head"><h2><span class="jp">時間帯</span> Time of day</h2><button class="link table-toggle" type="button">Table</button></div>
+            <div class="chart" id="hours"></div>
+          </div>
+          <div class="card span2">
+            <div class="card-head"><h2><span class="jp">図鑑</span> Duck collection</h2><span class="muted" id="collection-note"></span></div>
+            <div id="collection"></div>
+            <button class="btn small gallery-btn" type="button" id="gallery-btn">See every duck</button>
+          </div>
+          <div class="card span2" data-chart="year">
+            <div class="card-head">
+              <h2><span class="jp">今年</span> <span id="year-title">This year</span></h2>
+              <div class="card-tools">
+                <button class="link table-toggle" type="button">Table</button>
+                <button class="btn small" type="button" id="year-share"><span class="i-share" aria-hidden="true"></span> Share</button>
+              </div>
+            </div>
+            <div id="year"></div>
+          </div>
+          <div class="card span2">
+            <div class="card-head"><h2><span class="jp">実績</span> Achievements</h2><span class="muted" id="badge-count"></span></div>
+            <div id="badges"></div>
+          </div>
+          <div class="card span2" id="anki-card" data-owner>
+            <div class="card-head"><h2><span class="jp">暗記</span> Anki</h2><button class="link" type="button" id="anki-refresh">Refresh</button></div>
+            <div id="anki"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 履歴 Log -->
+      <section class="view" id="view-log" data-view="log" hidden>
+        <div class="view-head">
+          <h1><span class="jp">履歴</span> Log</h1>
+          <button class="btn small primary" type="button" id="log-add">+ Log time</button>
+        </div>
+        <div class="chips scroll" id="log-filter"></div>
+        <p class="muted small tz-note" id="log-tz" hidden></p>
+        <div id="log-list"></div>
+        <button class="btn ghost wide" type="button" id="log-more" hidden>Show more</button>
+      </section>
+
+      <!-- 設定 Settings -->
+      <section class="view settings" id="view-settings" data-view="settings" hidden>
+        <div class="view-head"><h1><span class="jp">設定</span> Settings</h1></div>
+
+        <div class="card set demo-only">
+          <h2><span class="jp">見本</span> This is the demo</h2>
+          <p class="note">Made-up sessions, to show what a full pond looks like. It's a separate Dakku with its own data, so nothing you do here touches your real ducks. New made-up ducks hatch through the day.</p>
+        </div>
+
+        <div class="card set">
+          <h2><span class="jp">目標</span> You &amp; your goal</h2>
+          <label class="row">
+            <span class="row-label">Your name<small>Shown on share images</small></span>
+            <input type="text" id="set-name" maxlength="40" placeholder="Optional" autocomplete="nickname">
+          </label>
+          <label class="row">
+            <span class="row-label">Daily goal<small>Minutes of focus for a day to count</small></span>
+            <span class="stepper"><button type="button" data-step="-5" aria-label="Less">−</button><input type="number" id="set-goal" min="5" max="600" step="5" inputmode="numeric"><button type="button" data-step="5" aria-label="More">+</button></span>
+          </label>
+          <p class="note">Reach your goal to grow your streak. Missing a <b>weekday</b> breaks it; weekends never do, and studying on one still adds a day.</p>
+          <div class="row" id="look-row">
+            <span class="row-label">Your badge<small>On your ducks in shared ponds</small></span>
+            <span class="inline look">
+              <span class="badge-preview" id="set-badge" aria-hidden="true">?</span>
+              <input type="text" id="set-mark" maxlength="4" aria-label="Badge letter or emoji" placeholder="A">
+            </span>
+          </div>
+          <div class="swatches" id="set-colors"></div>
+        </div>
+
+        <div class="card set">
+          <h2><span class="jp">タイマー</span> Timer</h2>
+          <div class="row col">
+            <span class="row-label">Quick picks<small>Tap × to remove</small></span>
+            <div class="chips wrap" id="set-presets"></div>
+          </div>
+          <label class="row toggle"><span class="row-label">Chime when a duck hatches</span><input type="checkbox" id="set-sound"><i></i></label>
+          <label class="row toggle"><span class="row-label">Keep the screen awake<small>While an egg hatches on this screen</small></span><input type="checkbox" id="set-awake"><i></i></label>
+          <label class="row toggle"><span class="row-label">Deep focus<small>Leave Dakku for over 15 s on the device that started it and the egg goes cold. On iPhone, locking the screen counts as leaving.</small></span><input type="checkbox" id="set-deep"><i></i></label>
+          <label class="row toggle"><span class="row-label">A surprise duck each time<small>Any of the ten, picked at random</small></span><input type="checkbox" id="set-random"><i></i></label>
+        </div>
+
+        <div class="card set">
+          <h2><span class="jp">タグ</span> Tags</h2>
+          <div id="set-tags"></div>
+          <form class="row add-tag" id="add-tag-form">
+            <input type="text" id="new-tag" maxlength="24" placeholder="New tag, e.g. Subnetting" autocomplete="off">
+            <button class="btn small" type="submit">Add</button>
+          </form>
+        </div>
+
+        <div class="card set">
+          <h2><span class="jp">色</span> Theme</h2>
+          <div class="themes" id="set-themes"></div>
+        </div>
+
+        <div class="card set">
+          <h2><span class="jp">池</span> Pond</h2>
+          <div class="pond-themes" id="set-ponds"></div>
+          <p class="note" id="set-ponds-note"></p>
+          <h3 class="set-sub"><span class="jp">飾り</span> Decorations</h3>
+          <p class="note">On your pond, as many as you like. The ducks float around them.</p>
+          <div class="decor-picks" id="set-decor"></div>
+        </div>
+
+        <div class="card set">
+          <h2><span class="jp">行事</span> Events</h2>
+          <p class="note">Each one sets your colours and pond together, any time of year. Tap it again to go back to your own.</p>
+          <div class="event-picks" id="set-events"></div>
+        </div>
+
+        <div class="card set" data-real>
+          <h2><span class="jp">通知</span> Notifications</h2>
+          <div id="set-push"></div>
+          <label class="row toggle" id="friend-alerts-row"><span class="row-label">When friends start studying<small>So you can join them</small></span><input type="checkbox" id="set-friend-alerts"><i></i></label>
+          <label class="row toggle" id="cheer-alerts-row"><span class="row-label">Cheers from friends<small>When someone cheers you on while you study</small></span><input type="checkbox" id="set-cheer-alerts"><i></i></label>
+          <label class="row toggle"><span class="row-label">Sunday recap<small>Your week on Sunday evening: time studied, ducks and your best day</small></span><input type="checkbox" id="set-weekly-recap"><i></i></label>
+          <label class="row toggle"><span class="row-label">Daily reminder<small>A nudge if you haven't reached your goal yet</small></span><input type="checkbox" id="set-remind"><i></i></label>
+          <div class="row" id="remind-row">
+            <span class="row-label">Remind me at</span>
+            <span class="inline"><input type="time" id="set-remind-time"><label class="mini-check"><input type="checkbox" id="set-remind-weekdays"> weekdays only</label></span>
+          </div>
+        </div>
+
+        <div class="card set">
+          <h2><span class="jp">時間</span> Home time zone</h2>
+          <label class="row">
+            <span class="row-label">Days are counted in<small>Travelling won't scramble your streak</small></span>
+            <select id="set-tz"></select>
+          </label>
+          <div class="row" id="tz-device-row" hidden><span class="row-label" id="tz-device-text"></span><button class="btn small" type="button" id="tz-device">Use it</button></div>
+        </div>
+
+        <div class="card set" data-real>
+          <h2><span class="jp">端末</span> Devices</h2>
+          <div id="set-devices"></div>
+          <div class="row" id="pair-row"><span class="row-label">Add your phone or Mac<small>Shows a code to type on the new device</small></span><button class="btn small primary" type="button" id="pair-btn">Add a device</button></div>
+        </div>
+
+        <div class="card set" data-real data-owner>
+          <h2><span class="jp">共</span> People &amp; groups</h2>
+          <div id="set-friends-door"></div>
+          <div id="set-people"></div>
+        </div>
+
+        <div class="card set" id="passcode-card" data-real data-owner>
+          <h2><span class="jp">合言葉</span> Passcode</h2>
+          <div id="set-passcode"></div>
+        </div>
+
+        <div class="card set" data-real data-owner>
+          <h2><span class="jp">記録</span> Your data</h2>
+          <div class="row"><span class="row-label">Download everything<small>Every session, as a file you keep</small></span><span class="inline"><a class="btn small" id="export-json" href="/api/export.json" download>JSON</a><a class="btn small" id="export-csv" href="/api/export.csv" download>CSV</a></span></div>
+          <div class="row"><span class="row-label">Import<small>A Dakku export or a Genkan backup</small></span><label class="btn small file-btn">Choose file<input type="file" id="import-file" accept=".json,application/json"></label></div>
+          <p class="note">Your PC also saves a backup every day to <b>Documents/Homepage/Dakku backups</b> and keeps the last 30.</p>
+        </div>
+
+        <div class="card set">
+          <h2><span class="jp">情報</span> About</h2>
+          <div id="set-about"></div>
+          <div class="row"><span class="row-label">Sync now<small id="sync-detail"></small></span><button class="btn small" type="button" id="sync-now">Sync</button></div>
+          <div class="row" id="signout-row" data-real><span class="row-label">Sign out of this device</span><button class="btn small ghost danger" type="button" id="signout">Sign out</button></div>
+        </div>
+      </section>
+    </main>
+    <div class="lofi-player" id="lofi-player" inert><p>Tap play on the video to start the music.</p><div class="lofi-screen" id="lofi-screen"></div></div>
+  </div>
+
+  <!-- ───────────── Overlays ───────────── -->
+  <div class="overlay" id="done" hidden>
+    <div class="done-card" role="dialog" aria-modal="true" aria-labelledby="done-title">
+      <div class="petals" id="petals" aria-hidden="true"></div>
+      <div class="done-tree" id="done-tree"></div>
+      <p class="done-kanji jp" id="done-kanji">誕生</p>
+      <h2 class="done-title" id="done-title">A duck hatched!</h2>
+      <p class="done-sub" id="done-sub"></p>
+      <div class="done-stats" id="done-stats"></div>
+      <div class="done-actions">
+        <button class="btn" type="button" id="done-share"><span class="i-share" aria-hidden="true"></span> Share</button>
+        <button class="btn primary" type="button" id="done-again">Hatch another</button>
+      </div>
+      <button class="link" type="button" id="done-close">Close</button>
+    </div>
+  </div>
+
+  <div class="tree-pop" id="tree-pop" hidden></div>
+
+  <dialog class="sheet" id="session-dialog">
+    <form method="dialog" class="sheet-body" id="session-form">
+      <h2 id="session-title">Log time</h2>
+      <div class="form-grid">
+        <label>Date<input type="date" id="f-date" required></label>
+        <label>Started<input type="time" id="f-time" required></label>
+        <label class="full">Minutes
+          <span class="minutes-input"><input type="number" id="f-min" min="1" max="1440" inputmode="numeric" required>
+          <span class="quick" id="f-quick"><button type="button" data-m="15">15</button><button type="button" data-m="25">25</button><button type="button" data-m="45">45</button><button type="button" data-m="60">60</button><button type="button" data-m="90">90</button></span></span>
+        </label>
+        <label class="full">Tag<input type="text" id="f-tag" list="tag-list" maxlength="40" autocomplete="off" placeholder="What did you study?"></label>
+        <label class="full">Note<input type="text" id="f-note" maxlength="300" placeholder="Optional"></label>
+        <label class="full toggle-line" id="f-withered-row"><input type="checkbox" id="f-withered"> Cold egg (doesn't count toward goals)</label>
+      </div>
+      <datalist id="tag-list"></datalist>
+      <p class="muted small" id="f-meta"></p>
+      <div class="sheet-actions">
+        <button class="btn ghost danger" type="button" id="f-delete">Delete</button>
+        <span class="grow-space"></span>
+        <button class="btn" type="button" id="f-cancel">Cancel</button>
+        <button class="btn primary" type="submit" id="f-save">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="sheet" id="confirm-dialog">
+    <form method="dialog" class="sheet-body">
+      <h2 id="confirm-title"></h2>
+      <p id="confirm-text"></p>
+      <div class="sheet-actions">
+        <span class="grow-space"></span>
+        <button class="btn" value="no" id="confirm-no">Cancel</button>
+        <button class="btn primary" value="yes" id="confirm-yes">OK</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="sheet" id="share-dialog">
+    <div class="sheet-body">
+      <h2>Share</h2>
+      <div class="share-preview"><img id="share-img" alt="Your Dakku share image"></div>
+      <p class="muted small" id="share-hint">Long-press the image to save it to Photos.</p>
+      <div class="sheet-actions">
+        <button class="btn" type="button" id="share-close">Close</button>
+        <span class="grow-space"></span>
+        <a class="btn" id="share-download" download="mori.png">Download</a>
+        <button class="btn primary" type="button" id="share-go" hidden>Share…</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="sheet" id="pair-dialog">
+    <div class="sheet-body pair">
+      <h2>Add a device</h2>
+      <ol class="steps">
+        <li>On your iPhone, switch on <b>Tailscale</b>.</li>
+        <li>Scan this with the Camera, or open <b id="pair-url"></b></li>
+        <li>On iPhone: tap Share → <b>Add to Home Screen</b>, then open Dakku from your Home Screen.</li>
+        <li>Type this code:</li>
+      </ol>
+      <div class="pair-row">
+        <div class="qr" id="pair-qr"></div>
+        <div class="pair-code-box"><div class="pair-code" id="pair-code">——</div><div class="muted small" id="pair-expiry"></div><button class="link" type="button" id="pair-new">New code</button></div>
+      </div>
+      <div class="sheet-actions"><span class="grow-space"></span><button class="btn primary" type="button" id="pair-close">Done</button></div>
+    </div>
+  </dialog>
+
+  <dialog class="sheet" id="ask-dialog">
+    <form method="dialog" class="sheet-body" id="ask-form">
+      <h2 id="ask-title"></h2>
+      <p class="muted small" id="ask-text"></p>
+      <label class="ask-field"><span id="ask-label"></span><input type="text" id="ask-input" maxlength="40" autocomplete="off"></label>
+      <div class="sheet-actions">
+        <span class="grow-space"></span>
+        <button class="btn" value="no" type="button" id="ask-no">Cancel</button>
+        <button class="btn primary" value="yes" id="ask-yes">OK</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="sheet" id="join-dialog">
+    <form method="dialog" class="sheet-body" id="join-room-form">
+      <h2 id="join-room-title">Join in</h2>
+      <p class="muted small" id="join-room-sub"></p>
+      <div class="pick">
+        <div class="pick-label">Your duck</div>
+        <div class="species-row scroll" id="join-species"></div>
+      </div>
+      <div class="pick">
+        <div class="pick-label">Tag</div>
+        <div class="chips scroll" id="join-tags"></div>
+      </div>
+      <p class="note">Your duck hatches when their session ends, for the time you studied. Leave whenever you like: you keep a duck for your time so far.</p>
+      <div class="sheet-actions">
+        <span class="grow-space"></span>
+        <button class="btn" value="no" type="button" id="join-room-cancel">Cancel</button>
+        <button class="btn primary" type="submit" id="join-room-go">Join</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="sheet" id="invite-dialog">
+    <div class="sheet-body pair">
+      <h2 id="invite-title">Invite someone</h2>
+      <p class="muted small" id="invite-sub"></p>
+      <div class="pair-row">
+        <div class="qr" id="invite-qr"></div>
+        <div class="invite-box">
+          <code class="invite-url" id="invite-url"></code>
+          <div class="inline"><button class="btn small" type="button" id="invite-copy">Copy link</button><button class="btn small primary" type="button" id="invite-share" hidden>Share…</button></div>
+          <div class="muted small" id="invite-expiry"></div>
+        </div>
+      </div>
+      <div class="sheet-actions"><span class="grow-space"></span><button class="btn primary" type="button" id="invite-close">Done</button></div>
+    </div>
+  </dialog>
+
+  <!-- a cheer for someone studying: one tap, or your own words -->
+  <dialog class="sheet" id="cheer-dialog">
+    <form method="dialog" class="sheet-body" id="cheer-form">
+      <h2 id="cheer-title">Cheer them on</h2>
+      <div class="chips wrap" id="cheer-picks"></div>
+      <input class="cheer-text" type="text" id="cheer-text" maxlength="140" autocomplete="off" enterkeyhint="send" placeholder="Or write your own…" aria-label="Your own cheer">
+      <div class="sheet-actions"><span class="grow-space"></span><button class="btn" type="button" id="cheer-cancel">Cancel</button><button class="btn primary" type="submit" id="cheer-send">Send</button></div>
+    </form>
+  </dialog>
+
+  <!-- every duck: to choose one to hatch (from Hatch), or to look through (the gallery, from Stats) -->
+  <dialog class="sheet ducks-sheet" id="ducks-dialog">
+    <div class="sheet-body">
+      <div class="ducks-head"><h2 id="ducks-title">Choose a duck</h2><span class="muted small" id="ducks-note"></span><span class="grow-space"></span><button class="btn small" type="button" id="ducks-close">Done</button></div>
+      <div class="duck-grid" id="duck-grid"></div>
+      <div class="duck-detail" id="duck-detail" hidden></div>
+    </div>
+  </dialog>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+</body>
+</html>
