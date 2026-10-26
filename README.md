@@ -1,11 +1,9 @@
-<h1 align="center">鴨 Dakku</h1>
-
-<p align="center"><b>A study timer where every focus session hatches a little duck into your pond.</b></p>
+<p align="center"><img src="media/hero.webp" alt="Dakku: a study timer where every focus session hatches a little duck into your pond"></p>
 
 <p align="center">
-  <img src="media/hatch.gif" width="260" alt="An egg hatching into a witch duck when the timer ends">
-  &nbsp;&nbsp;
-  <img src="media/pond-phone.png" width="260" alt="A month of ducks floating on the pond">
+  <img src="media/hatch.webp" width="290" alt="An egg cracking open and hatching into a witch duck as the timer runs out">
+  &nbsp;
+  <img src="media/pond-phone.png" width="290" alt="A month of ducks floating on the pond">
 </p>
 
 I study a lot (networking certs, Japanese, whatever else I'm into that month), and every focus app I tried was either
@@ -29,9 +27,18 @@ you do leaves your phone. On iPhone, tap Share → **Add to Home Screen** to use
 
 ---
 
+## On a computer
+
+<p align="center"><img src="media/desk-pond.png" alt="Dakku in a browser on a computer: a month of ducks on the pond"></p>
+
+It's the same app on my laptop, in the browser or installed as an app, and it stays in sync with my phone: start a
+session on one and it's running on the other. The big screen is where the pond really shines.
+
+<p align="center"><img src="media/desk-together.png" alt="Together on a computer: Mina studying now, with Cheer and Join, and the study club's pond with everyone's ducks"></p>
+
 ## The pond
 
-<p align="center"><img src="media/pond.gif" width="720" alt="A month of ducks bobbing on the garden pond, with a torii gate, koi, lanterns and lotus"></p>
+<p align="center"><img src="media/pond.webp" alt="A month of ducks bobbing on the garden pond, with a torii gate, koi, floating lanterns and lotus"></p>
 
 Every session is a duck. The pond shows a day, week, month or year of them, spread out across the open water and
 gently bobbing, with ripples that swell as they dip. The more ducks there are, the smaller they get, so a whole year
@@ -39,7 +46,7 @@ still fits. Tap any duck to see the session it came from.
 
 ### Ten ponds to choose from
 
-<p align="center"><img src="media/ponds.gif" width="600" alt="The same ducks on each pond in turn"></p>
+<p align="center"><img src="media/ponds.webp" width="760" alt="The same ducks on each pond in turn"></p>
 
 Classic, spring, sakura, autumn, winter, night, a Japanese garden, and three holiday ponds: Halloween, Thanksgiving and
 Christmas. There's also a seasonal option that changes with the month and turns into the holiday ponds around the
@@ -49,14 +56,14 @@ holidays.
 
 ### Decorations
 
-<p align="center"><img src="media/decorations.png" width="560" alt="A torii gate, stone lantern, koi, floating lanterns and lotus on the pond"></p>
+<p align="center"><img src="media/decorations.png" width="720" alt="A torii gate, stone lantern, koi, floating lanterns and lotus on the garden pond"></p>
 
 A torii gate standing in the water, a stone lantern, koi swimming under the surface, floating paper lanterns and lotus.
 Turn on as many as you like. Each one finds its own spot on the water and the ducks float around it.
 
 ## Forty ducks
 
-<p align="center"><img src="media/gallery.png" width="300" alt="The duck gallery"></p>
+<p align="center"><img src="media/gallery.png" width="320" alt="The duck gallery"></p>
 
 Pick a duck before you start, or let it be a surprise. There are forty of them: Dakku's own ten (a sailor, a ninja, a
 fox mask from the shrine festival, an astronaut…), fan-art outfits of characters I like from games and anime, and
@@ -66,11 +73,9 @@ about every one.
 ## Holiday events
 
 <p align="center">
-  <img src="media/event-halloween.gif" width="230" alt="Halloween: bats flying past the Halloween pond">
-  &nbsp;
-  <img src="media/event-thanksgiving.gif" width="230" alt="Thanksgiving: leaves falling over the harvest pond">
-  &nbsp;
-  <img src="media/event-christmas.gif" width="230" alt="Christmas: snow falling over the timer">
+  <img src="media/event-halloween.webp" width="260" alt="Halloween: bats flying past the Halloween pond">
+  <img src="media/event-thanksgiving.webp" width="260" alt="Thanksgiving: leaves falling over the harvest pond">
+  <img src="media/event-christmas.webp" width="260" alt="Christmas: snow falling over the timer">
 </p>
 
 Halloween, Thanksgiving and Christmas each change the colours and the pond together, with bats, falling leaves or snow
@@ -85,7 +90,11 @@ Named after traditional Japanese colours: 藍 Ai (indigo), 墨 Sumi (ink), 夜�
 
 ## Studying together
 
-<p align="center"><img src="media/together.png" width="300" alt="A friend studying now with Cheer and Join buttons, and the study group's pond"></p>
+<p align="center">
+  <img src="media/join.webp" width="260" alt="Joining Mina's session halfway through with a Kirby duck">
+  <img src="media/send-cheer.webp" width="260" alt="Sending Mina a cheer: quick picks like Proud of you and 頑張って！, or your own words">
+  <img src="media/cheer.webp" width="260" alt="A cheer from Mina popping up over the egg while studying">
+</p>
 
 My friends get their own Dakku on my PC through a link, with nothing to install and no account. When one of us is
 studying, the others can **join** halfway through with any duck and leave whenever they like, and everyone keeps a duck
@@ -96,9 +105,9 @@ leaderboard.
 ## Stats
 
 <p align="center">
-  <img src="media/stats.png" width="260" alt="Stats: rank seal, hours, ducks, streaks, this week and daily focus">
-  &nbsp;&nbsp;
-  <img src="media/year.png" width="260" alt="This year so far, with a bar for each month">
+  <img src="media/stats.png" width="290" alt="Stats: rank seal, hours, ducks, streaks, this week and daily focus">
+  &nbsp;
+  <img src="media/year.png" width="290" alt="This year so far, with a bar for each month">
 </p>
 
 - A rank seal that grows with your hours, from 卵 egg to 鴨仙 duck sage
