@@ -105,7 +105,7 @@
     const host = t.host || 'me', room = t.room || t.id;
     if (t.room) { const h = friends.get(host); v.hostTimer = h && h.id === room ? view(h, at) : null; }
     v.party = party(room, host, at);
-    v.cheers = [];
+    v.cheers = t.cheers || [];
     return v;
   }
   function studied(t, at, hostT = t.room ? friends.get(t.host) : null) {
@@ -199,10 +199,19 @@
     return result;
   }
 
-  // every second, as the PC does: timers that run out hatch, and a friend whose session is over starts another
+  // every second, as the PC does: timers that run out hatch, and a friend whose session is over starts another.
+  // And a little after you start, a friend cheers you on, so you can see what that looks like.
+  const CHEERS = ["You've got this! 🔥", 'Keep going! 💪', 'Proud of you 💗', 'Go go go! 🦆', '頑張って！'];
   setInterval(() => {
     const at = now();
     let any = false;
+    if (mine && !mine.cheered && view(mine, at).elapsed >= 12_000 && at - mine.startedAt < 30 * MIN) {
+      const from = mine.host || [...friends.keys()][Math.floor(Math.random() * friends.size)] || 'demo-mina';
+      const who = people().find((p) => p.id === from);
+      mine.cheered = true;
+      mine.cheers = [{ id: newId(), from, name: who ? who.name : 'Mina', text: CHEERS[Math.floor(Math.random() * CHEERS.length)], at }];
+      any = true;
+    }
     for (const [host, t] of friends) {
       if (view(t, at).elapsed < t.planned) continue;
       if (mine && mine.room === t.id) { hatchGuest(at, t); }
