@@ -272,5 +272,17 @@ rate-limited, and Settings → Devices signs out any device.
 Friends: each person has their own sessions, settings and timer (yours are "me"). The friends' door is a second server
 on 127.0.0.1:8643, which Tailscale Funnel relays from the internet. It serves only the routes friends need, never
 treats anyone as this PC, has its own cookie (browsers share cookies between ports), and only accepts invites and
-friends' own pairing codes. Wrong codes are limited separately at each door, so strangers can't lock you out of yours.
-A session someone joins is a room: the host's session id, which each guest's session points to.
+friends' own pairing codes. Wrong codes are limited separately at each door, so strangers can't lock you out of yours,
+and invites (far too long to guess) are never held up by other people's wrong ones. Your own devices' sign-ins count for
+nothing at the friends' door, and friends never see your PC's addresses.
+A session someone joins is a room: the host's session id, which each guest's session points to. A session never changes
+hands: nobody can log one under someone else's running session's id.
+
+Slow or greedy clients: a request must send its headers within 15 seconds and its body at 50 KB/s, each door
+serves at most 96 connections at once (so trouble at the friends' door can't reach yours), live updates are capped per
+person (the oldest page lets go), push subscriptions are the size of real ones and redirects from push services aren't
+followed. `data/` and the backups are only yours (folders 700, files 600).
+
+Fast over a slow link: each duck has a small copy for everywhere it isn't shown big (the full picture loads for its own
+page, its hatching and share pictures), the ponds have thumbnails for Settings, picture addresses carry their version
+so phones keep them for good, and answers over 1 KB are gzipped.
