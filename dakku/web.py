@@ -565,7 +565,9 @@ class Server(ThreadingHTTPServer):
     daemon_threads = True
     request_queue_size = 64
     allow_reuse_address = True
-    max_connections, headers_in, body_grace, wait_for_slot = MAX_CONNECTIONS, HEADERS_IN, BODY_GRACE, 5
+    # (wait_for_slot: how long a new connection waits for a free thread when they're all busy. The door's
+    # accept loop waits with it, so it's short: slots free up in milliseconds unless something's wrong.)
+    max_connections, headers_in, body_grace, wait_for_slot = MAX_CONNECTIONS, HEADERS_IN, BODY_GRACE, 1
 
     def __init__(self, *args, **kwargs):
         self._slots = threading.BoundedSemaphore(self.max_connections)
