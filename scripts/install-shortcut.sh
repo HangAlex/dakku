@@ -60,7 +60,7 @@ Actions=pond;stats;demo;
 
 [Desktop Action pond]
 Name=Pond
-Exec=brave-browser "--app=http://localhost:8640/#forest"
+Exec=brave-browser "--app=http://localhost:8640/#pond"
 
 [Desktop Action stats]
 Name=Stats

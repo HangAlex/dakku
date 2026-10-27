@@ -1,5 +1,5 @@
 [Unit]
-Description=鴨 Dakku, the study forest (http://localhost:8640)
+Description=鴨 Dakku, the study pond (http://localhost:8640)
 Documentation=https://github.com/HangAlex/dakku
 After=network-online.target
 Wants=network-online.target
