@@ -119,7 +119,7 @@ class TheDuckMaker(unittest.TestCase):
         self.assertEqual(facts["problems"], [])
 
     def test_a_chatgpt_picture_with_a_checkerboard(self):
-        # one duck on a painted-in grey checkerboard, the way ChatGPT sometimes "does" transparency
+        # one duck on a painted-in gray checkerboard, the way ChatGPT sometimes "does" transparency
         w, h = self.shiro.width + 200, self.shiro.height + 200
         board = Image.new("RGBA", (w, h))
         bp = board.load()
