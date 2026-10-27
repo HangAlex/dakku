@@ -6,9 +6,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from unittest import mock
 
-from mori import __main__ as entry, demo, logic
-from mori.app import App
-from mori.web import Server, make_handler
+from dakku import __main__ as entry, demo, logic
+from dakku.app import App
+from dakku.web import Server, make_handler
 from tests.test_api import Client
 
 
@@ -54,7 +54,7 @@ class DemoTest(unittest.TestCase):
                                    ("DELETE", "/api/devices/abcdef", None)):
             self.assertEqual(self.phone.call(method, path, body)[0], 403, path)
 
-    def test_it_still_works_like_mori(self):
+    def test_it_still_works_like_dakku(self):
         status, body, _ = self.phone.call("POST", "/api/timer", {"action": "start", "id": "trying-it", "minutes": 25})
         self.assertEqual(status, 200, body)
         self.assertEqual(self.phone.call("POST", "/api/timer", {"action": "cancel", "id": "trying-it"})[0], 200)
@@ -128,17 +128,17 @@ class DemoTest(unittest.TestCase):
 class Startup(unittest.TestCase):
     def test_the_demo_never_opens_your_data(self):
         with mock.patch.object(entry, "App") as fake:
-            _, _, port = entry.build(["--demo"], {"MORI_DATA": "/home/someone/real-data", "MORI_PORT": "8640"})
+            _, _, port = entry.build(["--demo"], {"DAKKU_DATA": "/home/someone/real-data", "DAKKU_PORT": "8640"})
         kwargs = fake.call_args.kwargs
         self.assertEqual(Path(kwargs["data_dir"]), entry.ROOT / "demo")
         self.assertTrue(kwargs["demo"])
         self.assertNotIn("backup_dir", kwargs)
         self.assertEqual(port, 8642)
 
-    def test_the_real_mori_is_unchanged(self):
+    def test_the_real_dakku_is_unchanged(self):
         with mock.patch.object(entry, "App") as fake:
-            _, _, port = entry.build([], {"MORI_DATA": "/tmp/mori-data"})
-        self.assertEqual(fake.call_args.kwargs["data_dir"], "/tmp/mori-data")
+            _, _, port = entry.build([], {"DAKKU_DATA": "/tmp/dakku-data"})
+        self.assertEqual(fake.call_args.kwargs["data_dir"], "/tmp/dakku-data")
         self.assertNotIn("demo", fake.call_args.kwargs)
         self.assertEqual(port, 8640)
 

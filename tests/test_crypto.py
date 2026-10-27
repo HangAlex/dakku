@@ -8,8 +8,8 @@ import time
 import unittest
 from pathlib import Path
 
-from mori import aesgcm, ec, webpush
-from mori.webpush import b64u, unb64u
+from dakku import aesgcm, ec, webpush
+from dakku.webpush import b64u, unb64u
 
 
 class AES(unittest.TestCase):

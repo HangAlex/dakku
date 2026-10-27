@@ -4,10 +4,11 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
+from unittest import mock
 
-from mori.app import MINUTE, App, now_ms
-from mori.store import Store
-from mori.web import Server, make_handler
+from dakku.app import MINUTE, App, now_ms
+from dakku.store import Store
+from dakku.web import Server, make_handler
 from tests.test_api import Client
 
 
@@ -113,14 +114,27 @@ class Invites(TogetherTest):
         self.assertEqual(guesser.call("POST", "/api/join", {"code": self.invite(self.group())["code"], "name": "x"})[0], 429)
 
     def test_strangers_guessing_cant_lock_you_out(self):
-        # wrong codes from all over the internet close the friends' door for a while, never yours
-        for n in range(40):
-            stranger = Client(self.friends_port, host="pc.example.ts.net:8443", extra={"X-Forwarded-For": f"198.51.100.{n}", "X-Forwarded-Proto": "https"})
-            self.assertEqual(stranger.call("POST", "/api/invite", {"code": "nope"})[0], 404)
-        self.assertEqual(self.door().call("POST", "/api/invite", {"code": "nope"})[0], 429)
+        # wrong pairing codes from all over the internet close the friends' door to pairing codes for a
+        # while, never yours; and invites, too long to guess, keep working for the friends they're for
+        stranger = lambda n: Client(self.friends_port, host="pc.example.ts.net:8443",  # noqa: E731
+                                    extra={"X-Forwarded-For": f"198.51.100.{n}", "X-Forwarded-Proto": "https"})
+        with mock.patch("dakku.app.time.sleep"):  # (each wrong code waits a moment: not here)
+            for n in range(40):
+                self.assertEqual(stranger(n).call("POST", "/api/login", {"pair": "123456"})[0], 401)
+        self.assertEqual(stranger(99).call("POST", "/api/login", {"pair": "123456"})[0], 429)
         code = self.me.call("POST", "/api/pair")[1]["code"]
         phone = Client(self.port, host="pc.example.ts.net", extra={"X-Forwarded-For": "100.1.2.3"})
         self.assertEqual(phone.call("POST", "/api/login", {"pair": code})[0], 200)
+        invite = self.invite(self.group())
+        self.assertEqual(self.door().call("POST", "/api/invite", {"code": invite["code"]})[0], 200)
+        self.assertEqual(self.door().call("POST", "/api/join", {"code": invite["code"], "name": "Mina"})[0], 200)
+
+    def test_strangers_getting_invites_wrong_dont_hold_up_a_real_one(self):
+        for n in range(60):
+            stranger = Client(self.friends_port, host="pc.example.ts.net:8443", extra={"X-Forwarded-For": f"198.51.100.{n}", "X-Forwarded-Proto": "https"})
+            self.assertEqual(stranger.call("POST", "/api/invite", {"code": "nope"})[0], 404)
+        invite = self.invite(self.group())
+        self.assertEqual(self.door().call("POST", "/api/join", {"code": invite["code"], "name": "Mina"})[0], 200)
 
     def test_a_made_up_address_doesnt_dodge_the_limit(self):
         # Tailscale adds the address it really saw at the end; whatever a browser sent itself comes first
@@ -165,9 +179,9 @@ class TheFriendsDoor(TogetherTest):
 
     def test_a_friends_sign_in_never_reaches_your_door(self):
         mina = self.friend(self.group())
-        self.assertTrue(mina.cookie.startswith("mori_friend="))
+        self.assertTrue(mina.cookie.startswith("dakku_friend="))
         # the same browser, on your door: her cookie (under its own name) isn't yours to read
-        same_browser = Client(self.port, host="pc.example.ts.net", extra={"X-Forwarded-For": "100.1.2.3", "Cookie": mina.cookie.replace("mori_friend=", "mori_friend=")})
+        same_browser = Client(self.port, host="pc.example.ts.net", extra={"X-Forwarded-For": "100.1.2.3", "Cookie": mina.cookie})
         self.assertEqual(same_browser.call("GET", "/api/bootstrap")[0], 401)
         # and this PC is always you, even with a friend's token
         token = mina.cookie.split("=", 1)[1]
@@ -457,9 +471,9 @@ class Pomodoro(TogetherTest):
 
 
 class Upgrade(unittest.TestCase):
-    def test_an_older_mori_becomes_yours(self):
+    def test_an_older_dakku_becomes_yours(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "mori.db"
+            path = Path(tmp) / "dakku.db"
             db = sqlite3.connect(path)
             db.executescript("""
                 CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);

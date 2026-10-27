@@ -9,9 +9,9 @@ import unittest
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from mori import ec, logic, webpush
-from mori.app import LIVE_PER_PERSON, MINUTE, ApiError, App, Ctx, now_ms
-from mori.web import Server, make_handler
+from dakku import ec, logic, webpush
+from dakku.app import LIVE_PER_PERSON, MINUTE, ApiError, App, Ctx, now_ms
+from dakku.web import Server, make_handler
 
 
 class Client:
@@ -24,7 +24,7 @@ class Client:
         if self.cookie:
             h["Cookie"] = self.cookie
         if method not in ("GET", "HEAD") and csrf:
-            h["X-Mori"] = "1"
+            h["X-Dakku"] = "1"
         data = None
         if body is not None:
             data = json.dumps(body).encode()
@@ -32,9 +32,9 @@ class Client:
         conn.request(method, path, data, h)
         res = conn.getresponse()
         raw = res.read()
-        cookie = res.getheader("Set-Cookie")
-        if cookie and cookie.startswith(("mori=", "mori_friend=")) and "Max-Age=0" not in cookie:
-            self.cookie = cookie.split(";")[0]
+        for cookie in res.headers.get_all("Set-Cookie") or []:
+            if cookie.startswith(("dakku=", "dakku_friend=")) and "Max-Age=0" not in cookie:
+                self.cookie = cookie.split(";")[0]
         conn.close()
         try:
             payload = json.loads(raw) if raw and res.getheader("Content-Type", "").startswith("application/json") else raw
@@ -43,7 +43,7 @@ class Client:
         return res.status, payload, res
 
 
-class MoriTest(unittest.TestCase):
+class DakkuTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         root = Path(self.tmp.name)
@@ -71,7 +71,7 @@ class MoriTest(unittest.TestCase):
         return body
 
 
-class Trust(MoriTest):
+class Trust(DakkuTest):
     def test_this_pc_is_trusted(self):
         status, body, _ = self.local.call("GET", "/api/whoami")
         self.assertEqual(status, 200)
@@ -99,7 +99,7 @@ class Trust(MoriTest):
         self.assertEqual(self.phone.call("GET", "/api/passcode")[0], 403)
 
 
-class SignIn(MoriTest):
+class SignIn(DakkuTest):
     def test_wrong_then_rate_limited(self):
         for _ in range(5):
             self.assertEqual(self.phone.call("POST", "/api/login", {"passcode": "nope nope"})[0], 401)
@@ -157,7 +157,7 @@ class SignIn(MoriTest):
         self.assertEqual(self.phone.call("POST", "/api/login", {"pair": code})[0], 401)
 
 
-class Timer(MoriTest):
+class Timer(DakkuTest):
     def start(self, client=None, **body):
         status, data, _ = (client or self.local).call("POST", "/api/timer", {"action": "start", "minutes": 25, **body})
         self.assertEqual(status, 200, data)
@@ -255,7 +255,7 @@ class Timer(MoriTest):
         self.assertIn("Subnetting", [t["name"] for t in self.app.settings()["tags"]])
 
 
-class Sync(MoriTest):
+class Sync(DakkuTest):
     def test_round_trip(self):
         base = self.local.call("GET", "/api/sync?since=0")[1]
         self.assertEqual(base["sessions"], [])
@@ -345,7 +345,7 @@ class Sync(MoriTest):
         conn.close()
 
 
-class Files(MoriTest):
+class Files(DakkuTest):
     def test_app_files(self):
         status, body, res = self.phone.call("GET", "/")
         self.assertEqual(status, 200)
@@ -374,11 +374,11 @@ class Files(MoriTest):
         self.assertNotIn("Traceback", noise.getvalue())
 
     def test_no_escaping_the_web_folder(self):
-        for path in ("/../mori/app.py", "/%2e%2e/data/passcode.txt", "/../data/passcode.txt", "/missing.js"):
+        for path in ("/../dakku/app.py", "/%2e%2e/data/passcode.txt", "/../data/passcode.txt", "/missing.js"):
             self.assertEqual(self.phone.call("GET", path)[0], 404, path)
 
 
-class Push(MoriTest):
+class Push(DakkuTest):
     def test_subscriptions_are_checked(self):
         self.sign_in_phone()
         ua = ec.generate_private_key()
@@ -394,7 +394,7 @@ class Push(MoriTest):
         self.assertEqual(plain.call("POST", "/api/push/subscribe", {"subscription": good})[0], 400)
 
 
-class Limits(MoriTest):
+class Limits(DakkuTest):
     def raw(self, data, port=None):
         s = socket.create_connection(("127.0.0.1", port or self.port))
         s.settimeout(5)
@@ -406,8 +406,8 @@ class Limits(MoriTest):
 
     def test_bad_and_big_bodies(self):
         # a negative length used to keep the server reading (and holding it all) for as long as the sender kept sending
-        self.assertIn(b" 400 ", self.raw(b"POST /api/login HTTP/1.0\r\nHost: x\r\nX-Mori: 1\r\nContent-Length: -1\r\n\r\n" + b"x" * 4096))
-        self.assertIn(b" 400 ", self.raw(b"POST /api/login HTTP/1.0\r\nHost: x\r\nX-Mori: 1\r\nContent-Length: lots\r\n\r\n"))
+        self.assertIn(b" 400 ", self.raw(b"POST /api/login HTTP/1.0\r\nHost: x\r\nX-Dakku: 1\r\nContent-Length: -1\r\n\r\n" + b"x" * 4096))
+        self.assertIn(b" 400 ", self.raw(b"POST /api/login HTTP/1.0\r\nHost: x\r\nX-Dakku: 1\r\nContent-Length: lots\r\n\r\n"))
         stranger = Client(self.port, host="phone.example")
         self.assertEqual(stranger.call("POST", "/api/login", {"passcode": "x" * 100_000})[0], 413)  # before signing in: small
         self.assertEqual(self.local.call("POST", "/api/sync", {"ops": [], "since": 0, "pad": "x" * 100_000})[0], 200)  # signed in: fine
@@ -435,14 +435,14 @@ class Limits(MoriTest):
         self.local.call("POST", "/api/push/unsubscribe", {"endpoint": "https://web.push.apple.com/mine"})
         self.assertEqual(self.app.store.pushes(), [])
 
-    def test_live_updates_are_capped(self):
+    def test_live_updates_are_capped_and_the_oldest_page_lets_go(self):
         held = [self.app.subscribe("me") for _ in range(LIVE_PER_PERSON)]
-        with self.assertRaises(ApiError) as err:
-            self.app.subscribe("me")
-        self.assertEqual(err.exception.status, 429)
-        self.app.subscribe("friend01")  # someone else's are their own
-        self.app.unsubscribe(held.pop())
-        self.app.subscribe("me")
+        self.assertTrue(all(self.app.still_wanted(q) for q in held))
+        newest = self.app.subscribe("me")  # one page too many: the oldest is let go, never the new one
+        self.assertEqual([self.app.still_wanted(q) for q in held], [False] + [True] * (LIVE_PER_PERSON - 1))
+        self.assertTrue(self.app.still_wanted(newest))
+        other = self.app.subscribe("friend01")  # someone else's are their own
+        self.assertTrue(all(self.app.still_wanted(q) for q in held[1:] + [newest, other]))
 
 
 class Rules(unittest.TestCase):
@@ -480,29 +480,30 @@ class Rules(unittest.TestCase):
 
 
 
-class Backups(MoriTest):
+class Backups(DakkuTest):
     def test_daily_backup(self):
         day = self.app.backup(force=True)
         folder = Path(self.tmp.name) / "backups"
         self.assertTrue((folder / f"dakku-{day}.db").exists())
         exported = json.loads((folder / f"dakku-{day}.json").read_text())
-        self.assertEqual(exported["app"], "mori")  # (the format's name, which imports look for)
+        self.assertEqual(exported["app"], "dakku")
         self.assertIsNone(self.app.backup())  # once a day
 
     def test_old_backups_are_pruned_by_date_whatever_their_name(self):
         folder = Path(self.tmp.name) / "backups"
         folder.mkdir(exist_ok=True)
-        for i in range(40):  # from before they were called dakku-…
+        for i in range(40):  # from before Dakku had its name, they were called mori-…
             (folder / f"mori-2025-{1 + i // 28:02d}-{1 + i % 28:02d}.json").write_text("{}")
         day = self.app.backup(force=True)
         kept = sorted(p.name for p in folder.glob("*.json"))
         self.assertEqual(len(kept), 30)
         self.assertIn(f"dakku-{day}.json", kept)  # the newest stays
-        self.assertNotIn("mori-2025-01-01.json", kept)  # the oldest go
+        self.assertNotIn("dakku-2025-01-01.json", kept)  # the oldest go
+        self.assertEqual([k for k in kept if not k.startswith("dakku-")], [])  # and the old ones have Dakku's name
 
 
 
-class Upgrade(MoriTest):
+class Upgrade(DakkuTest):
     def test_trees_from_before_become_ducks(self):
         self.app.store.set("settings", dict(self.app.settings(), species="sakura", theme="washi"))
         self.app.store.upsert({"id": "oldTree01", "start": now_ms() - 24 * 60 * MINUTE, "minutes": 25, "species": "momiji", "updated": now_ms()})

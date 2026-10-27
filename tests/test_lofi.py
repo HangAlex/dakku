@@ -5,7 +5,7 @@ import sys
 import unittest
 from pathlib import Path
 
-from mori import web
+from dakku import web
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))

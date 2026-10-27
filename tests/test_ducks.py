@@ -1,5 +1,6 @@
 """The ducks: the list, their pictures, the app and the server all agree, and the duck maker keeps
 new pictures in Dakku's style."""
+import hashlib
 import json
 import re
 import sys
@@ -9,7 +10,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from mori import logic
+from dakku import logic
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -28,7 +29,17 @@ class TheList(unittest.TestCase):
             self.assertIn(did, self.pictured)
         self.assertEqual(list(self.manifest["kinds"]), self.pictured)  # published, in the list's order
         for did, entry in self.manifest["kinds"].items():
-            self.assertTrue((ROOT / "web" / entry["src"].lstrip("/")).is_file(), did)
+            self.assertTrue((ROOT / "web" / entry["src"].split("?")[0].lstrip("/")).is_file(), did)
+            self.assertIn("small", entry, did)  # its small copy, for everywhere it isn't shown big
+
+    def test_every_picture_address_names_its_version(self):
+        # phones keep pictures for good, so an address must change whenever its picture does
+        addresses = re.findall(r'"(/ducks/[^"]+)"', (ROOT / "web" / "ducks" / "ducks.json").read_text())
+        self.assertGreater(len(addresses), 100)
+        for address in addresses:
+            path, _, version = address.partition("?v=")
+            data = (ROOT / "web" / path.lstrip("/")).read_bytes()
+            self.assertEqual(version, hashlib.sha256(data).hexdigest()[:10], address)
 
     def test_the_app_and_the_server_know_the_same_ducks(self):
         js = (ROOT / "web" / "kinds.js").read_text()
