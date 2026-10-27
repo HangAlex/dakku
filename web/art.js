@@ -225,13 +225,13 @@ const Art = (() => {
           all([list.cold], (pic) => { sprites.cold = pic; }),
           // the ripples all together: how many there are picks each duck's ring
           all(list.ripples || []).then((ripples) => { sprites.ripples = ripples.filter(Boolean); changed?.(); })]);
-        // each duck's small copy, which is all most screens need (a duck's full picture comes with sharpen),
-        // and each decoration's (no screen shows one bigger)
+        // A decoration is placed by its size, and shown by its address: so nothing is fetched for it until a
+        // pond with it is on screen (most ponds have none), or a share picture decodes it (see ready).
+        // Its small copy is all any screen needs.
+        for (const [id, e] of Object.entries(list.decor || {})) if (DECOR[id]) sprites.decor[id] = { ...e, src: e.small || e.src };
+        // each duck's small copy, which is all most screens need (a duck's full picture comes with sharpen)
         const kinds = Object.entries(list.kinds || {}).filter(([k]) => KINDS[k]);
-        const decor = Object.entries(list.decor || {}).filter(([id]) => DECOR[id]);
-        await Promise.all([
-          all(kinds.map(([, e]) => ({ ...e, src: e.small || e.src, full: e.src })), (pic, i) => { if (!sprites.kinds[kinds[i][0]]?.sharp) sprites.kinds[kinds[i][0]] = { ...pic, sharp: !pic.small }; }),
-          all(decor.map(([, e]) => ({ ...e, src: e.small || e.src })), (pic, i) => { sprites.decor[decor[i][0]] = pic; })]);
+        await all(kinds.map(([, e]) => ({ ...e, src: e.small || e.src, full: e.src })), (pic, i) => { if (!sprites.kinds[kinds[i][0]]?.sharp) sprites.kinds[kinds[i][0]] = { ...pic, sharp: !pic.small }; });
         return true;
       })
       .catch(() => false);
