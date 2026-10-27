@@ -75,9 +75,9 @@ Turn on as many as you like. Each one finds its own spot on the water and the du
   <img src="media/godzilla.png" width="290" alt="The Godzilla duck enlarged in the gallery: King of the Monsters, and of the pond.">
 </p>
 
-Pick a duck before you start, or let it be a surprise. There are forty of them: Dakku's own ten (a sailor, a ninja, a
-fox mask from the shrine festival, an astronaut…), fan-art outfits of characters I like from games and anime, and
-holiday ones like a witch, a pilgrim and Santa. The gallery shows how many of each you've hatched, with a little line
+Pick a duck before you start, or let it be a surprise. There are fifty of them: Dakku's own ten (a sailor, a ninja, a
+fox mask from the shrine festival, an astronaut…), fan-art outfits of characters I like from games and anime (Goku,
+Link, Shulk, EVE, Chainsaw Man, Death the Kid…), and holiday ones like a witch, a pilgrim and Santa. The gallery shows how many of each you've hatched, with a little line
 about every one.
 
 ## Holiday events
