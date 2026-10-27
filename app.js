@@ -875,6 +875,7 @@
       <div class="progress-text"><span>${mins} of ${d.goal} min today</span><span>${right}</span></div>`;
   }
 
+  let pomoMarkup = ''; // the pomodoro boxes as last drawn
   function renderPlantControls() {
     const t = S.timer;
     $('#idle-controls').hidden = !!t;
@@ -891,12 +892,15 @@
       if (S.pick.mode === 'pomo' && !document.activeElement?.matches('#pomo-pick input')) {
         const p = S.pick.pomo;
         // the number can be typed too, for a big jump (95 minutes is a lot of taps)
-        $('#pomo-pick').innerHTML = [['focus', 'Focus', 'min'], ['brk', 'Break', 'min'], ['rounds', 'Rounds', '']].map(([k, label, unit]) => `
+        const html = [['focus', 'Focus', 'min'], ['brk', 'Break', 'min'], ['rounds', 'Rounds', '']].map(([k, label, unit]) => `
           <div class="stepper"><span class="lbl">${label}</span>
             <button type="button" data-pomo="${k}" data-step="-1" aria-label="Less ${label.toLowerCase()}"${p[k] <= POMO_LIMITS[k][0] ? ' disabled' : ''}>−</button>
             <label class="val"><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" enterkeyhint="done" data-pomo-in="${k}" value="${p[k]}"
               aria-label="${label}${unit ? ' in minutes' : ''}, ${POMO_LIMITS[k][0]} to ${POMO_LIMITS[k][1]}">${unit ? `<small>${unit}</small>` : ''}</label>
             <button type="button" data-pomo="${k}" data-step="1" aria-label="More ${label.toLowerCase()}"${p[k] >= POMO_LIMITS[k][1] ? ' disabled' : ''}>+</button></div>`).join('');
+        // only redrawn when something changed: a redraw swaps the boxes for new ones, and a finger
+        // just landing on one would lose it (on a phone: the keyboard flashing open and shut)
+        if (html !== pomoMarkup) { $('#pomo-pick').innerHTML = html; pomoMarkup = html; }
       }
       const tags = S.settings.tags;
       $('#tag-chips').innerHTML = [{ name: '' }, ...tags].map((tag) => `
@@ -1847,12 +1851,25 @@
     if (!dlg.open) dlg.showModal();
     if (sp) showDuck(sp);
     else $('#ducks-dialog .sheet-body').scrollTop = 0;
+    // the full pictures come in while you look at the grid, so an enlarged duck is sharp at once
+    // (each is small, and kept for good once fetched): the ones you've hatched first
+    if (!pick) warmDucks([...SPECIES].sort((a, b) => (d.bySpecies.get(b) ? 1 : 0) - (d.bySpecies.get(a) ? 1 : 0)));
+  }
+  let warming = false;
+  function warmDucks(kinds) {
+    if (warming) return;
+    warming = true;
+    const queue = [...kinds];
+    const later = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn) : setTimeout(fn, 50));
+    const next = () => { const k = queue.shift(); if (!k) { warming = false; return; } Art.sharpen([k]).finally(() => later(next)); };
+    next();
   }
 
   // one duck, big, with what it's about; ‹ › go through them all
   function showDuck(sp) {
     const info = Art.KINDS[sp], n = derive().bySpecies.get(sp) || 0, i = SPECIES.indexOf(sp);
     const before = SPECIES[(i - 1 + SPECIES.length) % SPECIES.length], after = SPECIES[(i + 1) % SPECIES.length];
+    Art.sharpen([before, after]); // the next ones ‹ › show are sharp at once
     $('#duck-detail').innerHTML = `
       <button class="link" type="button" data-back>← All ducks</button>
       <div class="duck-big">${Art.duckSVG(sp, { big: true })}</div>
@@ -2406,9 +2423,18 @@
     $('#done-stats').innerHTML = `<div><b>${todayMin}<small style="font-size:14px;font-weight:500">/${d.goal}</small></b><span>min today</span></div><div><b>${streak}</b><span>day streak</span></div><div><b>${d.trees + (pending ? 1 : 0)}</b><span>ducks in all</span></div>`;
     $('#done-share').hidden = false;
     $('#done-again').textContent = 'Hatch another';
+    noteBox(s);
     feathers(info.color);
     $('#done').hidden = false;
     render();
+  }
+  // a note on the duck that just hatched (what it was for), kept with its session and shown in the log
+  function noteBox(s) {
+    $('#done-note').hidden = false;
+    $('#done-note-form').hidden = true;
+    $('#done-note-btn').hidden = false;
+    $('#done-note-btn').textContent = s.note ? `Note: ${s.note}` : 'Add a note';
+    $('#done-note-in').value = s.note || '';
   }
   function showWithered(s) {
     if (!s) return;
@@ -2419,6 +2445,7 @@
     $('#done-title').textContent = 'This egg went cold';
     $('#done-sub').textContent = `${fmtMin(s.minutes)}${s.tag ? ` of ${s.tag}` : ''}${s.note ? ` · ${s.note}` : ''}. It stays in your pond, but doesn't count.`;
     $('#done-stats').innerHTML = '';
+    $('#done-note').hidden = true;
     $('#petals').innerHTML = '';
     $('#done-share').hidden = true;
     $('#done-again').textContent = 'Try again';
@@ -2942,15 +2969,15 @@
       const input = e.target.closest('[data-pomo-in]');
       if (!input) return;
       input.dataset.was = S.pick.pomo[input.dataset.pomoIn];
-      input.dataset.fresh = '1';
-      setTimeout(() => input.select(), 0);
+      input.dataset.fresh = '1'; // the first digit typed replaces the number
+      // shown selected on a computer; not on a phone, where selecting makes the screen jump about
+      if (matchMedia('(hover: hover)').matches) setTimeout(() => input.select(), 0);
     });
-    // all of it selected, so typing replaces it: on a tap, once it's over (letting go places the cursor)
-    $('#pomo-pick').addEventListener('click', (e) => {
+    $('#pomo-pick').addEventListener('beforeinput', (e) => {
       const input = e.target.closest('[data-pomo-in]');
       if (!input?.dataset.fresh) return;
       delete input.dataset.fresh;
-      input.setSelectionRange(0, input.value.length);
+      if (e.inputType.startsWith('insert') || e.inputType.startsWith('delete')) input.value = '';
     });
     const typed = (input, settle) => {
       const k = input.dataset.pomoIn, [low, high] = POMO_LIMITS[k], n = parseInt(input.value, 10);
@@ -2972,7 +2999,6 @@
     $('#pomo-pick').addEventListener('keydown', (e) => {
       const input = e.target.closest('[data-pomo-in]');
       if (!input) return;
-      delete input.dataset.fresh;
       if (e.key === 'Escape') input.value = input.dataset.was;
       if (e.key === 'Enter' || e.key === 'Escape') input.blur();
     });
@@ -3064,6 +3090,24 @@
         return;
       }
       if (await confirmBox('Give up this egg?', 'It goes cold. Cold eggs stay in your pond but don\'t count toward your goal.', 'Give up')) timerAction('cancel');
+    });
+    $('#done-note-btn').addEventListener('click', () => {
+      $('#done-note-btn').hidden = true;
+      $('#done-note-form').hidden = false;
+      $('#done-note-in').focus();
+    });
+    $('#done-note-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const s = lastDone;
+      if (!s) return;
+      const note = $('#done-note-in').value.trim().slice(0, 300), now = serverNow();
+      s.note = note;
+      const have = S.sessions.get(s.id);
+      if (have) S.sessions.set(s.id, { ...have, note, updated: now });
+      // the whole session goes along, in case the PC hasn't confirmed this duck yet
+      enqueue({ op: 'upsert', session: { id: s.id, start: s.start, minutes: s.minutes, tag: s.tag, species: s.species, status: s.status, rounds: s.rounds || 0, note, updated: now } });
+      noteBox(s);
+      render();
     });
     $('#done-close').addEventListener('click', () => { $('#done').hidden = true; });
     $('#done').addEventListener('click', (e) => { if (e.target.id === 'done') $('#done').hidden = true; });

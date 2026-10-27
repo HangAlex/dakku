@@ -38,7 +38,7 @@
    "baseY": 500,
    "unit": 0.18902,
    "small": "ducks/super.small.webp?v=7425bc9ae0",
-   "name": "Super"
+   "name": "Goku"
   },
   "ninja": {
    "src": "ducks/ninja.webp?v=02ac2e5a60",
@@ -371,13 +371,13 @@
    "name": "Ike"
   },
   "witch": {
-   "src": "ducks/witch.webp?v=8ef2ddc843",
-   "w": 487,
+   "src": "ducks/witch.webp?v=7bfa92f705",
+   "w": 455,
    "h": 512,
-   "baseX": 224.8,
-   "baseY": 511.4,
-   "unit": 0.15314,
-   "small": "ducks/witch.small.webp?v=dcd4726eed",
+   "baseX": 225.6,
+   "baseY": 510.7,
+   "unit": 0.15644,
+   "small": "ducks/witch.small.webp?v=6dd9dd328e",
    "name": "Witch"
   },
   "harvest": {
@@ -401,13 +401,13 @@
    "name": "Santa"
   },
   "shulk": {
-   "src": "ducks/shulk.webp?v=f72bf0502f",
-   "w": 540,
+   "src": "ducks/shulk.webp?v=5152b90c9d",
+   "w": 493,
    "h": 512,
-   "baseX": 219.1,
-   "baseY": 510.7,
-   "unit": 0.15502,
-   "small": "ducks/shulk.small.webp?v=ed7cca93fe",
+   "baseX": 298.6,
+   "baseY": 510.8,
+   "unit": 0.15972,
+   "small": "ducks/shulk.small.webp?v=a5469f11e1",
    "name": "Shulk"
   },
   "yagami": {
@@ -431,23 +431,23 @@
    "name": "EVE"
   },
   "nagisa": {
-   "src": "ducks/nagisa.webp?v=054531f703",
+   "src": "ducks/nagisa.webp?v=2fbfdb18d6",
    "w": 453,
    "h": 512,
-   "baseX": 219.0,
+   "baseX": 211.3,
    "baseY": 510.9,
-   "unit": 0.15783,
-   "small": "ducks/nagisa.small.webp?v=90a21fc43b",
+   "unit": 0.16942,
+   "small": "ducks/nagisa.small.webp?v=5b2f294c85",
    "name": "Nagisa"
   },
   "monokuma": {
-   "src": "ducks/monokuma.webp?v=7af3c43890",
-   "w": 414,
+   "src": "ducks/monokuma.webp?v=255a331ece",
+   "w": 402,
    "h": 512,
-   "baseX": 193.7,
-   "baseY": 511.4,
-   "unit": 0.15199,
-   "small": "ducks/monokuma.small.webp?v=08e1df4279",
+   "baseX": 201.4,
+   "baseY": 511.0,
+   "unit": 0.15979,
+   "small": "ducks/monokuma.small.webp?v=bafbbff35a",
    "name": "Monokuma"
   },
   "yuta": {
@@ -461,44 +461,44 @@
    "name": "Yuta"
   },
   "kazuma": {
-   "src": "ducks/kazuma.webp?v=ac98e93a4e",
-   "w": 451,
-   "h": 512,
-   "baseX": 209.1,
-   "baseY": 510.5,
-   "unit": 0.15164,
-   "small": "ducks/kazuma.small.webp?v=5d31a94e5c",
-   "name": "Kazuma"
-  },
-  "talon": {
-   "src": "ducks/talon.webp?v=c10423e4e2",
-   "w": 692,
-   "h": 512,
-   "baseX": 230.9,
-   "baseY": 510.5,
-   "unit": 0.13334,
-   "small": "ducks/talon.small.webp?v=7bd911a455",
-   "name": "Talon"
-  },
-  "denji": {
-   "src": "ducks/denji.webp?v=a0adad7f10",
+   "src": "ducks/kazuma.webp?v=aede007d63",
    "w": 442,
    "h": 512,
-   "baseX": 173.3,
-   "baseY": 511.0,
-   "unit": 0.19058,
-   "small": "ducks/denji.small.webp?v=3d9a9db40a",
+   "baseX": 225.6,
+   "baseY": 510.7,
+   "unit": 0.15063,
+   "small": "ducks/kazuma.small.webp?v=473c4f4670",
+   "name": "Kazuma"
+  },
+  "denji": {
+   "src": "ducks/denji.webp?v=8672f1ed9c",
+   "w": 607,
+   "h": 512,
+   "baseX": 401.0,
+   "baseY": 510.8,
+   "unit": 0.16782,
+   "small": "ducks/denji.small.webp?v=81eef3c6bb",
    "name": "Denji"
   },
   "kid": {
-   "src": "ducks/kid.webp?v=f81e11717f",
-   "w": 530,
+   "src": "ducks/kid.webp?v=17b72d4478",
+   "w": 443,
    "h": 512,
-   "baseX": 231.2,
-   "baseY": 510.7,
-   "unit": 0.14089,
-   "small": "ducks/kid.small.webp?v=eba1a58ae9",
+   "baseX": 217.7,
+   "baseY": 510.8,
+   "unit": 0.14646,
+   "small": "ducks/kid.small.webp?v=983d27bc71",
    "name": "Kid"
+  },
+  "randy": {
+   "src": "ducks/randy.webp?v=33504c9f0d",
+   "w": 462,
+   "h": 512,
+   "baseX": 219.7,
+   "baseY": 510.7,
+   "unit": 0.1422,
+   "small": "ducks/randy.small.webp?v=63a13629be",
+   "name": "Randy"
   }
  },
  "eggs": [
