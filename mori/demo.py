@@ -19,7 +19,7 @@ STEADY = 40          # no missed weekdays in the last this-many days, so the str
 TAGS = ["CCNA"] * 5 + ["Japanese"] * 4 + ["Subnetting"] * 2 + ["Reading"]
 LENGTHS = [25, 25, 25, 30, 45, 45, 50, 60, 15, 90]
 SOURCES = ["mori", "mori", "mori", "genkan", "genkan", "manual"]
-# (id, name, colour, mark, what they study, their favourite duck)
+# (id, name, color, mark, what they study, their favorite duck)
 FRIENDS = (("demo-mina", "Mina", "#D9568F", "M", ["Japanese", "Japanese", "Design", "Reading"], "kirby"),
            ("demo-kai", "Kai", "#E9A100", "K", ["Calculus", "Coding", "Coding", "Physics"], "sonic"))
 GROUP = "demo-club"

@@ -36,7 +36,7 @@ ID_RE = re.compile(r"^[A-Za-z0-9_-]{4,64}$")
 COLOR_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
 TIME_RE = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
 # 朱 vermilion, 若竹 bamboo, 山吹 gold, 牡丹 peony, 瑠璃 lapis, 常磐 evergreen, 菫 violet, 紅 crimson:
-# traditional colours in an order that stays distinguishable for colour-blind eyes (checked with a validator)
+# traditional colors in an order that stays distinguishable for color-blind eyes (checked with a validator)
 TAG_COLORS = ("#D9482B", "#12A37A", "#E9A100", "#D9568F", "#2B6CC4", "#2E8B3A", "#6C55C8", "#C9283E")
 THEMES = ("ai", "sumi", "yozakura", "sakura", "halloween", "thanksgiving", "christmas")  # dark, and Sakura, the one light one
 EXTENSION_ORIGINS = ("chrome-extension://laplipljbbgpfinlebaaphokcbijpgoo",)  # the Genkan homepage
@@ -1160,7 +1160,7 @@ class App:
         return min(TAG_COLORS, key=lambda c: (used.count(c), TAG_COLORS.index(c)))
 
     def update_person(self, ctx, pid, body):
-        """Name, colour and mark: your own, or anyone's if it's your Dakku."""
+        """Name, color and mark: your own, or anyone's if it's your Dakku."""
         if pid != ctx.person and not ctx.owner:
             raise ApiError(403, "That's someone else's profile.")
         person = self._person_or_404(pid)

@@ -4,7 +4,7 @@ A day counts once you reach the daily goal. Missing a weekday breaks the streak;
 weekends never do (studying on one still adds a day). Today can't break it yet.
 Every 7 days in a row earns a streak freeze (you can hold 2): a missed weekday uses one
 up instead of breaking the streak, though it doesn't add a day either.
-Days are counted in your home time zone, so travelling doesn't scramble them.
+Days are counted in your home time zone, so traveling doesn't scramble them.
 """
 import json
 import re

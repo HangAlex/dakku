@@ -1,7 +1,7 @@
 """Just enough NIST P-256 for Web Push, in plain Python: keys, ECDH and ES256 signatures.
 
 A notification needs a handful of these operations, all on this computer, so this
-favours being short and checkable over speed or constant-time tricks.
+favors being short and checkable over speed or constant-time tricks.
 """
 import hashlib
 import secrets
