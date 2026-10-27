@@ -1,3 +1,4 @@
+# Kept out of git: your data and backups, the demo's data, review pictures, and private files
 data/
 __pycache__/
 *.pyc
