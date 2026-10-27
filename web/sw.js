@@ -3,11 +3,11 @@
 'use strict';
 
 const BUILD = '__BUILD__';
-const CACHE = `mori-${BUILD}`;
-const FONTS = 'mori-fonts';
-const PICTURES = 'mori-pictures'; // kept through updates: 70-odd pictures are slow to fetch again over the internet
-const SHELL = ['/', '/app.css', '/app.js', '/art.js', '/kinds.js', '/qr.js', '/lofi.js', '/manifest.webmanifest',
-  '/icons/icon-192.png', '/icons/apple-touch-icon.png', '/icons/favicon.png'];
+const CACHE = `dakku-${BUILD}`;
+const FONTS = 'dakku-fonts';
+const PICTURES = 'dakku-pictures'; // kept through updates: 70-odd pictures are slow to fetch again over the internet
+// (the Home Screen icons aren't here: they're only fetched when Dakku is added to one, and that's online)
+const SHELL = ['/', '/app.css', '/app.js', '/art.js', '/kinds.js', '/qr.js', '/lofi.js', '/manifest.webmanifest', '/icons/favicon.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
@@ -19,6 +19,12 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
+    // the pictures and fonts saved before Dakku had its name ("mori-…") are kept: they're slow to fetch again
+    for (const [from, to] of [['mori-pictures', PICTURES], ['mori-fonts', FONTS]]) {
+      if (!(await caches.has(from))) continue;
+      const old = await caches.open(from), kept = await caches.open(to);
+      for (const req of await old.keys()) if (!(await kept.match(req))) await kept.put(req, await old.match(req));
+    }
     for (const key of await caches.keys()) if (![CACHE, FONTS, PICTURES].includes(key)) await caches.delete(key);
     await self.clients.claim();
   })());
@@ -30,7 +36,8 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   if (url.origin === self.location.origin) {
     if (url.pathname.startsWith('/api/')) return; // your data always comes live from the PC
-    event.respondWith(req.mode === 'navigate' ? page(req) : asset(req));
+    if (url.pathname.startsWith('/ducks/') && url.searchParams.has('v')) event.respondWith(picture(req));
+    else event.respondWith(req.mode === 'navigate' ? page(req) : asset(req, event));
   } else if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
     event.respondWith(font(req));
   }
@@ -55,15 +62,40 @@ async function page(req) {
   }
 }
 
-// scripts, styles, icons and pictures: straight from the saved copy, refreshed in the background
-async function asset(req) {
-  const cache = await caches.open(new URL(req.url).pathname.startsWith('/ducks/') ? PICTURES : CACHE);
+// scripts, styles, icons and the list of pictures: straight from the saved copy, refreshed in the background
+async function asset(req, event) {
+  const list = new URL(req.url).pathname === '/ducks/ducks.json';
+  const cache = await caches.open(list ? PICTURES : CACHE);
   const hit = await cache.match(req, { ignoreSearch: true });
   const fresh = fetch(req).then((res) => {
-    if (res.ok) cache.put(req, res.clone());
+    if (res.ok) {
+      cache.put(req, res.clone());
+      if (list) event.waitUntil(forget(res.clone()));
+    }
     return res;
   }).catch(() => null);
   return hit || (await fresh) || Response.error();
+}
+
+// a picture: its address ends in its version (?v=), so a saved one is never out of date and is kept
+// as it is; nothing is asked of the PC for it again
+async function picture(req) {
+  const cache = await caches.open(PICTURES);
+  const hit = await cache.match(req);
+  if (hit) return hit;
+  const res = await fetch(req);
+  if (res.ok) cache.put(req, res.clone());
+  return res;
+}
+
+// the saved pictures the list no longer has (an old version of one, a duck that's gone)
+async function forget(listRes) {
+  const keep = new Set((await listRes.text()).match(/\/ducks\/[^"]+/g) || []);
+  const cache = await caches.open(PICTURES);
+  for (const req of await cache.keys()) {
+    const url = new URL(req.url);
+    if (url.pathname !== '/ducks/ducks.json' && !keep.has(url.pathname + url.search)) await cache.delete(req);
+  }
 }
 
 async function font(req) {
@@ -85,7 +117,7 @@ self.addEventListener('push', (event) => {
   // iPhone requires every push to show a notification right away
   event.waitUntil(self.registration.showNotification(data.title || '鴨 Dakku', {
     body: data.body || '',
-    tag: data.tag || 'mori',
+    tag: data.tag || 'dakku',
     renotify: true,
     icon: '/icons/icon-192.png',
     data: { url: data.url || '/' },

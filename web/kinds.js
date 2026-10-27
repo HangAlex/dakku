@@ -1,5 +1,5 @@
 /* 鴨 Dakku: the ducks, from art/ducks.json. Written by scripts/duck.py: don't edit it by hand. */
-window.MORI_DUCKS = {
+window.DAKKU_DUCKS = {
  "shiro": {
   "kanji": "白",
   "name": "Shiro",

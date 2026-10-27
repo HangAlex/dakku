@@ -1,369 +1,409 @@
 {
  "kinds": {
   "shiro": {
-   "src": "/ducks/shiro.webp",
+   "src": "/ducks/shiro.webp?v=4117615116",
    "w": 343,
    "h": 339,
    "baseX": 164.9,
    "baseY": 338,
    "unit": 0.18343,
+   "small": "/ducks/shiro.small.webp?v=d813431c01",
    "name": "Shiro"
   },
   "sailor": {
-   "src": "/ducks/sailor.webp",
+   "src": "/ducks/sailor.webp?v=a5d12574b2",
    "w": 336,
    "h": 393,
    "baseX": 160.4,
    "baseY": 392,
    "unit": 0.18731,
+   "small": "/ducks/sailor.small.webp?v=4a903c851a",
    "name": "Sailor"
   },
   "neko": {
-   "src": "/ducks/neko.webp",
+   "src": "/ducks/neko.webp?v=ea0834c6aa",
    "w": 344,
    "h": 401,
    "baseX": 166.2,
    "baseY": 400,
    "unit": 0.18289,
+   "small": "/ducks/neko.small.webp?v=143ba9ae74",
    "name": "Neko"
   },
   "super": {
-   "src": "/ducks/super.webp",
+   "src": "/ducks/super.webp?v=8656a2632e",
    "w": 346,
    "h": 502,
    "baseX": 165.8,
    "baseY": 500,
    "unit": 0.18902,
+   "small": "/ducks/super.small.webp?v=7425bc9ae0",
    "name": "Super"
   },
   "ninja": {
-   "src": "/ducks/ninja.webp",
+   "src": "/ducks/ninja.webp?v=02ac2e5a60",
    "w": 486,
    "h": 473,
    "baseX": 209.3,
    "baseY": 471,
    "unit": 0.14059,
+   "small": "/ducks/ninja.small.webp?v=6c214ebb74",
    "name": "Ninja"
   },
   "kitsune": {
-   "src": "/ducks/kitsune.webp",
+   "src": "/ducks/kitsune.webp?v=4bf5d9cfda",
    "w": 438,
    "h": 512,
    "baseX": 206.6,
    "baseY": 510.0,
    "unit": 0.14361,
+   "small": "/ducks/kitsune.small.webp?v=ecf595495c",
    "name": "Kitsune"
   },
   "yukata": {
-   "src": "/ducks/yukata.webp",
+   "src": "/ducks/yukata.webp?v=db42096ed6",
    "w": 445,
    "h": 466,
    "baseX": 205.5,
    "baseY": 464,
    "unit": 0.14123,
+   "small": "/ducks/yukata.small.webp?v=c635d03d42",
    "name": "Matsuri"
   },
   "samurai": {
-   "src": "/ducks/samurai.webp",
+   "src": "/ducks/samurai.webp?v=536f647125",
    "w": 432,
    "h": 512,
    "baseX": 203.8,
    "baseY": 510.1,
    "unit": 0.14463,
+   "small": "/ducks/samurai.small.webp?v=cbb1e349c1",
    "name": "Samurai"
   },
   "king": {
-   "src": "/ducks/king.webp",
+   "src": "/ducks/king.webp?v=a34e163603",
    "w": 434,
    "h": 512,
    "baseX": 204.8,
    "baseY": 510.1,
    "unit": 0.14478,
+   "small": "/ducks/king.small.webp?v=d3a0495c78",
    "name": "King"
   },
   "astro": {
-   "src": "/ducks/astro.webp",
+   "src": "/ducks/astro.webp?v=9bf3833582",
    "w": 462,
    "h": 512,
    "baseX": 215.7,
    "baseY": 511,
    "unit": 0.14059,
+   "small": "/ducks/astro.small.webp?v=c6fc5c72be",
    "name": "Astro"
   },
   "shizuku": {
-   "src": "/ducks/shizuku.webp",
+   "src": "/ducks/shizuku.webp?v=4d129a6ba3",
    "w": 404,
    "h": 436,
    "baseX": 189.7,
    "baseY": 435,
    "unit": 0.17614,
+   "small": "/ducks/shizuku.small.webp?v=9e2af69073",
    "name": "Shizuku"
   },
   "nurse": {
-   "src": "/ducks/nurse.webp",
+   "src": "/ducks/nurse.webp?v=eec997e4ff",
    "w": 350,
    "h": 457,
    "baseX": 164.3,
    "baseY": 456,
    "unit": 0.17816,
+   "small": "/ducks/nurse.small.webp?v=ca9dde980d",
    "name": "Nurse"
   },
   "senku": {
-   "src": "/ducks/senku.webp",
+   "src": "/ducks/senku.webp?v=719ff122c0",
    "w": 348,
    "h": 512,
    "baseX": 169.2,
    "baseY": 511.0,
    "unit": 0.18439,
+   "small": "/ducks/senku.small.webp?v=ed0f13971a",
    "name": "Senku"
   },
   "naruto": {
-   "src": "/ducks/naruto.webp",
+   "src": "/ducks/naruto.webp?v=7329fc0b7e",
    "w": 374,
    "h": 462,
    "baseX": 183.6,
    "baseY": 461,
    "unit": 0.17614,
+   "small": "/ducks/naruto.small.webp?v=590c27f7fc",
    "name": "Naruto"
   },
   "loid": {
-   "src": "/ducks/loid.webp",
+   "src": "/ducks/loid.webp?v=351fd913b3",
    "w": 453,
    "h": 512,
    "baseX": 217.6,
    "baseY": 510.7,
    "unit": 0.13793,
+   "small": "/ducks/loid.small.webp?v=8b19e0bb1c",
    "name": "Loid"
   },
   "yor": {
-   "src": "/ducks/yor.webp",
+   "src": "/ducks/yor.webp?v=d86d18c08b",
    "w": 471,
    "h": 512,
    "baseX": 231.2,
    "baseY": 510.7,
    "unit": 0.13625,
+   "small": "/ducks/yor.small.webp?v=4e30305556",
    "name": "Yor"
   },
   "anya": {
-   "src": "/ducks/anya.webp",
+   "src": "/ducks/anya.webp?v=36dc4cca1e",
    "w": 446,
    "h": 512,
    "baseX": 225.3,
    "baseY": 510.7,
    "unit": 0.14845,
+   "small": "/ducks/anya.small.webp?v=77a7a515a3",
    "name": "Anya"
   },
   "kirby": {
-   "src": "/ducks/kirby.webp",
+   "src": "/ducks/kirby.webp?v=022cd3bf4a",
    "w": 410,
    "h": 512,
    "baseX": 185.8,
    "baseY": 510.8,
    "unit": 0.15589,
+   "small": "/ducks/kirby.small.webp?v=7c7f997e09",
    "name": "Kirby"
   },
   "vegeta": {
-   "src": "/ducks/vegeta.webp",
+   "src": "/ducks/vegeta.webp?v=906d9e464e",
    "w": 371,
    "h": 512,
    "baseX": 189.1,
    "baseY": 511.1,
    "unit": 0.1779,
+   "small": "/ducks/vegeta.small.webp?v=f80417dba8",
    "name": "Vegeta"
   },
   "clive": {
-   "src": "/ducks/clive.webp",
+   "src": "/ducks/clive.webp?v=b0f2394edf",
    "w": 471,
    "h": 512,
    "baseX": 209.4,
    "baseY": 510.9,
    "unit": 0.15095,
+   "small": "/ducks/clive.small.webp?v=df6106113b",
    "name": "Clive"
   },
   "sonic": {
-   "src": "/ducks/sonic.webp",
+   "src": "/ducks/sonic.webp?v=ad866a5489",
    "w": 526,
    "h": 512,
    "baseX": 206.2,
    "baseY": 510.9,
    "unit": 0.14493,
+   "small": "/ducks/sonic.small.webp?v=6ec6a88648",
    "name": "Sonic"
   },
   "cloud": {
-   "src": "/ducks/cloud.webp",
+   "src": "/ducks/cloud.webp?v=1343baf3f9",
    "w": 461,
    "h": 512,
    "baseX": 228.6,
    "baseY": 511.4,
    "unit": 0.15905,
+   "small": "/ducks/cloud.small.webp?v=f93a4b2bda",
    "name": "Cloud"
   },
   "sora": {
-   "src": "/ducks/sora.webp",
+   "src": "/ducks/sora.webp?v=626e63d2ec",
    "w": 544,
    "h": 512,
    "baseX": 237.8,
    "baseY": 510.8,
    "unit": 0.16275,
+   "small": "/ducks/sora.small.webp?v=3f54690ab6",
    "name": "Sora"
   },
   "venus": {
-   "src": "/ducks/venus.webp",
+   "src": "/ducks/venus.webp?v=26f5534d2b",
    "w": 505,
    "h": 512,
    "baseX": 209.9,
    "baseY": 510.9,
    "unit": 0.14236,
+   "small": "/ducks/venus.small.webp?v=c835fc703d",
    "name": "Venus"
   },
   "yu": {
-   "src": "/ducks/yu.webp",
+   "src": "/ducks/yu.webp?v=1b7e0dff95",
    "w": 421,
    "h": 512,
    "baseX": 203.3,
    "baseY": 510.8,
    "unit": 0.14956,
+   "small": "/ducks/yu.small.webp?v=2ecbd14d56",
    "name": "Yu"
   },
   "makoto": {
-   "src": "/ducks/makoto.webp",
+   "src": "/ducks/makoto.webp?v=511dab85b1",
    "w": 460,
    "h": 512,
    "baseX": 232.6,
    "baseY": 510.8,
    "unit": 0.14978,
+   "small": "/ducks/makoto.small.webp?v=da30ac4235",
    "name": "Makoto"
   },
   "joker": {
-   "src": "/ducks/joker.webp",
+   "src": "/ducks/joker.webp?v=43fd16ecc7",
    "w": 434,
    "h": 512,
    "baseX": 215.0,
    "baseY": 510.9,
    "unit": 0.15113,
+   "small": "/ducks/joker.small.webp?v=49ce8e1e08",
    "name": "Joker"
   },
   "kiryu": {
-   "src": "/ducks/kiryu.webp",
+   "src": "/ducks/kiryu.webp?v=490acad6a1",
    "w": 436,
    "h": 512,
    "baseX": 204.4,
    "baseY": 510.9,
    "unit": 0.14355,
+   "small": "/ducks/kiryu.small.webp?v=ac5c3dbe7e",
    "name": "Kiryu"
   },
   "link": {
-   "src": "/ducks/link.webp",
+   "src": "/ducks/link.webp?v=866d94ab93",
    "w": 526,
    "h": 512,
    "baseX": 202.8,
    "baseY": 511.4,
    "unit": 0.14577,
+   "small": "/ducks/link.small.webp?v=be8264e5cc",
    "name": "Link"
   },
   "zelda": {
-   "src": "/ducks/zelda.webp",
+   "src": "/ducks/zelda.webp?v=6108968a07",
    "w": 504,
    "h": 512,
    "baseX": 228.1,
    "baseY": 510.8,
    "unit": 0.13457,
+   "small": "/ducks/zelda.small.webp?v=f5df160892",
    "name": "Zelda"
   },
   "miku": {
-   "src": "/ducks/miku.webp",
+   "src": "/ducks/miku.webp?v=f5b7a26192",
    "w": 715,
    "h": 512,
    "baseX": 374.3,
    "baseY": 510.6,
    "unit": 0.14031,
+   "small": "/ducks/miku.small.webp?v=d2ddfb21e2",
    "name": "Miku"
   },
   "bocchi": {
-   "src": "/ducks/bocchi.webp",
+   "src": "/ducks/bocchi.webp?v=cc867bc8e3",
    "w": 473,
    "h": 512,
    "baseX": 218.1,
    "baseY": 510.7,
    "unit": 0.14899,
+   "small": "/ducks/bocchi.small.webp?v=629563e2d5",
    "name": "Bocchi"
   },
   "monika": {
-   "src": "/ducks/monika.webp",
+   "src": "/ducks/monika.webp?v=0de0c666bc",
    "w": 533,
    "h": 512,
    "baseX": 215.1,
    "baseY": 510.8,
    "unit": 0.14641,
+   "small": "/ducks/monika.small.webp?v=5b193ac6f5",
    "name": "Monika"
   },
   "trunks": {
-   "src": "/ducks/trunks.webp",
+   "src": "/ducks/trunks.webp?v=3c2348f88c",
    "w": 482,
    "h": 512,
    "baseX": 240.4,
    "baseY": 510.7,
    "unit": 0.13855,
+   "small": "/ducks/trunks.small.webp?v=95d2351bbb",
    "name": "Trunks"
   },
   "godzilla": {
-   "src": "/ducks/godzilla.webp",
+   "src": "/ducks/godzilla.webp?v=800727017b",
    "w": 495,
    "h": 512,
    "baseX": 216.0,
    "baseY": 510.7,
    "unit": 0.1517,
+   "small": "/ducks/godzilla.small.webp?v=d45407aa66",
    "name": "Godzilla"
   },
   "snoopy": {
-   "src": "/ducks/snoopy.webp",
+   "src": "/ducks/snoopy.webp?v=d1bf520bb3",
    "w": 391,
    "h": 512,
    "baseX": 201.9,
    "baseY": 510.8,
    "unit": 0.17067,
+   "small": "/ducks/snoopy.small.webp?v=a085f8b48c",
    "name": "Snoopy"
   },
   "ike": {
-   "src": "/ducks/ike.webp",
+   "src": "/ducks/ike.webp?v=09861102c1",
    "w": 531,
    "h": 512,
    "baseX": 212.2,
    "baseY": 510.8,
    "unit": 0.14173,
+   "small": "/ducks/ike.small.webp?v=970cb8c8a2",
    "name": "Ike"
   },
   "witch": {
-   "src": "/ducks/witch.webp",
+   "src": "/ducks/witch.webp?v=8ef2ddc843",
    "w": 487,
    "h": 512,
    "baseX": 224.8,
    "baseY": 511.4,
    "unit": 0.15314,
+   "small": "/ducks/witch.small.webp?v=dcd4726eed",
    "name": "Witch"
   },
   "harvest": {
-   "src": "/ducks/harvest.webp",
+   "src": "/ducks/harvest.webp?v=bc78bbb3a9",
    "w": 429,
    "h": 512,
    "baseX": 202.0,
    "baseY": 510.8,
    "unit": 0.14564,
+   "small": "/ducks/harvest.small.webp?v=d878898731",
    "name": "Harvest"
   },
   "santa": {
-   "src": "/ducks/santa.webp",
+   "src": "/ducks/santa.webp?v=4d23f638c2",
    "w": 504,
    "h": 512,
    "baseX": 216.7,
    "baseY": 510.7,
    "unit": 0.14168,
+   "small": "/ducks/santa.small.webp?v=6ece94c713",
    "name": "Santa"
   }
  },
  "eggs": [
   {
-   "src": "/ducks/egg-0.webp",
+   "src": "/ducks/egg-0.webp?v=db14d14640",
    "w": 330,
    "h": 309,
    "baseX": 165.5,
@@ -371,7 +411,7 @@
    "unit": 0.19497
   },
   {
-   "src": "/ducks/egg-1.webp",
+   "src": "/ducks/egg-1.webp?v=5c75cdc145",
    "w": 327,
    "h": 319,
    "baseX": 159.6,
@@ -379,7 +419,7 @@
    "unit": 0.1962
   },
   {
-   "src": "/ducks/egg-2.webp",
+   "src": "/ducks/egg-2.webp?v=cd76b4a78e",
    "w": 337,
    "h": 331,
    "baseX": 174.3,
@@ -388,7 +428,7 @@
   }
  ],
  "cold": {
-  "src": "/ducks/cold.webp",
+  "src": "/ducks/cold.webp?v=7c77da8539",
   "w": 341,
   "h": 307,
   "baseX": 166.7,
@@ -398,7 +438,7 @@
  "ponds": {
   "classic": {
    "wide": {
-    "src": "/ducks/pond-wide.webp",
+    "src": "/ducks/pond-wide.webp?v=0d13fafb93",
     "w": 1500,
     "h": 900,
     "cols": 100,
@@ -505,10 +545,11 @@
      178,
      202,
      230
-    ]
+    ],
+    "thumb": "/ducks/pond-wide.thumb.webp?v=fa55abc60e"
    },
    "tall": {
-    "src": "/ducks/pond-tall.webp",
+    "src": "/ducks/pond-tall.webp?v=524c97bcdf",
     "w": 1004,
     "h": 1427,
     "cols": 100,
@@ -615,12 +656,13 @@
      195,
      298,
      338
-    ]
+    ],
+    "thumb": "/ducks/pond-tall.thumb.webp?v=c224751807"
    }
   },
   "spring": {
    "wide": {
-    "src": "/ducks/pond-spring-wide.webp",
+    "src": "/ducks/pond-spring-wide.webp?v=16ffe6466b",
     "w": 1506,
     "h": 977,
     "cols": 100,
@@ -727,10 +769,11 @@
      220,
      250,
      282
-    ]
+    ],
+    "thumb": "/ducks/pond-spring-wide.thumb.webp?v=5b27abbb48"
    },
    "tall": {
-    "src": "/ducks/pond-spring-tall.webp",
+    "src": "/ducks/pond-spring-tall.webp?v=1c6637a12a",
     "w": 1017,
     "h": 1472,
     "cols": 100,
@@ -837,12 +880,13 @@
      225,
      335,
      385
-    ]
+    ],
+    "thumb": "/ducks/pond-spring-tall.thumb.webp?v=00a8f6a45c"
    }
   },
   "autumn": {
    "wide": {
-    "src": "/ducks/pond-autumn-wide.webp",
+    "src": "/ducks/pond-autumn-wide.webp?v=e77b434a4a",
     "w": 1506,
     "h": 958,
     "cols": 100,
@@ -949,10 +993,11 @@
      205,
      210,
      255
-    ]
+    ],
+    "thumb": "/ducks/pond-autumn-wide.thumb.webp?v=2f84b19beb"
    },
    "tall": {
-    "src": "/ducks/pond-autumn-tall.webp",
+    "src": "/ducks/pond-autumn-tall.webp?v=6ec55bfa7f",
     "w": 1013,
     "h": 1469,
     "cols": 100,
@@ -1059,12 +1104,13 @@
      218,
      340,
      382
-    ]
+    ],
+    "thumb": "/ducks/pond-autumn-tall.thumb.webp?v=1c503b1c73"
    }
   },
   "winter": {
    "wide": {
-    "src": "/ducks/pond-winter-wide.webp",
+    "src": "/ducks/pond-winter-wide.webp?v=1147f49e50",
     "w": 1509,
     "h": 943,
     "cols": 100,
@@ -1171,10 +1217,11 @@
      198,
      230,
      320
-    ]
+    ],
+    "thumb": "/ducks/pond-winter-wide.thumb.webp?v=48b0bd83d6"
    },
    "tall": {
-    "src": "/ducks/pond-winter-tall.webp",
+    "src": "/ducks/pond-winter-tall.webp?v=a6d226b449",
     "w": 1008,
     "h": 1473,
     "cols": 100,
@@ -1281,12 +1328,13 @@
      222,
      358,
      362
-    ]
+    ],
+    "thumb": "/ducks/pond-winter-tall.thumb.webp?v=1559416493"
    }
   },
   "night": {
    "wide": {
-    "src": "/ducks/pond-night-wide.webp",
+    "src": "/ducks/pond-night-wide.webp?v=5442dbea0f",
     "w": 1505,
     "h": 903,
     "cols": 100,
@@ -1393,10 +1441,11 @@
      178,
      200,
      228
-    ]
+    ],
+    "thumb": "/ducks/pond-night-wide.thumb.webp?v=a0ffd0a8f3"
    },
    "tall": {
-    "src": "/ducks/pond-night-tall.webp",
+    "src": "/ducks/pond-night-tall.webp?v=8fba5c4176",
     "w": 1002,
     "h": 1434,
     "cols": 100,
@@ -1503,12 +1552,13 @@
      180,
      332,
      352
-    ]
+    ],
+    "thumb": "/ducks/pond-night-tall.thumb.webp?v=8581b0c276"
    }
   },
   "garden": {
    "wide": {
-    "src": "/ducks/pond-garden-wide.webp",
+    "src": "/ducks/pond-garden-wide.webp?v=704fcd4c0c",
     "w": 1501,
     "h": 913,
     "cols": 100,
@@ -1615,10 +1665,11 @@
      185,
      210,
      238
-    ]
+    ],
+    "thumb": "/ducks/pond-garden-wide.thumb.webp?v=2df6d3700f"
    },
    "tall": {
-    "src": "/ducks/pond-garden-tall.webp",
+    "src": "/ducks/pond-garden-tall.webp?v=ae6a47804b",
     "w": 997,
     "h": 1450,
     "cols": 100,
@@ -1725,12 +1776,13 @@
      342,
      370,
      382
-    ]
+    ],
+    "thumb": "/ducks/pond-garden-tall.thumb.webp?v=c78d5a4a1d"
    }
   },
   "sakura": {
    "wide": {
-    "src": "/ducks/pond-sakura-wide.webp",
+    "src": "/ducks/pond-sakura-wide.webp?v=4e464bf59b",
     "w": 1505,
     "h": 967,
     "cols": 100,
@@ -1837,10 +1889,11 @@
      80,
      105,
      115
-    ]
+    ],
+    "thumb": "/ducks/pond-sakura-wide.thumb.webp?v=6ac207cef0"
    },
    "tall": {
-    "src": "/ducks/pond-sakura-tall.webp",
+    "src": "/ducks/pond-sakura-tall.webp?v=3364c17bb1",
     "w": 1006,
     "h": 1469,
     "cols": 100,
@@ -1947,12 +2000,13 @@
      122,
      132,
      165
-    ]
+    ],
+    "thumb": "/ducks/pond-sakura-tall.thumb.webp?v=0a4e3d9d8e"
    }
   },
   "halloween": {
    "wide": {
-    "src": "/ducks/pond-halloween-wide.webp",
+    "src": "/ducks/pond-halloween-wide.webp?v=01cf8c0d89",
     "w": 1503,
     "h": 965,
     "cols": 100,
@@ -2059,10 +2113,11 @@
      220,
      222,
      242
-    ]
+    ],
+    "thumb": "/ducks/pond-halloween-wide.thumb.webp?v=893af15eee"
    },
    "tall": {
-    "src": "/ducks/pond-halloween-tall.webp",
+    "src": "/ducks/pond-halloween-tall.webp?v=79d5bad3e8",
     "w": 1006,
     "h": 1467,
     "cols": 100,
@@ -2169,12 +2224,13 @@
      220,
      305,
      365
-    ]
+    ],
+    "thumb": "/ducks/pond-halloween-tall.thumb.webp?v=6ca921cf4d"
    }
   },
   "thanksgiving": {
    "wide": {
-    "src": "/ducks/pond-thanksgiving-wide.webp",
+    "src": "/ducks/pond-thanksgiving-wide.webp?v=a3e4df4024",
     "w": 1510,
     "h": 973,
     "cols": 100,
@@ -2281,10 +2337,11 @@
      198,
      212,
      255
-    ]
+    ],
+    "thumb": "/ducks/pond-thanksgiving-wide.thumb.webp?v=d6cda45d61"
    },
    "tall": {
-    "src": "/ducks/pond-thanksgiving-tall.webp",
+    "src": "/ducks/pond-thanksgiving-tall.webp?v=781cb44115",
     "w": 1005,
     "h": 1482,
     "cols": 100,
@@ -2391,12 +2448,13 @@
      155,
      305,
      372
-    ]
+    ],
+    "thumb": "/ducks/pond-thanksgiving-tall.thumb.webp?v=424f622f6e"
    }
   },
   "christmas": {
    "wide": {
-    "src": "/ducks/pond-christmas-wide.webp",
+    "src": "/ducks/pond-christmas-wide.webp?v=114e1e9558",
     "w": 1510,
     "h": 967,
     "cols": 100,
@@ -2503,10 +2561,11 @@
      210,
      212,
      240
-    ]
+    ],
+    "thumb": "/ducks/pond-christmas-wide.thumb.webp?v=1de1765997"
    },
    "tall": {
-    "src": "/ducks/pond-christmas-tall.webp",
+    "src": "/ducks/pond-christmas-tall.webp?v=d2722e2812",
     "w": 1007,
     "h": 1483,
     "cols": 100,
@@ -2613,13 +2672,14 @@
      312,
      315,
      328
-    ]
+    ],
+    "thumb": "/ducks/pond-christmas-tall.thumb.webp?v=41bab56826"
    }
   }
  },
  "ripples": [
   {
-   "src": "/ducks/ripple-1.webp",
+   "src": "/ducks/ripple-1.webp?v=e0beb220e7",
    "w": 439,
    "h": 155,
    "cx": 219.5,
@@ -2627,7 +2687,7 @@
    "unit": 0.2369
   },
   {
-   "src": "/ducks/ripple-2.webp",
+   "src": "/ducks/ripple-2.webp?v=a044001e47",
    "w": 407,
    "h": 147,
    "cx": 203.5,
@@ -2635,7 +2695,7 @@
    "unit": 0.25553
   },
   {
-   "src": "/ducks/ripple-3.webp",
+   "src": "/ducks/ripple-3.webp?v=bd107657fd",
    "w": 424,
    "h": 148,
    "cx": 212.0,
@@ -2645,29 +2705,34 @@
  ],
  "decor": {
   "torii": {
-   "src": "/ducks/deco-torii.webp",
+   "src": "/ducks/deco-torii.webp?v=9f968831b9",
    "w": 640,
-   "h": 481
+   "h": 481,
+   "small": "/ducks/deco-torii.small.webp?v=b141262ebb"
   },
   "lantern": {
-   "src": "/ducks/deco-lantern.webp",
+   "src": "/ducks/deco-lantern.webp?v=9e86c12264",
    "w": 640,
-   "h": 674
+   "h": 674,
+   "small": "/ducks/deco-lantern.small.webp?v=8b61b50a79"
   },
   "koi": {
-   "src": "/ducks/deco-koi.webp",
+   "src": "/ducks/deco-koi.webp?v=e37d0799cf",
    "w": 640,
-   "h": 658
+   "h": 658,
+   "small": "/ducks/deco-koi.small.webp?v=bd0ea59c87"
   },
   "lanterns": {
-   "src": "/ducks/deco-lanterns.webp",
+   "src": "/ducks/deco-lanterns.webp?v=ce6205a08d",
    "w": 640,
-   "h": 451
+   "h": 451,
+   "small": "/ducks/deco-lanterns.small.webp?v=d3a33224c7"
   },
   "lotus": {
-   "src": "/ducks/deco-lotus.webp",
+   "src": "/ducks/deco-lotus.webp?v=0008092d1a",
    "w": 640,
-   "h": 439
+   "h": 439,
+   "small": "/ducks/deco-lotus.small.webp?v=7b4bc1baa7"
   }
  }
 }
