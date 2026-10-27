@@ -15,6 +15,7 @@ import hashlib
 import hmac
 import io
 import json
+import math
 import os
 import queue
 import re
@@ -28,7 +29,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from . import __version__, anki, demo as demo_data, ec, logic, webpush, words
-from .store import Store
+from .store import Store, database
 
 MINUTE = 60_000
 MAX_STOPWATCH = 240 * MINUTE
@@ -54,7 +55,12 @@ CHEER_LEN = 140  # a cheer: a short message for someone studying, shown on their
 CHEER_GAP = 15_000  # between two cheers to the same person
 CHEER_HOURLY = 40  # cheers anyone can send in an hour
 RECAP_AT = 19 * 60  # Sunday evening, local time: the week's recap
-LIVE_PER_PERSON = 20  # live-update connections each person may have open at once (each holds a thread)
+LIVE_PER_PERSON = 8  # live-update connections each person may have open at once (each holds one of a door's MAX_CONNECTIONS)
+HOST_CLOCK = ("id", "mode", "planned", "pomo", "acc", "runFrom", "startedAt", "elapsed", "running", "now", "remaining",
+              "endsAt", "round", "phase", "phaseLeft", "focused")  # what a guest is shown of the host's timer
+PAIRS_EACH = 3  # pairing codes each person can have waiting at once
+PUSH_PER_PERSON = 10  # devices with notifications on, per person (each device has one)
+ORIGIN_RE = re.compile(r"^https://[A-Za-z0-9.-]{1,200}(:\d{1,5})?$")  # where Dakku was opened, for notifications
 
 
 def now_ms():
@@ -137,11 +143,39 @@ def clean_mark(raw, name):
     return mark or initial(name)
 
 
+def private(folder):
+    """Only you (this PC's account) can open `folder` and the files in it: Dakku's data and its backups."""
+    os.chmod(folder, 0o700)
+    for path in Path(folder).iterdir():
+        if path.is_file() and not path.is_symlink():
+            os.chmod(path, 0o600)
+
+
+def clean_source(raw):
+    """Where a session came from: dakku, genkan, manual, import… (an older Dakku page still says "mori",
+    Dakku's name before it had one.)"""
+    source = re.sub(r"[^a-z]", "", str(raw or "").lower())[:12]
+    return "dakku" if source == "mori" else source
+
+
 def _int(value, name):
     try:
-        return int(round(float(value)))
-    except (TypeError, ValueError):
+        number = float(value)
+    except (TypeError, ValueError, OverflowError):
         raise ApiError(400, f"{name} must be a number")
+    if not math.isfinite(number):  # (1e400 is a float too: infinity)
+        raise ApiError(400, f"{name} must be a number")
+    return int(round(number))
+
+
+def _when(value, now):
+    """A time a device says something changed (ms), or now if it's missing or makes no sense; never
+    more than a minute ahead."""
+    try:
+        number = float(value or now)
+    except (TypeError, ValueError, OverflowError):
+        number = now
+    return max(0, min(int(number) if math.isfinite(number) else now, now + MINUTE))
 
 
 def clean_settings(incoming, current):
@@ -237,7 +271,7 @@ def clean_session(raw, now):
     if "note" in raw:
         out["note"] = str(raw["note"] or "").strip()[:300]
     if "source" in raw:
-        out["source"] = re.sub(r"[^a-z]", "", str(raw["source"]).lower())[:12]
+        out["source"] = clean_source(raw["source"])
     if "species" in raw:
         out["species"] = logic.kind(raw["species"])
     if "status" in raw:
@@ -246,11 +280,7 @@ def clean_session(raw, now):
         out["manual"] = 1 if raw["manual"] else 0
     if "rounds" in raw:
         out["rounds"] = max(0, min(50, _int(raw["rounds"] or 0, "rounds")))
-    try:
-        updated = int(float(raw.get("updated") or now))
-    except (TypeError, ValueError):
-        updated = now
-    out["updated"] = max(0, min(updated, now + MINUTE))
+    out["updated"] = _when(raw.get("updated"), now)
     return out
 
 
@@ -328,19 +358,21 @@ class App:
         self.friends_url = (friends_url or "").rstrip("/") or None  # where friends reach the friends' door, if not by Funnel
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(parents=True, exist_ok=True)
-        os.chmod(self.data_dir, 0o700)
+        private(self.data_dir)
         self.web_dir = Path(web_dir).resolve()
         logic.use_ducks(self.web_dir / "ducks" / "ducks.json")  # the painted ducks, as published
         self.backup_dir = Path(backup_dir) if backup_dir else None
         self.anki_url = anki_url
         self.allowed_origins = set(EXTENSION_ORIGINS) | {o for o in dev_origins if o}
-        self.store = Store(self.data_dir / "mori.db")
+        self.store = Store(database(self.data_dir))
         self.vapid = webpush.Vapid(str(self.data_dir / "vapid.json"))
+        private(self.data_dir)  # (again, now the database is open: SQLite's own files take its permissions)
         self.lock = threading.RLock()
         self.port = 8640
         self.started = time.time()
         self.system_tz = system_time_zone()
         self._clients, self._clients_lock = {}, threading.Lock()  # each open page's live updates, and whose they are
+        self._let_go = set()  # the ones that should end: someone opened more than LIVE_PER_PERSON
         self._failures, self._fail_lock = {}, threading.Lock()
         self._pairs, self._pair_lock = {}, threading.Lock()
         self._cheers_sent = {}  # who cheered whom when, to keep cheers from turning into spam
@@ -367,7 +399,7 @@ class App:
             demo_data.fill(self, now_ms())
         self._stop = threading.Event()
         if start_threads:
-            threading.Thread(target=self._scheduler, name="mori-scheduler", daemon=True).start()
+            threading.Thread(target=self._scheduler, name="dakku-scheduler", daemon=True).start()
 
     def close(self):
         self._stop.set()
@@ -397,9 +429,11 @@ class App:
         except OSError:
             return ""
 
-    def _rate_check(self, ctx):
-        """Wrong codes are limited per address, and in all, per door: strangers trying codes at the
-        friends' door (it's on the internet) can't lock you out of your own."""
+    def _rate_check(self, ctx, guessable=True):
+        """Wrong codes are limited per address, and per door (so strangers trying codes at the friends' door,
+        on the internet, can't lock you out of your own). The door-wide limit is only for codes short enough
+        to guess, pairing codes and passcodes: an invite's code is far too long, so strangers getting those
+        wrong never hold up a friend's real invite."""
         now = time.time()
         with self._fail_lock:
             for key in list(self._failures):
@@ -409,12 +443,14 @@ class App:
             mine = [t for t in self._failures.get((ctx.public, ctx.ip), []) if now - t < 600]
             if len(mine) >= 5:
                 raise ApiError(429, "Too many tries. Wait a few minutes, then try again.", retryAfter=int(600 - (now - mine[0])) + 1)
-            if sum(len(v) for (public, _), v in self._failures.items() if public == ctx.public) >= 40:
+            if guessable and len(self._failures.get(("guesses", ctx.public), [])) >= 40:
                 raise ApiError(429, "Too many sign-in attempts lately. Try again in an hour.", retryAfter=3600)
 
-    def _rate_fail(self, ctx):
+    def _rate_fail(self, ctx, guessable=True):
         with self._fail_lock:
             self._failures.setdefault((ctx.public, ctx.ip), []).append(time.time())
+            if guessable:
+                self._failures.setdefault(("guesses", ctx.public), []).append(time.time())
 
     def device_for_token(self, token):
         if not token:
@@ -435,6 +471,9 @@ class App:
         now = time.time()
         with self._pair_lock:
             self._pairs = {c: v for c, v in self._pairs.items() if v[0] > now}
+            theirs = sorted((v[0], c) for c, v in self._pairs.items() if v[1] == person)
+            for _, old in theirs[:max(0, len(theirs) - PAIRS_EACH + 1)]:
+                del self._pairs[old]  # a person's newest few work; asking again and again only replaces them
             code = f"{secrets.randbelow(1_000_000):06d}"
             while code in self._pairs:
                 code = f"{secrets.randbelow(1_000_000):06d}"
@@ -590,7 +629,8 @@ class App:
         room = t.get("room") or t["id"]
         if t.get("room"):
             host_t = timers.get(host)
-            v["hostTimer"] = self.view(host_t, now) if host_t and host_t["id"] == room else None
+            hv = self.view(host_t, now) if host_t and host_t["id"] == room else None
+            v["hostTimer"] = {k: hv[k] for k in HOST_CLOCK if k in hv} if hv else None  # their clock, not their device
         v["party"] = self._party(room, host, timers, now)
         v["cheers"] = [{k: c[k] for k in ("id", "from", "name", "text", "at")}
                        for c in self.store.get(self._key("cheers", pid)) or [] if c["timer"] == t["id"]]
@@ -660,7 +700,7 @@ class App:
             acc = max(0, min(_int(body["elapsed"], "elapsed"), now - started))
             run_from = now if body.get("running", True) else None
         tag = str(s["tag"] if body.get("tag") is None else body["tag"]).strip()[:40]
-        source = re.sub(r"[^a-z]", "", str(body.get("source") or "mori").lower())[:12] or "mori"
+        source = clean_source(body.get("source")) or "dakku"
         t = {"id": sid, "mode": mode, "planned": minutes * MINUTE if mode == "timer" else None,
              "startedAt": started, "acc": acc, "runFrom": run_from, "tag": tag,
              "species": self.species_for(sid, body.get("species") or (None if s["randomSpecies"] else s["species"]), pid),
@@ -697,7 +737,7 @@ class App:
         guest = {"id": gid, "mode": "room", "planned": None, "room": room, "host": host, "startedAt": now, "acc": 0,
                  "runFrom": now, "tag": tag, "hostAt": self.view(host_t, now)["elapsed"], "announced": False,
                  "species": self.species_for(gid, body.get("species") or (None if s["randomSpecies"] else s["species"]), pid),
-                 "deep": bool(body.get("deep")), "source": "mori", "device": ctx.device_name or "Browser", "updated": now}
+                 "deep": bool(body.get("deep")), "source": "dakku", "device": ctx.device_name or "Browser", "updated": now}
         self._note_tags([tag], pid)
         self.store.set(self._key("timer", pid), guest)
         log("joined:", pid, "in", host + "'s session")
@@ -756,9 +796,13 @@ class App:
     def _log(self, t, minutes, status, now, note="", pid="me", rounds=0):
         joined = t.get("joined") or any(g.get("room") == t["id"] and now - g["startedAt"] >= UNDO_MS for g in self.store.timers().values())
         room = t.get("room") or (t["id"] if joined else "")
-        row, _ = self.store.upsert({"id": t["id"], "start": t["startedAt"], "minutes": minutes, "tag": t["tag"],
-                                    "species": t["species"], "status": status, "source": t["source"], "manual": 0,
-                                    "note": note, "updated": now, "person": pid, "room": room, "rounds": rounds})
+        session = {"id": t["id"], "start": t["startedAt"], "minutes": minutes, "tag": t["tag"], "species": t["species"],
+                   "status": status, "source": t["source"], "manual": 0, "note": note, "updated": now, "person": pid,
+                   "room": room, "rounds": rounds}
+        row, _ = self.store.upsert(session)
+        if row["person"] != pid:  # someone else's session has its id: it's still this person's, under a new one
+            log("a session's id was taken by", row["person"], "so", pid, "gets a new one")
+            row, _ = self.store.upsert(dict(session, id=secrets.token_urlsafe(9)))
         log("logged:", status, f"{minutes} min", t["tag"] or "(no tag)", "for", pid, "together" if room else "")
         return public(row)
 
@@ -854,6 +898,8 @@ class App:
         if not isinstance(ops, list) or len(ops) > 5000:
             raise ApiError(400, "ops must be a list of at most 5000 changes")
         now, clean, tags = now_ms(), [], []
+        # whose sessions are still running: their ids are seen in Together, and only their timers log them
+        running = {t["id"]: who for who, t in self.store.timers().items()}
         for op in ops:
             if not isinstance(op, dict):
                 continue
@@ -861,7 +907,7 @@ class App:
                 s = clean_session(op.get("session"), now)
                 existing = self.store.get_session(s["id"])
                 if existing is None:
-                    if "start" not in s or "minutes" not in s:
+                    if "start" not in s or "minutes" not in s or running.get(s["id"], pid) != pid:
                         continue
                     s.setdefault("status", "done")
                     s.setdefault("source", "sync")
@@ -870,17 +916,14 @@ class App:
                     s["person"] = pid
                 elif existing["person"] != pid:
                     continue  # someone else's session
+                s["person"] = pid  # (and the store won't let it change hands, whatever happens in between)
                 clean.append({"op": "upsert", "session": s})
                 tags.append(s.get("tag", ""))
             elif op.get("op") == "delete":
                 sid = str(op.get("id", ""))
                 existing = self.store.get_session(sid) if ID_RE.match(sid) else None
                 if existing and existing["person"] == pid:
-                    try:
-                        updated = int(float(op.get("updated") or now))
-                    except (TypeError, ValueError):
-                        updated = now
-                    clean.append({"op": "delete", "id": sid, "updated": min(updated, now + MINUTE)})
+                    clean.append({"op": "delete", "id": sid, "updated": _when(op.get("updated"), now)})
         changed = self.store.apply(clean)
         self._note_tags(tags, pid)
         if isinstance(body.get("settings"), dict):
@@ -891,7 +934,7 @@ class App:
             changed += 1
         if changed:
             self._changed({pid})
-        return self.pull(_int(body.get("since") or 0, "since"), pid)
+        return self.pull(max(0, min(_int(body.get("since") or 0, "since"), 2 ** 62)), pid)
 
     def import_data(self, body):
         data = body.get("data", body)
@@ -924,21 +967,28 @@ class App:
         return {"me": self.whoami(ctx), "settings": self.settings(pid), "timer": self.timer(pid, now), "cursor": cursor,
                 "sessions": [public(r) for r in rows], "now": now, "vapidKey": self.vapid.public_b64,
                 "anki": self.anki_view() if pid == "me" else None, "together": self.together(pid),
-                "server": {"version": __version__, "timeZone": self.system_tz, "addresses": self.addresses(),
-                           "since": int(self.started * 1000)}}
+                "server": {"version": __version__, "timeZone": self.system_tz, "since": int(self.started * 1000),
+                           # your PC's addresses are yours: a friend only needs the door they came in by
+                           "addresses": self.addresses() if ctx.owner else {"friends": self.addresses().get("friends")}}}
 
     # ── live updates (server-sent events) ────────────────────────────────────
     def subscribe(self, person="me"):
+        """A page's live updates. Each person has at most LIVE_PER_PERSON at once: past that, their oldest
+        is let go (see still_wanted), as the newest is the page they're looking at."""
         q = queue.Queue(maxsize=30)
         with self._clients_lock:
-            if sum(1 for p in self._clients.values() if p == person) >= LIVE_PER_PERSON:
-                raise ApiError(429, "Too many open Dakku pages. Close a few and try again.", retryAfter=30)
+            theirs = [c for c, p in self._clients.items() if p == person and c not in self._let_go]
+            self._let_go.update(theirs[:max(0, len(theirs) - LIVE_PER_PERSON + 1)])
             self._clients[q] = person
         return q
+
+    def still_wanted(self, q):
+        return q not in self._let_go
 
     def unsubscribe(self, q):
         with self._clients_lock:
             self._clients.pop(q, None)
+            self._let_go.discard(q)
 
     def _changed(self, people=None):
         """Tell open pages something changed: only those of `people`, or everyone's."""
@@ -974,17 +1024,17 @@ class App:
     def push_subscribe(self, ctx, body):
         sub = body.get("subscription") or {}
         endpoint, keys = str(sub.get("endpoint") or ""), sub.get("keys") or {}
-        if not webpush.valid_endpoint(endpoint):
+        if len(endpoint) > 2048 or not webpush.valid_endpoint(endpoint):
             raise ApiError(400, "That push service isn't supported.")
         try:
-            ec.decode_point(webpush.unb64u(keys["p256dh"]))
-            if len(webpush.unb64u(keys["auth"])) < 16:
+            ec.decode_point(webpush.unb64u(str(keys["p256dh"])[:100]))
+            if len(webpush.unb64u(str(keys["auth"])[:40])) != 16:  # (a browser's auth secret is 16 bytes)
                 raise ValueError
         except (KeyError, ValueError, TypeError):
             raise ApiError(400, "That subscription's keys look wrong.")
-        if not ctx.origin.startswith("https://"):
+        if not ORIGIN_RE.match(ctx.origin):
             raise ApiError(400, "Notifications need Dakku opened over https.")
-        self.store.add_push(endpoint, keys["p256dh"], keys["auth"], ctx.origin, ctx.device_id, now_ms(), ctx.person)
+        self.store.add_push(endpoint, keys["p256dh"], keys["auth"], ctx.origin, ctx.device_id, now_ms(), ctx.person, keep=PUSH_PER_PERSON)
         return {"ok": True}
 
     def notify(self, payload, urgency="normal", device_id=None, topic=None, wait=False, person="me"):
@@ -994,7 +1044,7 @@ class App:
         def deliver():
             for sub in subs:
                 status, detail = webpush.send(sub, payload, self.vapid, sub["origin"], urgency=urgency, topic=topic)
-                results.append({"status": status, "detail": detail[:200]})
+                results.append({"status": status})  # (what the push service said stays in the log)
                 if status in (404, 410):
                     self.store.remove_push(sub["endpoint"])
                 else:
@@ -1025,12 +1075,12 @@ class App:
         together = f" with {self._name(host)}" if host else ""
         streak = f" · {info['streak']}-day streak" if info["streak"] else ""
         body = f"A {duck} hatched: {logic.fmt_minutes(session['minutes'])}{what}{together}. Today {info['today']}/{info['goal']} min{streak}."
-        self.notify({"title": "鴨 · 誕生!", "body": body, "tag": "mori-timer", "url": "/"}, urgency="high", topic="mori-timer", person=pid)
+        self.notify({"title": "鴨 · 誕生!", "body": body, "tag": "dakku-timer", "url": "/"}, urgency="high", topic="dakku-timer", person=pid)
 
     def _notify_joined(self, host, guest):
         if self.store.pushes(person=host):
-            self.notify({"title": "鴨 · 一緒", "body": f"{self._name(guest)} joined your session.", "tag": "mori-room", "url": "/"},
-                        topic="mori-room", person=host)
+            self.notify({"title": "鴨 · 一緒", "body": f"{self._name(guest)} joined your session.", "tag": "dakku-room", "url": "/"},
+                        topic="dakku-room", person=host)
 
     def _notify_phase(self, pid, t, rnd, phase, timers):
         """A pomodoro moved on: a break, or back to focusing. Everyone in the session hears it."""
@@ -1042,7 +1092,7 @@ class App:
         title = "鴨 · 休憩" if phase == "break" else "鴨 · 集中"
         for who in [pid] + [g for g, gt in timers.items() if gt.get("room") == t["id"]]:
             if self.store.pushes(person=who):
-                self.notify({"title": title, "body": body, "tag": "mori-timer", "url": "/"}, urgency="high", topic="mori-timer", person=who)
+                self.notify({"title": title, "body": body, "tag": "dakku-timer", "url": "/"}, urgency="high", topic="dakku-timer", person=who)
 
     def _notify_started(self, host, t):
         """Let friends know someone started studying, so they can join in."""
@@ -1053,7 +1103,7 @@ class App:
         for mate in self._mates(host):
             if self.settings(mate).get("friendAlerts", True) and self.store.pushes(person=mate):
                 self.notify({"title": "鴨 · 一緒にどう？", "body": f"{self._name(host)} started {length}{what}. Join in?",
-                             "tag": f"mori-friend-{host}", "url": "/#together"}, topic="mori-friend", person=mate)
+                             "tag": f"dakku-friend-{host}", "url": "/#together"}, topic="dakku-friend", person=mate)
 
     # ── cheers ───────────────────────────────────────────────────────────────
     def cheer(self, ctx, body):
@@ -1082,8 +1132,8 @@ class App:
             self.store.set(key, kept + [{"id": new_id(), "from": sender, "name": self._name(sender), "text": text,
                                          "at": now, "timer": t["id"]}])
         if self.settings(to).get("cheerAlerts", True) and self.store.pushes(person=to):
-            self.notify({"title": "鴨 · 応援", "body": f"{self._name(sender)}: {text}", "tag": f"mori-cheer-{sender}", "url": "/"},
-                        topic="mori-cheer", person=to)
+            self.notify({"title": "鴨 · 応援", "body": f"{self._name(sender)}: {text}", "tag": f"dakku-cheer-{sender}", "url": "/"},
+                        topic="dakku-cheer", person=to)
         log("cheer:", self._name(sender), "→", self._name(to))
         self._changed({to})
         return {"ok": True}
@@ -1111,7 +1161,7 @@ class App:
             need = info["goal"] - info["today"]
             body = (f"{need} more min today keeps your {info['streak']}-day streak going." if info["streak"]
                     else f"{need} min today starts a new streak.")
-            self.notify({"title": "鴨 · 今日の卵", "body": body, "tag": "mori-reminder", "url": "/"}, person=pid)
+            self.notify({"title": "鴨 · 今日の卵", "body": body, "tag": "dakku-reminder", "url": "/"}, person=pid)
 
     def recap(self, pid="me", now=None):
         """The week in a line, for Sunday's notification: None for a week with no ducks."""
@@ -1140,7 +1190,7 @@ class App:
             self.store.set(sent, monday)
             body = self.recap(pid, now) if local.hour < 23 else None  # (late: the PC was off all evening)
             if body:
-                self.notify({"title": "鴨 · 今週", "body": body, "tag": "mori-recap", "url": "/#stats"}, topic="mori-recap", person=pid)
+                self.notify({"title": "鴨 · 今週", "body": body, "tag": "dakku-recap", "url": "/#stats"}, topic="dakku-recap", person=pid)
 
     # ── people, groups and invites ───────────────────────────────────────────
     def _person_or_404(self, pid):
@@ -1273,11 +1323,11 @@ class App:
 
     def peek_invite(self, ctx, body):
         """Who an invite is from and what it's for, before accepting it, for the join page."""
-        self._rate_check(ctx)
+        self._rate_check(ctx, guessable=False)
         code = str(body.get("code") or "").strip()
         invite = self.store.find_invite(hashlib.sha256(code.encode()).hexdigest(), now_ms()) if code else None
         if not invite:
-            self._rate_fail(ctx)
+            self._rate_fail(ctx, guessable=False)
             raise ApiError(404, "That invite has expired or was already used. Ask for a new one.")
         group = next((g for g in self.store.groups() if g["id"] == invite["grp"]), None)
         people = [self._name(pid) for pid in (group["members"] if group else [])]
@@ -1288,11 +1338,11 @@ class App:
     def join(self, ctx, body):
         """Accept an invite: a new person with their own pond (or this device signed in as the
         person it's for), in the group it's for. Returns (token or None, person)."""
-        self._rate_check(ctx)
+        self._rate_check(ctx, guessable=False)
         code = str(body.get("code") or "").strip()
         invite = self.store.use_invite(hashlib.sha256(code.encode()).hexdigest(), now_ms()) if code else None
         if not invite:
-            self._rate_fail(ctx)
+            self._rate_fail(ctx, guessable=False)
             time.sleep(0.4)
             raise ApiError(401, "That invite has expired or was already used. Ask for a new one.")
         now, token = now_ms(), None
@@ -1430,7 +1480,7 @@ class App:
 
     # ── backups, export ──────────────────────────────────────────────────────
     def export(self, pid="me"):
-        return {"app": "mori", "version": __version__, "exportedAt": datetime.now().astimezone().isoformat(),
+        return {"app": "dakku", "version": __version__, "exportedAt": datetime.now().astimezone().isoformat(),
                 "settings": self.settings(pid), "sessions": [public(r) for r in self.store.sessions(person=pid)]}
 
     def export_csv(self, pid="me"):
@@ -1454,13 +1504,21 @@ class App:
         if not force and (last == today or (last is not None and local.hour < 3)):
             return None
         self.backup_dir.mkdir(parents=True, exist_ok=True)
+        private(self.backup_dir)  # (everything you've studied, and the hashes of your passcode and sign-ins)
         self.store.backup_to(self.backup_dir / f"dakku-{today}.db")
         tmp = self.backup_dir / f"dakku-{today}.json.tmp"
-        tmp.write_text(json.dumps(self.export(), ensure_ascii=False, indent=1), encoding="utf-8")
+        with os.fdopen(os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w", encoding="utf-8") as f:
+            f.write(json.dumps(self.export(), ensure_ascii=False, indent=1))
         tmp.replace(self.backup_dir / f"dakku-{today}.json")
-        for ext in ("db", "json"):  # the newest ones are kept, by date (the first ones were called mori-…)
-            found = [*self.backup_dir.glob(f"dakku-????-??-??.{ext}"), *self.backup_dir.glob(f"mori-????-??-??.{ext}")]
-            for old in sorted(found, key=lambda p: p.name.split("-", 1)[1])[:-KEEP_BACKUPS]:
+        private(self.backup_dir)
+        for old in self.backup_dir.glob("mori-????-??-??.*"):  # from before Dakku had its name
+            renamed = self.backup_dir / f"dakku-{old.name[5:]}"
+            if renamed.exists():
+                old.unlink()  # (a later one from the same day)
+            else:
+                old.rename(renamed)
+        for ext in ("db", "json"):  # the newest ones are kept
+            for old in sorted(self.backup_dir.glob(f"dakku-????-??-??.{ext}"))[:-KEEP_BACKUPS]:
                 old.unlink()
         self.store.set("backupDay", today)
         log("backup saved:", self.backup_dir / f"dakku-{today}.json")

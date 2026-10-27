@@ -13,10 +13,13 @@ import gzip
 import json
 import queue
 import re
+import select
+import socket
 import sys
 import threading
 import time
 import traceback
+from email.utils import formatdate
 from http.cookies import CookieError, SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -32,10 +35,21 @@ PROXY_HEADERS = ("X-Forwarded-For", "X-Forwarded-Host", "X-Forwarded-Proto", "Fo
 MAX_BODY = 8 * 1024 * 1024  # signed in (an import, a big sync)
 MAX_BODY_ANYONE = 64 * 1024  # before signing in: a passcode, a code, a name
 IDLE_TIMEOUT = 60  # seconds a connection may sit without sending: so idle ones can't pile up and hold threads
-COOKIE = "mori"
+# Someone sending a request a byte at a time could still hold a thread for ever, a minute per byte, and
+# enough of them would take a door down (the friends' door is on the internet). So a request has to send
+# its first line and headers within HEADERS_IN seconds, and its body at BODY_RATE bytes a second at least
+# (after BODY_GRACE seconds); and each door serves at most MAX_CONNECTIONS at once, so trouble at the
+# friends' door can't reach yours.
+HEADERS_IN = 15
+BODY_GRACE, BODY_RATE = 20, 50_000
+MAX_CONNECTIONS = 96
+COOKIE = "dakku"
 # The friends' door signs people in with a cookie of its own: browsers share cookies between ports
 # of the same host, and a friend's sign-in must never reach your door (or yours theirs).
-FRIENDS_COOKIE = "mori_friend"
+FRIENDS_COOKIE = "dakku_friend"
+# what those were called before Dakku had its name: a sign-in from then still works, and is moved over
+OLD_COOKIES = {COOKIE: "mori", FRIENDS_COOKIE: "mori_friend"}
+SIGN_IN_FOR = 34_560_000  # seconds a sign-in lasts: 400 days, as long as browsers allow
 # frame-src: the lofi on the Hatch screen plays through YouTube's player (web/lofi.js)
 CSP = ("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
        "font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; "
@@ -46,6 +60,7 @@ MIME = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=ut
         ".svg": "image/svg+xml", ".ico": "image/x-icon", ".txt": "text/plain; charset=utf-8", ".woff2": "font/woff2",
         ".webp": "image/webp", ".jpg": "image/jpeg"}
 COMPRESSIBLE = {".html", ".js", ".css", ".json", ".webmanifest", ".svg", ".txt"}
+GZIP_OVER = 1024  # bytes: anything smaller goes as it is
 
 ID = r"([A-Za-z0-9_-]{4,64})"
 PID = r"(me|[A-Za-z0-9_-]{4,64})"  # a person: "me" is you
@@ -102,10 +117,15 @@ DEMO_OFF = {"login", "logout", "join", "invite_peek", "passcode_get", "pair_post
 DEMO_DEVICE = {"id": "demo", "name": "Demo"}
 
 
+def _not_json(word):
+    raise ValueError(f"{word} isn't JSON")
+
+
 def make_handler(app, public=False):
     """The request handler for your door, or (public) the friends' door."""
     gz_cache = {}
     cookie_name = FRIENDS_COOKIE if public else COOKIE
+    old_cookie = OLD_COOKIES[cookie_name]
 
     class Handler(BaseHTTPRequestHandler):
         server_version = "Dakku/" + __version__
@@ -135,20 +155,29 @@ def make_handler(app, public=False):
             self._dispatch("DELETE")
 
         def do_OPTIONS(self):
-            self._cookie = None
+            self._cookies = []
             origin = self.headers.get("Origin")
             self._send(204 if origin in app.allowed_origins else 403, b"", "text/plain")
 
         # ── plumbing ──────────────────────────────────────────────────────
+        def setup(self):
+            super().setup()
+            self.server.due(self.connection, self.server.headers_in)
+
+        def finish(self):
+            self.server.due(self.connection, None)
+            super().finish()
+
         def _dispatch(self, method):
-            self._cookie = None
+            self.server.due(self.connection, None)  # its headers are in
+            self._cookies = []
             self._signed_in = False
             try:
                 url = urlsplit(self.path)
                 if url.path.startswith("/api/"):
                     self._api(method, url.path, parse_qs(url.query))
                 elif method in ("GET", "HEAD"):
-                    self._static(url.path)
+                    self._static(url.path, url.query)
                 else:
                     raise ApiError(405, "Method not allowed.")
             except ApiError as err:
@@ -170,24 +199,33 @@ def make_handler(app, public=False):
             proxied = any(self.headers.get(h) for h in PROXY_HEADERS)
             local = ip in LOOPBACK_IPS and hostname in LOOPBACK_HOSTS and not proxied
             https = (self.headers.get("X-Forwarded-Proto") or "").lower() == "https"
-            token = None
+            token, old = None, False
             auth = self.headers.get("Authorization") or ""
             if auth.lower().startswith("bearer "):
                 token = auth[7:].strip()
             elif self.headers.get("Cookie"):
                 try:
                     jar = SimpleCookie(self.headers["Cookie"])
-                    token = jar[cookie_name].value if cookie_name in jar else None
                 except CookieError:
-                    token = None
+                    jar = {}
+                if cookie_name in jar:
+                    token = jar[cookie_name].value
+                elif old_cookie in jar:
+                    token, old = jar[old_cookie].value, True
             origin = self.headers.get("Origin") or (("https://" if https else "http://") + host if host else "")
             if app.demo:  # everyone is let in, as the same made-up device
                 return Ctx(ip=ip, device=DEMO_DEVICE, https=https or origin.startswith("https://"), origin=origin,
                            user_agent=self.headers.get("User-Agent") or "")
+            device = app.device_for_token(token)
             if public:  # Funnel relays the internet from this PC itself: nobody here is "this PC"
                 ip = (self.headers.get("X-Forwarded-For") or ip).split(",")[-1].strip()  # the address Tailscale saw
                 local = False
-            return Ctx(ip=ip, local=local, device=app.device_for_token(token), https=https or origin.startswith("https://"),
+                if device and (device.get("person") or "me") == "me":
+                    device = None  # your own devices sign in at your door only: here, their sign-in is no one's
+            if old and device:  # signed in before the cookie had its new name: moved over to it
+                self._sign_in(token, https or origin.startswith("https://"))
+                self._cookies.append(f"{old_cookie}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax")
+            return Ctx(ip=ip, local=local, device=device, https=https or origin.startswith("https://"),
                        origin=origin, user_agent=self.headers.get("User-Agent") or "", public=public)
 
         def _body(self):
@@ -201,9 +239,14 @@ def make_handler(app, public=False):
                 raise ApiError(413, "That's too large.")
             if not length:
                 return {}
+            self.server.due(self.connection, self.server.body_grace + length / BODY_RATE)
+            raw = self.rfile.read(length)
+            self.server.due(self.connection, None)
+            if len(raw) < length:
+                raise ApiError(400, "The request ended early.")
             try:
-                data = json.loads(self.rfile.read(length))
-            except ValueError:
+                data = json.loads(raw, parse_constant=_not_json)  # (no NaN or Infinity)
+            except (ValueError, RecursionError):
                 raise ApiError(400, "Expected JSON.")
             if not isinstance(data, dict):
                 raise ApiError(400, "Expected a JSON object.")
@@ -217,7 +260,7 @@ def make_handler(app, public=False):
             if origin and origin in app.allowed_origins:
                 self.send_header("Access-Control-Allow-Origin", origin)
                 self.send_header("Vary", "Origin")
-                self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Mori, Authorization")
+                self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Dakku, X-Mori, Authorization")
                 self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
                 self.send_header("Access-Control-Max-Age", "600")
 
@@ -229,15 +272,21 @@ def make_handler(app, public=False):
             self._common_headers()
             for key, value in (extra or {}).items():
                 self.send_header(key, value)
-            if self._cookie:
-                self.send_header("Set-Cookie", self._cookie)
+            for cookie in getattr(self, "_cookies", ()):
+                self.send_header("Set-Cookie", cookie)
             self.end_headers()
             if self.command != "HEAD":
                 self.wfile.write(body)
 
         def _json(self, status, data, extra=None):
-            self._send(status, json.dumps(data, ensure_ascii=False, separators=(",", ":")).encode(),
-                       "application/json; charset=utf-8", extra)
+            body = json.dumps(data, ensure_ascii=False, separators=(",", ":")).encode()
+            if len(body) > GZIP_OVER and self._gzip_ok():  # (your history grows, and the friends' door is slow)
+                body = gzip.compress(body, 6)
+                extra = {**(extra or {}), "Content-Encoding": "gzip", "Vary": "Accept-Encoding"}
+            self._send(status, body, "application/json; charset=utf-8", extra)
+
+        def _gzip_ok(self):
+            return "gzip" in (self.headers.get("Accept-Encoding") or "").lower()
 
         # ── the API ───────────────────────────────────────────────────────
         def _api(self, method, path, query):
@@ -257,25 +306,30 @@ def make_handler(app, public=False):
                 raise ApiError(403, "Only the person whose Dakku this is can do that.")
             if who == "this-pc" and not ctx.local:
                 raise ApiError(403, "Only available on the PC that runs Dakku.")
-            if method not in ("GET", "HEAD") and self.headers.get("X-Mori") != "1":
-                raise ApiError(403, "Missing the X-Mori header.")  # stops other websites posting here
+            # stops other websites posting here (a page elsewhere can't add a header without asking first);
+            # X-Mori is what the Genkan homepage sends, from before Dakku had its name
+            if method not in ("GET", "HEAD") and "1" not in (self.headers.get("X-Dakku"), self.headers.get("X-Mori")):
+                raise ApiError(403, "Missing the X-Dakku header.")
             app.touch(ctx)
             getattr(self, "api_" + name)(ctx, query, *match.groups())
 
         def api_health(self, ctx, q):
-            self._json(200, {"ok": True, "app": "mori", "version": __version__, "uptime": int(time.time() - app.started)})
+            self._json(200, {"ok": True, "app": "dakku", "version": __version__, "uptime": int(time.time() - app.started)})
 
         def api_whoami(self, ctx, q):
             self._json(200, app.whoami(ctx))
 
+        def _sign_in(self, token, https):
+            self._cookies.append(f"{cookie_name}={token}; Path=/; Max-Age={SIGN_IN_FOR}; HttpOnly; SameSite=Lax" + ("; Secure" if https else ""))
+
         def api_login(self, ctx, q):
             token, device = app.login(ctx, self._body())
-            self._cookie = f"{cookie_name}={token}; Path=/; Max-Age=34560000; HttpOnly; SameSite=Lax" + ("; Secure" if ctx.https else "")
+            self._sign_in(token, ctx.https)
             self._json(200, {"ok": True, "device": device})
 
         def api_logout(self, ctx, q):
             app.logout(ctx)
-            self._cookie = f"{cookie_name}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax"
+            self._cookies = [f"{name}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax" for name in (cookie_name, old_cookie)]
             self._json(200, {"ok": True})
 
         def api_invite_peek(self, ctx, q):
@@ -284,14 +338,18 @@ def make_handler(app, public=False):
         def api_join(self, ctx, q):
             token, person = app.join(ctx, self._body())
             if token:
-                self._cookie = f"{cookie_name}={token}; Path=/; Max-Age=34560000; HttpOnly; SameSite=Lax" + ("; Secure" if ctx.https else "")
+                self._sign_in(token, ctx.https)
             self._json(200, {"ok": True, "person": person})
 
         def api_bootstrap(self, ctx, q):
             self._json(200, app.bootstrap(ctx))
 
         def api_sync_get(self, ctx, q):
-            self._json(200, app.pull(int((q.get("since") or ["0"])[0] or 0), ctx.person))
+            try:
+                since = max(0, min(int((q.get("since") or ["0"])[0] or 0), 2 ** 62))
+            except ValueError:
+                raise ApiError(400, "since must be a number.")
+            self._json(200, app.pull(since, ctx.person))
 
         def api_sync_post(self, ctx, q):
             self._json(200, app.push(self._body(), ctx.person))
@@ -357,7 +415,7 @@ def make_handler(app, public=False):
 
         def api_push_test(self, ctx, q):
             results = app.notify({"title": "鴨 · Dakku", "body": "Notifications are on. Your ducks will tell you when they hatch.",
-                                  "tag": "mori-test", "url": "/"}, device_id=ctx.device_id, wait=True, person=ctx.person)
+                                  "tag": "dakku-test", "url": "/"}, device_id=ctx.device_id, wait=True, person=ctx.person)
             if not results:
                 raise ApiError(404, "This device hasn't turned on notifications yet.")
             self._json(200, {"results": results})
@@ -428,21 +486,33 @@ def make_handler(app, public=False):
                 self.end_headers()
                 self.wfile.write(b"retry: 4000\n\n")
                 self.wfile.flush()
-                until = time.time() + 30 * 60  # browsers reconnect on their own
-                while time.time() < until:
+                until, beat = time.time() + 30 * 60, time.time() + 20  # browsers reconnect on their own
+                # every second: is the page still there? (else its thread waits for the next write to find out)
+                while time.time() < until and app.still_wanted(client) and not self._hung_up():
                     try:
-                        event = client.get(timeout=20)
+                        event = client.get(timeout=1)
                         self.wfile.write(f"event: change\ndata: {event}\n\n".encode())
                     except queue.Empty:
+                        if time.time() < beat:
+                            continue
                         self.wfile.write(b": still here\n\n")
+                    beat = time.time() + 20
                     self.wfile.flush()
             except OSError:
                 pass
             finally:
                 app.unsubscribe(client)
 
+        def _hung_up(self):
+            """The other end has closed the connection (it sends nothing more once it's asked)."""
+            try:
+                readable = select.select([self.connection], [], [], 0)[0]
+                return bool(readable) and not self.connection.recv(1, socket.MSG_PEEK)
+            except (OSError, ValueError):
+                return True
+
         # ── the app's files ───────────────────────────────────────────────
-        def _static(self, path):
+        def _static(self, path, query=""):
             rel = path.lstrip("/") or "index.html"
             target = (app.web_dir / rel).resolve()
             if target != app.web_dir and app.web_dir not in target.parents:
@@ -453,38 +523,96 @@ def make_handler(app, public=False):
                 target = app.web_dir / "index.html"  # app pages such as /forest
             stat = target.stat()
             etag = f'"{stat.st_mtime_ns:x}-{stat.st_size:x}"'
+            modified = formatdate(stat.st_mtime, usegmt=True)
             build = app.build_id() if target.name == "sw.js" else None
             if build:  # the service worker changes whenever any app file does, so phones update themselves
                 etag = f'"sw-{build}"'
             extra = {"ETag": etag}
+            if not build:  # (sw.js changes with the other files, not when it's saved)
+                extra["Last-Modified"] = modified
             if target.suffix == ".html":
                 extra["Content-Security-Policy"] = CSP
             if target.name == "sw.js":
                 extra["Service-Worker-Allowed"] = "/"
-            if self.headers.get("If-None-Match") == etag:
+            # A picture's address ends in its version (?v=, see scripts/import_art.py), so it can be kept for good;
+            # everything else is checked each time (it's usually unchanged: a quick 304).
+            cache = "public, max-age=31536000, immutable" if rel.startswith("ducks/") and "v=" in query else "no-cache"
+            # Browsers keep only an HTTP/1.1 server's ETag, and this one answers in HTTP/1.0: so the date too.
+            if self.headers.get("If-None-Match") == etag or (not build and "If-None-Match" not in self.headers
+                                                             and self.headers.get("If-Modified-Since") == modified):
                 self.send_response(304)
                 self.send_header("ETag", etag)
-                self.send_header("Cache-Control", "no-cache")
+                self.send_header("Cache-Control", cache)
                 self.end_headers()
                 return
             data = target.read_bytes()
             if build:
                 data = data.replace(b"__BUILD__", build.encode())
-            if target.suffix in COMPRESSIBLE and len(data) > 1024 and "gzip" in (self.headers.get("Accept-Encoding") or ""):
+            if target.suffix in COMPRESSIBLE and len(data) > GZIP_OVER and self._gzip_ok():
                 key = (str(target), etag)
                 if key not in gz_cache:
                     gz_cache[key] = gzip.compress(data, 7)
                 data = gz_cache[key]
                 extra.update({"Content-Encoding": "gzip", "Vary": "Accept-Encoding"})
-            self._send(200, data, MIME.get(target.suffix, "application/octet-stream"), extra, cache="no-cache")
+            self._send(200, data, MIME.get(target.suffix, "application/octet-stream"), extra, cache=cache)
 
     return Handler
 
 
 class Server(ThreadingHTTPServer):
+    """A door: each connection gets a thread, up to max_connections at once (see MAX_CONNECTIONS), and one
+    that's too slow to send its request is cut off (see HEADERS_IN)."""
     daemon_threads = True
     request_queue_size = 64
     allow_reuse_address = True
+    max_connections, headers_in, body_grace, wait_for_slot = MAX_CONNECTIONS, HEADERS_IN, BODY_GRACE, 5
+
+    def __init__(self, *args, **kwargs):
+        self._slots = threading.BoundedSemaphore(self.max_connections)
+        self._due, self._due_lock, self._closed = {}, threading.Lock(), threading.Event()
+        super().__init__(*args, **kwargs)
+        threading.Thread(target=self._cut_off_late, name="dakku-deadlines", daemon=True).start()
+
+    def process_request(self, request, client_address):
+        if not self._slots.acquire(timeout=self.wait_for_slot):  # every thread busy: it waits its turn, then is turned away
+            self.shutdown_request(request)
+            return
+        try:
+            super().process_request(request, client_address)
+        except BaseException:
+            self._slots.release()
+            raise
+
+    def process_request_thread(self, request, client_address):
+        try:
+            super().process_request_thread(request, client_address)
+        finally:
+            self._slots.release()
+
+    def due(self, conn, seconds):
+        """`conn` must have sent what it's sending within `seconds` (None: it has)."""
+        with self._due_lock:
+            if seconds is None:
+                self._due.pop(conn, None)
+            else:
+                self._due[conn] = time.monotonic() + seconds
+
+    def _cut_off_late(self):
+        while not self._closed.wait(0.5):
+            now = time.monotonic()
+            with self._due_lock:
+                late = [conn for conn, until in self._due.items() if until < now]
+                for conn in late:
+                    del self._due[conn]
+            for conn in late:
+                try:
+                    conn.shutdown(socket.SHUT_RDWR)  # its thread's read ends, and so does the request
+                except OSError:
+                    pass
+
+    def server_close(self):
+        self._closed.set()
+        super().server_close()
 
     def handle_error(self, request, client_address):
         # Phones drop idle connections all the time (locking the screen, switching apps): not an error.
@@ -500,7 +628,7 @@ def serve(app, host, port, friends_port=None):
     friends = None
     if friends_port:  # the friends' door: this PC only, for Tailscale Funnel to open up
         friends = Server(("127.0.0.1", friends_port), make_handler(app, public=True))
-        threading.Thread(target=friends.serve_forever, kwargs={"poll_interval": 0.5}, name="mori-friends", daemon=True).start()
+        threading.Thread(target=friends.serve_forever, kwargs={"poll_interval": 0.5}, name="dakku-friends", daemon=True).start()
         log(f"the friends' door is on http://127.0.0.1:{friends.server_address[1]}")
     try:
         httpd.serve_forever(poll_interval=0.5)

@@ -98,6 +98,14 @@ class Vapid:
             return value
 
 
+class _Stay(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args, **kwargs):
+        return None  # a push service answers for itself: a redirect anywhere else (say, inside your network) isn't followed
+
+
+_opener = urllib.request.build_opener(_Stay)
+
+
 def send(subscription, payload, vapid, subject, ttl=600, urgency="normal", topic=None, timeout=12):
     """Deliver one notification. Returns (HTTP status, detail); 404/410 mean the subscription is gone."""
     endpoint = subscription["endpoint"]
@@ -115,9 +123,10 @@ def send(subscription, payload, vapid, subject, ttl=600, urgency="normal", topic
         headers["Topic"] = topic
     request = urllib.request.Request(endpoint, data=body, headers=headers, method="POST")
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
+        with _opener.open(request, timeout=timeout) as response:
             return response.status, ""
     except urllib.error.HTTPError as err:
-        return err.code, err.read(300).decode(errors="replace")
+        with err:
+            return err.code, err.read(300).decode(errors="replace")
     except OSError as err:
         return 0, str(err)

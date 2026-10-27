@@ -1,6 +1,6 @@
 """The demo Dakku: made-up study sessions, for showing people what a full pond looks like.
 
-python3 -m mori --demo (scripts/demo.sh runs it) keeps its own data in demo/, apart from yours,
+python3 -m dakku --demo (scripts/demo.sh runs it) keeps its own data in demo/, apart from yours,
 and lets in anyone who can reach it without signing in. Each day's sessions are made from that
 day's date, so they come out the same every time, and fill() adds the ones that have finished
 by now: the demo pond grows through the day and from one day to the next, like a real one.
@@ -18,7 +18,7 @@ DAYS = 150           # how far back the made-up history goes
 STEADY = 40          # no missed weekdays in the last this-many days, so the streak looks good
 TAGS = ["CCNA"] * 5 + ["Japanese"] * 4 + ["Subnetting"] * 2 + ["Reading"]
 LENGTHS = [25, 25, 25, 30, 45, 45, 50, 60, 15, 90]
-SOURCES = ["mori", "mori", "mori", "genkan", "genkan", "manual"]
+SOURCES = ["dakku", "dakku", "dakku", "genkan", "genkan", "manual"]
 # (id, name, color, mark, what they study, their favorite duck)
 FRIENDS = (("demo-mina", "Mina", "#D9568F", "M", ["Japanese", "Japanese", "Design", "Reading"], "kirby"),
            ("demo-kai", "Kai", "#E9A100", "K", ["Calculus", "Coding", "Coding", "Physics"], "sonic"))
@@ -29,7 +29,7 @@ DECKS = {"Japanese::Core 2k": (20, 9, 64), "Japanese::Kanji": (10, 4, 38), "CCNA
 
 def plan(day, steady):
     """The sessions made up for one day: (hour, minute, minutes, tag, duck, cold, source, pomodoro rounds)."""
-    rnd = random.Random(f"mori-demo-{day.isoformat()}")
+    rnd = random.Random(f"dakku-demo-{day.isoformat()}")
     weekend = day.weekday() >= 5
     skip = rnd.random() < (0.45 if weekend else 0.05)
     if skip and (weekend or not steady):
@@ -39,7 +39,7 @@ def plan(day, steady):
     out = [[hour, rnd.choice([0, 5, 10, 15, 20, 30, 40]), rnd.choice(LENGTHS), rnd.choice(TAGS),
             rnd.choice(logic.species()), rnd.random() < 0.05, rnd.choice(SOURCES), 0] for hour in hours]
     for o in out:  # some are pomodoros: rounds of 25 minutes (the breaks don't count)
-        if not o[5] and o[6] == "mori" and rnd.random() < 0.2:
+        if not o[5] and o[6] == "dakku" and rnd.random() < 0.2:
             o[7] = rnd.choice([2, 3, 4, 4])
             o[2] = 25 * o[7]
     if steady and not weekend and sum(o[2] for o in out if not o[5]) < 45:
@@ -70,7 +70,7 @@ def friends(app, now):
 def joined(day, host_plan, friend):
     """When a friend joins one of your sessions that day: (index of yours, minutes in, minutes stayed), or None."""
     pid = friend[0]
-    rnd = random.Random(f"mori-demo-{pid}-{day.isoformat()}")
+    rnd = random.Random(f"dakku-demo-{pid}-{day.isoformat()}")
     done = [i for i, p in enumerate(host_plan) if not p[5] and p[2] >= 25]
     if not done or rnd.random() > (0.45 if pid == "demo-mina" else 0.25):
         return None
@@ -97,14 +97,14 @@ def fill(app, now):
                 ops.append({"op": "upsert", "session": session(sid, start, minutes, tag, duck, cold, source, rounds)})
         for friend in FRIENDS:
             pid, tags, duck = friend[0], friend[4], friend[5]
-            rnd = random.Random(f"mori-demo-{pid}-solo-{day.isoformat()}")
+            rnd = random.Random(f"dakku-demo-{pid}-solo-{day.isoformat()}")
             # their own sessions, from their own week
             for j, (hour, minute, minutes, _, kind, cold, _, rounds) in enumerate(plan(day + timedelta(days=3 + len(pid)), True)[:2]):
                 start = at(min(22, hour + 1), minute)
                 sid = f"{pid}-{day.isoformat()}-{j}"
                 if start + minutes * 60_000 <= now and app.store.get_session(sid) is None:
                     kind = duck if rnd.random() < 0.4 else kind
-                    ops.append({"op": "upsert", "session": dict(session(sid, start, minutes, rnd.choice(tags), kind, cold, "mori", rounds), person=pid)})
+                    ops.append({"op": "upsert", "session": dict(session(sid, start, minutes, rnd.choice(tags), kind, cold, "dakku", rounds), person=pid)})
             # and the sessions of yours they joined
             together = joined(day, mine, friend)
             if together:
@@ -114,14 +114,14 @@ def fill(app, now):
                 sid = f"{pid}-{day.isoformat()}-with"
                 if start + stayed * 60_000 <= now and app.store.get_session(sid) is None:
                     kind = duck if rnd.random() < 0.5 else rnd.choice(logic.species())
-                    ops.append({"op": "upsert", "session": dict(session(sid, start, stayed, rnd.choice(tags), kind, False, "mori"),
+                    ops.append({"op": "upsert", "session": dict(session(sid, start, stayed, rnd.choice(tags), kind, False, "dakku"),
                                                                 person=pid, room=f"demo-{day.isoformat()}-{i}")})
     # so today's pond isn't empty first thing: one from earlier this morning, if nothing's finished yet
     early = f"demo-{today.isoformat()}-early"
     finished_today = any(op["session"]["id"].startswith(f"demo-{today.isoformat()}") for op in ops) or any(
         app.store.get_session(f"demo-{today.isoformat()}-{i}") for i in range(4))
     if local.hour >= 6 and not finished_today and app.store.get_session(early) is None:
-        ops.append({"op": "upsert", "session": session(early, now - 40 * 60_000, 25, "Japanese", "shiro", False, "mori")})
+        ops.append({"op": "upsert", "session": session(early, now - 40 * 60_000, 25, "Japanese", "shiro", False, "dakku")})
     added = len(ops)
     if ops:
         app.store.apply(ops)
@@ -139,13 +139,13 @@ def studying(app, now, local):
     timers = app.store.timers()
     if any(t for p, t in timers.items() if p in (FRIENDS[0][0], FRIENDS[1][0])) or local.hour < 7:
         return
-    rnd = random.Random(f"mori-demo-live-{now // 3_600_000}")
+    rnd = random.Random(f"dakku-demo-live-{now // 3_600_000}")
     pomo = rnd.random() < 0.4  # sometimes a pomodoro, so you can try joining one of those too
     planned = 4 * 25 + 3 * 5 if pomo else rnd.choice([45, 50, 60, 90])
     begun = now - rnd.randint(6, planned // 2) * 60_000
     timer = {"id": f"{pid}-live-{now // 60_000}", "mode": "pomo" if pomo else "timer", "planned": planned * 60_000,
              "startedAt": begun, "acc": 0, "runFrom": begun, "tag": rnd.choice(tags), "species": duck, "deep": False,
-             "source": "mori", "device": "iPhone", "updated": now, "open": True, "announced": True}
+             "source": "dakku", "device": "iPhone", "updated": now, "open": True, "announced": True}
     if pomo:
         timer["pomo"] = {"focus": 25 * 60_000, "brk": 5 * 60_000, "rounds": 4}
     app.store.set(app._key("timer", pid), timer)
@@ -158,7 +158,7 @@ def anki(now, tz):
     by_day = []
     for back in range(DAYS, -1, -1):
         day = today - timedelta(days=back)
-        rnd = random.Random(f"mori-demo-anki-{day.isoformat()}")
+        rnd = random.Random(f"dakku-demo-anki-{day.isoformat()}")
         if back <= STEADY or rnd.random() > 0.08:
             by_day.append([day.isoformat(), rnd.randint(35, 190) if back else rnd.randint(40, 90)])
     return {"decks": sorted(DECKS), "counts": {k: list(v) for k, v in DECKS.items()}, "byDay": by_day, "at": now - 4 * 60_000}

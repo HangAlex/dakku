@@ -9,9 +9,11 @@ notification subscription belongs to a person: "me" is you, the person whose PC 
 Sessions done together share a `room`: the id of the session they joined.
 """
 import json
+import os
 import sqlite3
 import threading
 from contextlib import contextmanager
+from pathlib import Path
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -22,7 +24,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   tag     TEXT NOT NULL DEFAULT '',
   species TEXT NOT NULL DEFAULT '',
   status  TEXT NOT NULL DEFAULT 'done', -- 'done' or 'withered'
-  source  TEXT NOT NULL DEFAULT '',     -- 'mori', 'genkan', 'manual', 'import'
+  source  TEXT NOT NULL DEFAULT '',     -- 'dakku', 'genkan', 'manual', 'import'
   manual  INTEGER NOT NULL DEFAULT 0,
   note    TEXT NOT NULL DEFAULT '',
   updated INTEGER NOT NULL,             -- last edit, ms; newest edit wins
@@ -87,6 +89,27 @@ COLUMNS = ("id", "start", "minutes", "tag", "species", "status", "source", "manu
 DEFAULTS = {"tag": "", "species": "", "status": "done", "source": "", "manual": 0, "note": "", "deleted": 0, "person": "me", "room": "", "rounds": 0}
 
 
+def database(folder):
+    """Where Dakku's database is, in `folder`. One from before Dakku had its name (mori.db) becomes it:
+    written out in full first (SQLite keeps the latest changes in a journal named after the file), then
+    renamed. If anything else still has it open, it's left as it is this time."""
+    folder = Path(folder)
+    db, old = folder / "dakku.db", folder / "mori.db"
+    if db.exists() or not old.exists():
+        return db
+    con = sqlite3.connect(old)
+    try:
+        busy = con.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()[0]
+    finally:
+        con.close()
+    if busy:
+        return old
+    os.replace(old, db)
+    for journal in ("-wal", "-shm"):
+        Path(f"{old}{journal}").unlink(missing_ok=True)  # (empty now: everything is in the file)
+    return db
+
+
 class Store:
     def __init__(self, path):
         self.path = str(path)
@@ -102,6 +125,7 @@ class Store:
                     self.db.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
             self.db.execute("CREATE INDEX IF NOT EXISTS sessions_by_person ON sessions(person, rev)")
             self.db.execute("CREATE INDEX IF NOT EXISTS sessions_by_room ON sessions(room)")
+            self.db.execute("UPDATE sessions SET source='dakku' WHERE source='mori'")  # Dakku's own, from before its name
             self._set(self.db, "schema", 2)
 
     @contextmanager
@@ -158,6 +182,8 @@ class Store:
         row = db.execute("SELECT * FROM sessions WHERE id=?", (data["id"],)).fetchone()
         if row is None and ("start" not in data or "minutes" not in data):
             raise KeyError("a new session needs a start and minutes")
+        if row is not None and data.get("person", row["person"]) != row["person"]:
+            return dict(row), False  # someone else's: a session never changes hands
         if row is not None and data["updated"] < row["updated"]:
             return dict(row), False
         merged = dict(row) if row else dict(DEFAULTS)
@@ -278,10 +304,14 @@ class Store:
             db.execute("DELETE FROM devices WHERE person=?", (person,))
 
     # ── push subscriptions ───────────────────────────────────────────────────
-    def add_push(self, endpoint, p256dh, auth, origin, device_id, now, person="me"):
+    def add_push(self, endpoint, p256dh, auth, origin, device_id, now, person="me", keep=10):
+        """A device's push subscription, in place of any it had; a person keeps their `keep` newest."""
         with self.tx() as db:
+            db.execute("DELETE FROM push WHERE device_id=? AND person=? AND endpoint<>?", (device_id, person, endpoint))
             db.execute("INSERT OR REPLACE INTO push(endpoint, p256dh, auth, origin, device_id, created, failures, person) VALUES(?,?,?,?,?,?,0,?)",
                        (endpoint, p256dh, auth, origin, device_id, now, person))
+            db.execute("DELETE FROM push WHERE person=? AND endpoint NOT IN (SELECT endpoint FROM push WHERE person=? ORDER BY created DESC LIMIT ?)",
+                       (person, person, keep))
 
     def remove_push(self, endpoint, person=None):
         """A push subscription gone: one of `person`'s, or (from the push service) whoever's it was."""
