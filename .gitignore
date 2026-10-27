@@ -1,0 +1,12 @@
+data/
+__pycache__/
+*.pyc
+demo/
+art/review/
+art/prompts/
+
+# someone else's drawing, used only as the style picture for ChatGPT: kept here, not shared
+art/style-reference.jpg
+private/
+# tree pictures from before Dakku had ducks: kept here, not shared
+art/old-trees/

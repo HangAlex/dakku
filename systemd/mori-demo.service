@@ -1,0 +1,17 @@
+[Unit]
+Description=鴨 Dakku demo, with made-up ducks (http://localhost:8642)
+Documentation=https://github.com/HangAlex/dakku
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/mori
+ExecStart=/usr/bin/python3 -m mori --demo
+Environment=PYTHONUNBUFFERED=1
+Restart=always
+RestartSec=3
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=default.target

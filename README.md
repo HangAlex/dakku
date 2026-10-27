@@ -1,7 +1,5 @@
 <p align="center"><img src="media/hero.webp" alt="Dakku: a study timer where every focus session hatches a little duck into your pond"></p>
 
-<p align="center"><a href="https://hangalex.github.io/dakku-demo/"><b>▶ Try the demo</b></a> · runs in your browser, nothing to install</p>
-
 <p align="center">
   <img src="media/hatch.webp" width="290" alt="An egg cracking open and hatching into a witch duck as the timer runs out">
   &nbsp;
@@ -17,15 +15,8 @@ It runs on my own PC at home and I use it every day as an app on my iPhone. Play
 
 My goal is to build long term study habits one duck at a time!
 
-## Try it
-
-**[hangalex.github.io/dakku-demo](https://hangalex.github.io/dakku-demo/)**: a playable demo, full of made-up ducks,
-that runs right in your browser. Start a timer and hatch a duck, join Mina while she studies, switch on Halloween. Nothing
-you do leaves your phone. On iPhone, tap Share → **Add to Home Screen** to use it like an app.
-
-<p align="center"><img src="media/demo-qr.png" width="220" alt="QR code for the demo"></p>
-
-> **Status:** a personal project I'm still building. The code isn't up yet; this page shows what it looks like.
+> **Status:** a personal project I'm still building. The code is all here; [SETUP.md](SETUP.md) explains how to run it
+> and how it works.
 
 ---
 
@@ -138,8 +129,18 @@ leaderboard.
 
 Dakku is self-hosted: a small server on my home PC with my phone and laptop talking to it, so my data stays mine. The
 server is plain Python with no dependencies, and the app is a progressive web app added to my iPhone's home screen.
-Friends reach it through an invite link. There's also a demo copy full of made-up ducks for showing people (that's what
-all the screenshots here are from).
+Friends reach it through an invite link.
+
+## Run it yourself
+
+You need Python 3 and nothing else (I run it on 3.14). To try it with a pond full of made-up ducks (that's what all the
+screenshots here are from):
+
+```bash
+python3 -m mori --demo
+```
+
+Then open http://localhost:8642. For the real thing, on your own PC with your phone, see [SETUP.md](SETUP.md).
 
 ---
 
