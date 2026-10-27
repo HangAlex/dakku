@@ -88,14 +88,14 @@ about every one.
   <img src="media/event-christmas.webp" width="260" alt="Christmas: snow falling over the timer">
 </p>
 
-Halloween, Thanksgiving and Christmas each change the colours and the pond together, with bats, falling leaves or snow
+Halloween, Thanksgiving and Christmas each change the colors and the pond together, with bats, falling leaves or snow
 drifting past. You can turn one on any time of year, and tap it again to go back.
 
 ## Themes
 
 <p align="center"><img src="media/themes.png" alt="The Ai, Sumi, Yozakura and Sakura themes"></p>
 
-Named after traditional Japanese colours: 藍 Ai (indigo), 墨 Sumi (ink), 夜桜 Yozakura (cherry blossoms at night) and
+Named after traditional Japanese colors: 藍 Ai (indigo), 墨 Sumi (ink), 夜桜 Yozakura (cherry blossoms at night) and
 桜 Sakura, a soft pink light theme with petals drifting down.
 
 ## Studying together
