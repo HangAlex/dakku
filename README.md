@@ -22,7 +22,9 @@ My goal is to build long term study habits one duck at a time!
 **[hangalex.github.io/dakku](https://hangalex.github.io/dakku/)**: a playable demo, full of made-up ducks, that runs
 right in your browser, on your phone or your computer. Start a timer and hatch a duck, join Mina while she studies,
 switch on Halloween. Nothing you do leaves your device. On a computer, just open the link; on a phone, scan the code
-below, and on iPhone tap Share → **Add to Home Screen** to use it like an app.
+below.
+
+**On a phone, for the best experience:** open the link in **Safari** (iPhone) or **Chrome** (Android), not inside another app like Instagram or Discord, then add it to your Home Screen: on iPhone tap Share → **Add to Home Screen**, on Android tap ⋮ → **Add to Home screen**. It then opens full-screen from its own icon, like an app.
 
 <p align="center"><img src="media/demo-qr.png" width="240" alt="QR code for the demo: hangalex.github.io/dakku"></p>
 
