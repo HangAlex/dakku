@@ -54,12 +54,12 @@ Tailscale is already set up on this PC. Your iPhone and Mac need the Tailscale a
 outside home. Traffic stays inside your private tailnet; nothing is open to the internet, except the friends' door if
 you open it, which only lets in people you invite.
 
-Dakku is only reachable while this PC is awake, so it shouldn't suspend: `~/mori/scripts/always-on.sh` switches suspend
+Dakku is only reachable while this PC is awake, so it shouldn't suspend: `scripts/always-on.sh` switches suspend
 off for good, turns the screens off after 5 idle minutes instead, and adds **Ctrl+Super+Page Down** (the GMMK Pro's Page Down key
 sends End, so the shortcut is Ctrl+Super+End) and a **Screens off** app that darken them right away (`… undo` brings suspend back).
 
 On this PC, Dakku is on the dock: it opens in its own Brave window, and right-clicking it offers the Pond, your Stats
-and the demo. `~/mori/scripts/install-shortcut.sh` puts it back if it's ever gone (`… remove` takes it off).
+and the demo. `scripts/install-shortcut.sh` puts it back if it's ever gone (`… remove` takes it off).
 
 ### Add your iPhone
 
@@ -76,7 +76,7 @@ Run this once on the PC. It asks you to switch on HTTPS certificates in the Tail
 your password once:
 
 ```bash
-~/mori/scripts/enable-https.sh
+scripts/enable-https.sh
 ```
 
 Then use https://your-pc.your-tailnet.ts.net on your devices, and turn on notifications in Settings. To undo it, run
@@ -90,7 +90,7 @@ an account, just a link from you.
 1. Once, on the PC (it may ask you to switch Funnel on in Tailscale: one click):
 
    ```bash
-   ~/mori/scripts/enable-friends.sh
+   scripts/enable-friends.sh
    ```
 
    It opens a separate door for friends at https://your-pc.your-tailnet.ts.net:8443 with Tailscale Funnel. Your own
@@ -118,36 +118,37 @@ Then:
   Anki or data. Your passcode and pairing codes don't work at the friends' door, and nobody there counts as this PC.
 - **Keeping an eye on it**: Settings → **People & groups** lists everyone with their devices, when they were last seen
   and how much they studied; make a sign-in link for a friend's new phone, take back unused invites, or remove someone
-  (which signs them out; their ducks are kept). `journalctl --user -u mori -f` logs every sign-in and join.
-  `~/mori/scripts/enable-friends.sh off` closes the friends' door again.
+  (which signs them out; their ducks are kept). `journalctl --user -u dakku -f` logs every sign-in and join.
+  `scripts/enable-friends.sh off` closes the friends' door again.
 
 ## Running it
 
-Install it once as a user service. It then starts with the PC (even before you log in) and restarts itself if it
+The commands here are run in Dakku's folder. Install it once as a user service. It then starts with the PC (even before you log in) and restarts itself if it
 ever stops:
 
 ```bash
-~/mori/scripts/install-service.sh
+scripts/install-service.sh
 ```
 
 After that:
 
 ```bash
-systemctl --user status mori      # is it running?
-journalctl --user -u mori -f      # its log
-systemctl --user restart mori     # after changing the code
+systemctl --user status dakku      # is it running?
+journalctl --user -u dakku -f      # its log
+systemctl --user restart dakku     # after changing the code
 ```
 
-To run it by hand instead: `cd ~/mori && python3 -m mori`.
+To run it by hand instead: `python3 -m dakku`, in Dakku's folder.
 
-Settings come from the environment: `MORI_PORT` (8640), `MORI_HOST` (0.0.0.0), `MORI_DATA` (`./data`),
-`MORI_BACKUPS` (`~/Documents/Homepage/Dakku backups`), `MORI_ANKI` (http://127.0.0.1:8765), `MORI_FRIENDS_PORT` (8643,
-the friends' door, only reachable from this PC itself) and `MORI_FRIENDS_URL` (the friends' address in invite links,
+Settings come from the environment: `DAKKU_PORT` (8640), `DAKKU_HOST` (0.0.0.0), `DAKKU_DATA` (`./data`),
+`DAKKU_BACKUPS` (`~/Documents/Homepage/Dakku backups`), `DAKKU_ANKI` (http://127.0.0.1:8765), `DAKKU_FRIENDS_PORT` (8643,
+the friends' door, only reachable from this PC itself) and `DAKKU_FRIENDS_URL` (the friends' address in invite links,
 if it isn't Tailscale Funnel's).
 
 ## Your data
 
-- Everything lives in `data/mori.db` (SQLite). `data/` is private (folder mode 700) and stays out of git.
+- Everything lives in `data/dakku.db` (SQLite). `data/` and the backups are only yours (folders 700, files 600) and stay
+  out of git.
 - Every day Dakku saves `dakku-YYYY-MM-DD.db` and a readable `.json` to `~/Documents/Homepage/Dakku backups` and keeps the
   last 30.
 - Settings → Your data downloads everything as JSON or CSV, and imports a Dakku export or a Genkan backup.
@@ -166,10 +167,10 @@ never touches yours, and opens without signing in. Its ducks are made from each 
 every time, and new ones hatch through the day, so "this week" is always full.
 
 ```bash
-~/mori/scripts/demo.sh             # run it now, until Ctrl+C
-~/mori/scripts/demo.sh install     # keep it running all the time, so your phone can always open it
-~/mori/scripts/demo.sh uninstall   # switch that off again
-~/mori/scripts/demo.sh reset       # start over with fresh made-up ducks
+scripts/demo.sh             # run it now, until Ctrl+C
+scripts/demo.sh install     # keep it running all the time, so your phone can always open it
+scripts/demo.sh uninstall   # switch that off again
+scripts/demo.sh reset       # start over with fresh made-up ducks
 ```
 
 It's at http://localhost:8642 on this PC, and `http://<this-pc>.<your-tailnet>.ts.net:8642` on your phone with
@@ -185,16 +186,16 @@ face and outfit. The app and the server both take the list from there, so adding
 ### Making a new duck
 
 ```bash
-python3 ~/mori/scripts/duck.py new goku "spiky black hair and an orange gi with a blue belt" --name Goku --kanji 悟
+python3 scripts/duck.py new goku "spiky black hair and an orange gi with a blue belt" --name Goku --kanji 悟
 ```
 
 That adds Goku to the list and prints the exact prompt for ChatGPT (also saved in `art/prompts/goku.txt`). Add
 `--angry` for Dakku's angry eyebrow. In ChatGPT, start a new chat in the **Dakku ducks** project (it has the style
 rules), pick **Create image**, attach `art/reference.png` (six finished ducks to match; after the first upload it's
-under + → Add from library), paste the prompt, and save the picture as `~/mori/art/incoming/goku.png`. Then:
+under + → Add from library), paste the prompt, and save the picture as `art/incoming/goku.png`. Then:
 
 ```bash
-python3 ~/mori/scripts/import_art.py
+python3 scripts/import_art.py
 ```
 
 It finishes the picture and checks it: it takes out a white or painted-in checkerboard background, cuts out the duck,
@@ -208,11 +209,11 @@ in ChatGPT and use the picture's own **Describe edits** box, save it as `art/inc
 import.
 
 ```bash
-python3 ~/mori/scripts/duck.py list        # every duck
-python3 ~/mori/scripts/duck.py check       # every picture against Dakku's style
-python3 ~/mori/scripts/duck.py review      # all the ducks side by side, at Dakku's size (art/review/all.png)
-python3 ~/mori/scripts/duck.py prompt goku # a duck's prompt again
-python3 ~/mori/scripts/duck.py reference   # remakes art/reference.png from some finished ducks
+python3 scripts/duck.py list        # every duck
+python3 scripts/duck.py check       # every picture against Dakku's style
+python3 scripts/duck.py review      # all the ducks side by side, at Dakku's size (art/review/all.png)
+python3 scripts/duck.py prompt goku # a duck's prompt again
+python3 scripts/duck.py reference   # remakes art/reference.png from some finished ducks
 ```
 
 A duck can be sized up or down with `"scale": 1.05` in `art/ducks.json` (then `duck.py publish`).
@@ -245,7 +246,7 @@ To change the songs, put Spotify track links in `art/lofi.txt` (one per line, or
 then:
 
 ```bash
-python3 ~/mori/scripts/lofi.py
+python3 scripts/lofi.py
 ```
 
 It writes `web/lofi.json` and lists any song it couldn't find. Songs it found before keep their match (`--redo` looks
@@ -255,7 +256,7 @@ them all up again). Reload Dakku.
 
 No dependencies, just Python's standard library and plain JavaScript.
 
-- `mori/`: the server. `app.py` (sign-in, the shared timer, sync, notifications, backups), `web.py` (HTTP, live
+- `dakku/`: the server. `app.py` (sign-in, the shared timer, sync, notifications, backups), `web.py` (HTTP, live
   updates), `store.py` (SQLite), `logic.py` (days and streaks), `webpush.py` + `ec.py` + `aesgcm.py` (Web Push with
   its encryption, written from the RFCs), `anki.py` (AnkiConnect).
 - `web/`: the app. `app.js` (everything on screen, offline-first sync), `art.js` (the ducks, eggs and the pond),
