@@ -190,7 +190,7 @@ window.MORI_DUCKS = {
   "kanji": "孤",
   "name": "Bocchi",
   "color": "#F3A5C0",
-  "blurb": "Practises for hours and talks to no one. The perfect study buddy."
+  "blurb": "Practices for hours and talks to no one. The perfect study buddy."
  },
  "monika": {
   "kanji": "文",

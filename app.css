@@ -1,5 +1,5 @@
 /* 鴨 Dakku — styles
-   Dark themes only, named after traditional Japanese colours. Every colour comes from the
+   Dark themes only, named after traditional Japanese colors. Every color comes from the
    tokens below; --grow and its --g ramp carry progress (the ring, bars, the heatmap). */
 
 /* ───────── Themes (dark only) ───────── */
@@ -628,7 +628,7 @@ dialog.sheet[open] { animation: slide .28s cubic-bezier(.2, .9, .3, 1) both; }
 }
 
 /* ───────── Together ───────── */
-/* someone's badge: their colour and their mark, as it sits on their ducks in a shared pond */
+/* someone's badge: their color and their mark, as it sits on their ducks in a shared pond */
 .pbadge {
   --c: var(--ink-3);
   display: inline-grid; place-items: center; flex: none;
