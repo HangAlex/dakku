@@ -367,7 +367,7 @@
    "blurb": "Sees the future: it's you, finishing this session.",
    "face": "calm",
    "look": "Shulk from Xenoblade Chronicles: short, wavy pale-blond hair, a short wine-red jacket over a black sweater with a small pink-and-purple pattern, and the Monado slung on its back the way the other ducks carry their swords: point down, with only its thin handle and the big round ring at the base of the blade sticking up over the shoulder, and the long flat red blade (with a few thin light-blue glowing lines) hanging down behind the back. Drawn like the real Monado: the ring with a hole through it sits at the bottom of the blade next to the handle, and the handle is a long, very thin red rod coming straight down from the middle of the ring (centered under it, not off to one side), much thinner than the blade, with a tiny ring at its end",
-   "body": 627
+   "body": 753
   },
   "yagami": {
    "name": "Yagami",
@@ -449,7 +449,7 @@
    "blurb": "I thought this was a study app! (It is.)",
    "face": "calm",
    "look": "Randy Marsh from South Park: short black hair combed flat, his thick black mustache sitting right on top of the beak where the beak meets the face, directly below the eye, like a mustache under a nose (not beside or under the beak), and his light blue button-up shirt, buttoned all the way up with a plain collar (no T-shirt showing)",
-   "body": 677
+   "body": 651
   }
  }
 }
