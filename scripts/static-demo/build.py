@@ -74,7 +74,7 @@ def build(out):
                 text = text.replace('"id": "/"', '"id": "dakku-demo"').replace('"start_url": "/"', '"start_url": "./"').replace('"scope": "/"', '"scope": "./"')
             if rel.name == "index.html":
                 first = text.index("<script")
-                text = text[:first] + '<script src="demo/snapshot.js"></script>\n  <script src="demo/fake-server.js"></script>\n  ' + text[first:]
+                text = text[:first] + '<script src="demo/snapshot.js"></script>\n  <script src="demo/fake-server.js"></script>\n  <script src="demo/tip.js" defer></script>\n  ' + text[first:]
                 text = text.replace("<title>", "<title>Demo · ", 1)
             target.write_text(text, encoding="utf-8")
         elif rel.as_posix() == "app.js":
@@ -87,6 +87,7 @@ def build(out):
     (out / "demo").mkdir(exist_ok=True)
     (out / "demo" / "snapshot.js").write_text("window.DAKKU_SNAPSHOT = " + json.dumps(snap, ensure_ascii=False, separators=(",", ":")) + ";\n", encoding="utf-8")
     shutil.copy2(HERE / "fake-server.js", out / "demo" / "fake-server.js")
+    shutil.copy2(HERE / "tip.js", out / "demo" / "tip.js")
     (out / ".nojekyll").write_text("")
     leaks = [p for p in out.rglob("*") if p.is_file() and p.suffix in (".js", ".json", ".html") and re.search(r"ts\.net|192\.168\.|taild", p.read_text(errors="ignore"))]
     assert not leaks, f"addresses left in {leaks}"
