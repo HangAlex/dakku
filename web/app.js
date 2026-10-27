@@ -29,7 +29,7 @@
 
   /* ───────────── constants ───────────── */
   const SPECIES = Art.ORDER;
-  // tag colours: [light, dark, kanji, name] in an order checked for colour-blind safety
+  // tag colors: [light, dark, kanji, name] in an order checked for color-blind safety
   const PALETTE = [
     ['#D9482B', '#E2603F', '朱', 'Vermilion'], ['#12A37A', '#1C9C73', '若竹', 'Bamboo'], ['#E9A100', '#B88200', '山吹', 'Gold'],
     ['#D9568F', '#D9558C', '牡丹', 'Peony'], ['#2B6CC4', '#4A8BE0', '瑠璃', 'Lapis'], ['#2E8B3A', '#3A9A45', '常磐', 'Evergreen'],
@@ -2098,7 +2098,7 @@
     const counts = derive().byTag;
     $('#set-tags').innerHTML = s.tags.length ? s.tags.map((t, i) => `
       <div class="tag-row" data-i="${i}">
-        <button type="button" class="swatch" style="--c:${tagColor(t.name)}" data-tag-color="${i}" aria-label="Colour for ${esc(t.name)}"></button>
+        <button type="button" class="swatch" style="--c:${tagColor(t.name)}" data-tag-color="${i}" aria-label="Color for ${esc(t.name)}"></button>
         <input type="text" value="${esc(t.name)}" maxlength="24" data-tag-name="${i}" aria-label="Tag name">
         <span class="count">${counts.has(t.name) ? fmtMin(counts.get(t.name)) : ''}</span>
         <button type="button" class="link" data-tag-del="${i}" aria-label="Remove ${esc(t.name)}">Remove</button>
@@ -2531,7 +2531,7 @@
     return 7 * (cell + gap);
   }
 
-  // a pond as big as fits in the box, centred in it
+  // a pond as big as fits in the box, centered in it
   async function fitPond(ctx, scene, x, y, w, h, people = null) {
     await Art.ready(scene);
     const pw = Math.min(w, (h * scene.width) / scene.height), ph = (scene.height * pw) / scene.width;
@@ -2607,7 +2607,7 @@
         [y.best >= 0 ? y.monthName(y.best, 'short') : '–', 'best month']], c);
       const scene = Art.pond(y.list.map((s) => ({ kind: s.species, cold: s.status === 'withered' })), { seed: 'year' + y.year, max: 300, minAspect: 0.42, maxAspect: 0.42, ...pondOpts(S.settings.pondTheme) });
       await fitPond(ctx, scene, 72, 620, W - 144, 360);
-      // a bar for each month, in the theme's colours
+      // a bar for each month, in the theme's colors
       const top = Math.max(60, ...y.months), bx = 72, by = 1010, bh = 120, band = (W - 144) / 12, bw = band - 18, now = +d.today.slice(5, 7) - 1;
       y.months.forEach((v, i) => {
         const h = (bh * v) / top;
@@ -2747,7 +2747,7 @@
     if (on) {
       const back = store.get(K.beforeEvent, null) || { theme: 'ai', pondTheme: 'classic' };
       saveSettings({ theme: back.theme, pondTheme: back.pondTheme });
-      toast(`${PONDS[id][1]} is off. Your own colours and pond are back.`);
+      toast(`${PONDS[id][1]} is off. Your own colors and pond are back.`);
       return;
     }
     if (!EVENTS.some(([e]) => e === s.theme)) store.set(K.beforeEvent, { theme: s.theme, pondTheme: s.pondTheme || 'classic' });
@@ -3241,7 +3241,7 @@
     $('#view-plant').addEventListener('click', (e) => { const a = e.target.closest('[data-act]'); if (a) handleAct(a.dataset.act); });
   }
 
-  // your badge: colour and mark, as friends see them on your ducks
+  // your badge: color and mark, as friends see them on your ducks
   async function updateMe(patch) {
     try {
       const person = await api('PATCH', `/api/people/${myId()}`, patch);

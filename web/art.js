@@ -282,7 +282,7 @@ const Art = (() => {
   const WATER = { top: '#9DB8DD', light: '#D4E1F2', streak: '#B9CCE8', ripple: '#3D5A80', pad: '#9CC48C', lotus: '#F2A5C0', petal: '#F7C6D4', petalEdge: '#E29AB1' };
   // Each duck floats: its picture is cut off along a wavy waterline, so it sits in the water rather
   // than on top of it, with a pale line where it meets the water. Under it go the ripples it makes:
-  // rings painted with ChatGPT (centred at (50, 111), the duck hiding their back half), or until
+  // rings painted with ChatGPT (centered at (50, 111), the duck hiding their back half), or until
   // then, little dark dashes either side, as in the reference.
   const CUT = 'M-60 -80H160V108.9H90Q84 109.7 77 108.9Q67 107.7 57 108.8Q47 109.9 37 108.9Q27 107.9 17 109.3H-60Z';
   const CONTACT = [line('M25 109.2Q36 107.5 47 108.9Q58 110.2 69 108.7Q76 107.9 82 108.8', 2.4, WATER.light)];
@@ -511,7 +511,7 @@ const Art = (() => {
   // The themes that have a painted pond, for picking one.
   const pondThemes = () => Object.keys(sprites.ponds).filter((t) => sprites.ponds[t].wide || sprites.ponds[t].tall);
 
-  // In a group pond, a small round badge above each duck's head says whose it is: their colour
+  // In a group pond, a small round badge above each duck's head says whose it is: their color
   // and their mark (a letter, or an emoji). Badges go on top of everything, in depth order.
   function badgeAt(d) {
     const s = spriteFor(d.item.kind, d.item.cold);
