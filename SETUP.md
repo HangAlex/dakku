@@ -216,7 +216,8 @@ python3 scripts/duck.py prompt goku # a duck's prompt again
 python3 scripts/duck.py reference   # remakes art/reference.png from some finished ducks
 ```
 
-A duck can be sized up or down with `"scale": 1.05` in `art/ducks.json` (then `duck.py publish`).
+A duck can be sized up or down with `"scale": 1.05` in `art/ducks.json` (then `duck.py publish`). One whose outfit
+covers the eye on purpose (Denji's chainsaw helmet) gets `"eye": "hidden"`, so the checks don't look for it.
 
 ## The other pictures
 
