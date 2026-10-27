@@ -282,12 +282,6 @@ window.DAKKU_DUCKS = {
   "color": "#3D7A3D",
   "blurb": "Luck stat maxed out: this session will go perfectly."
  },
- "talon": {
-  "kanji": "刃",
-  "name": "Talon",
-  "color": "#2F6FD6",
-  "blurb": "In, out, done: an assassin of to-do lists."
- },
  "denji": {
   "kanji": "鋸",
   "name": "Denji",
@@ -299,5 +293,11 @@ window.DAKKU_DUCKS = {
   "name": "Kid",
   "color": "#D9B44A",
   "blurb": "Perfectly symmetrical study habits. Eight sessions, exactly."
+ },
+ "randy": {
+  "kanji": "父",
+  "name": "Randy",
+  "color": "#5B8FD6",
+  "blurb": "Geologist, Tegridy farmer, and a terrible influence on the pond."
  }
 };

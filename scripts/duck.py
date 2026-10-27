@@ -113,8 +113,15 @@ def components(mask, w, h, min_size=1):
 
 
 def find_eye(img, body):
-    """The eye: a small, solid, roundish dark dot on the white face. Thin dark strokes (outlines, an
-    angry eyebrow touching the eye) are worn away first, so only the dot's round core is left."""
+    """The eye: the likeliest of the eye-like dots (see find_eyes), or None."""
+    dots = find_eyes(img, body)
+    return dots[0] if dots else None
+
+
+def find_eyes(img, body):
+    """Every small, solid, roundish dark dot on white, likeliest first: the duck's eye, but also an
+    eye drawn on a hood or a plush it carries. Thin dark strokes (outlines, an angry eyebrow touching
+    the eye) are worn away first, so only each dot's round core is left."""
     w, h = img.size
     px = img.load()
     dark = Image.new("L", (w, h), 0)
@@ -131,7 +138,7 @@ def find_eye(img, body):
         for x in range(w):
             if core[x, y]:
                 mask[y * w + x] = 1
-    best = None
+    found = []
     for part in components(mask, w, h, max(4, int((0.012 * body) ** 2))):
         if len(part) > (0.13 * body) ** 2:
             continue
@@ -152,9 +159,10 @@ def find_eye(img, body):
                     q = px[x, y]
                     white += q[3] > 200 and min(q[:3]) > 215
         share = white / max(1, ring)
-        if share > 0.4 and (best is None or share > best[0]):
-            best = (share, cx, cy, 2 * r0)
-    return best and {"x": best[1], "y": best[2], "size": best[3]}
+        if share > 0.4:
+            found.append((share, {"x": cx, "y": cy, "size": 2 * r0}))
+    found.sort(key=lambda f: -f[0])
+    return [dot for _, dot in found]
 
 
 def beakish(p):
@@ -251,14 +259,20 @@ def describe(hsv):
 
 # ── finishing a picture ──────────────────────────────────────────────────────
 def face(img, body):
-    """Its eye and beak. When the outline measures far wider than the body (long hair, a ponytail,
-    something it carries), the eye's dot looks too small to be one, so if no eye turns up it's
-    looked for again as if the body were smaller."""
+    """Its eye and beak. The eye is the eye-like dot with a beak next to it (an outfit can carry dots
+    of its own: Monokuma's hood has an eye). When the outline measures far wider than the body (long
+    hair, a ponytail, something it carries), the eye's dot looks too small to be one, so if no eye
+    turns up it's looked for again as if the body were smaller."""
+    first = None
     for f in (1, 0.8, 0.65, 0.5):
-        eye = find_eye(img, body * f)
-        if eye:
-            return eye, find_beak(img, body * f, eye)
-    return None, None
+        for eye in find_eyes(img, body * f):
+            beak = find_beak(img, body * f, eye)
+            if beak:
+                return eye, beak
+            first = first or eye
+        if first:
+            break
+    return first, None
 
 
 def body_from_beak(beak):

@@ -875,6 +875,7 @@
       <div class="progress-text"><span>${mins} of ${d.goal} min today</span><span>${right}</span></div>`;
   }
 
+  let pomoMarkup = ''; // the pomodoro boxes as last drawn
   function renderPlantControls() {
     const t = S.timer;
     $('#idle-controls').hidden = !!t;
@@ -891,12 +892,15 @@
       if (S.pick.mode === 'pomo' && !document.activeElement?.matches('#pomo-pick input')) {
         const p = S.pick.pomo;
         // the number can be typed too, for a big jump (95 minutes is a lot of taps)
-        $('#pomo-pick').innerHTML = [['focus', 'Focus', 'min'], ['brk', 'Break', 'min'], ['rounds', 'Rounds', '']].map(([k, label, unit]) => `
+        const html = [['focus', 'Focus', 'min'], ['brk', 'Break', 'min'], ['rounds', 'Rounds', '']].map(([k, label, unit]) => `
           <div class="stepper"><span class="lbl">${label}</span>
             <button type="button" data-pomo="${k}" data-step="-1" aria-label="Less ${label.toLowerCase()}"${p[k] <= POMO_LIMITS[k][0] ? ' disabled' : ''}>−</button>
             <label class="val"><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" enterkeyhint="done" data-pomo-in="${k}" value="${p[k]}"
               aria-label="${label}${unit ? ' in minutes' : ''}, ${POMO_LIMITS[k][0]} to ${POMO_LIMITS[k][1]}">${unit ? `<small>${unit}</small>` : ''}</label>
             <button type="button" data-pomo="${k}" data-step="1" aria-label="More ${label.toLowerCase()}"${p[k] >= POMO_LIMITS[k][1] ? ' disabled' : ''}>+</button></div>`).join('');
+        // only redrawn when something changed: a redraw swaps the boxes for new ones, and a finger
+        // just landing on one would lose it (on a phone: the keyboard flashing open and shut)
+        if (html !== pomoMarkup) { $('#pomo-pick').innerHTML = html; pomoMarkup = html; }
       }
       const tags = S.settings.tags;
       $('#tag-chips').innerHTML = [{ name: '' }, ...tags].map((tag) => `
@@ -2942,15 +2946,15 @@
       const input = e.target.closest('[data-pomo-in]');
       if (!input) return;
       input.dataset.was = S.pick.pomo[input.dataset.pomoIn];
-      input.dataset.fresh = '1';
-      setTimeout(() => input.select(), 0);
+      input.dataset.fresh = '1'; // the first digit typed replaces the number
+      // shown selected on a computer; not on a phone, where selecting makes the screen jump about
+      if (matchMedia('(hover: hover)').matches) setTimeout(() => input.select(), 0);
     });
-    // all of it selected, so typing replaces it: on a tap, once it's over (letting go places the cursor)
-    $('#pomo-pick').addEventListener('click', (e) => {
+    $('#pomo-pick').addEventListener('beforeinput', (e) => {
       const input = e.target.closest('[data-pomo-in]');
       if (!input?.dataset.fresh) return;
       delete input.dataset.fresh;
-      input.setSelectionRange(0, input.value.length);
+      if (e.inputType.startsWith('insert') || e.inputType.startsWith('delete')) input.value = '';
     });
     const typed = (input, settle) => {
       const k = input.dataset.pomoIn, [low, high] = POMO_LIMITS[k], n = parseInt(input.value, 10);
@@ -2972,7 +2976,6 @@
     $('#pomo-pick').addEventListener('keydown', (e) => {
       const input = e.target.closest('[data-pomo-in]');
       if (!input) return;
-      delete input.dataset.fresh;
       if (e.key === 'Escape') input.value = input.dataset.was;
       if (e.key === 'Enter' || e.key === 'Escape') input.blur();
     });

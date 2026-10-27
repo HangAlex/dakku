@@ -366,8 +366,8 @@
    "color": "#C8352E",
    "blurb": "Sees the future: it's you, finishing this session.",
    "face": "calm",
-   "look": "Shulk from Xenoblade Chronicles: short, wavy pale-blond hair, a short wine-red jacket over a black sweater with a small pink-and-purple pattern, and the Monado on its back: a big red sword with a round hole near its tip, its two red halves slightly open around a glowing light-blue energy blade",
-   "body": 614
+   "look": "Shulk from Xenoblade Chronicles: short, wavy pale-blond hair, a short wine-red jacket over a black sweater with a small pink-and-purple pattern, and the Monado standing upright on its back, drawn like the real Monado: a long flat red blade with a few thin light-blue glowing lines along it; near the BASE of the blade, just above the handle, a large round ring with a hole through it (the ring is at the bottom of the blade, not at the tip); and below the ring a long, straight, very thin red handle, like a narrow rod much thinner than the blade, ending in a tiny ring at the pommel",
+   "body": 626
   },
   "yagami": {
    "name": "Yagami",
@@ -384,7 +384,7 @@
    "color": "#3E8E7E",
    "blurb": "Takes back the Earth, one session at a time.",
    "face": "calm",
-   "look": "EVE from Stellar Blade: long dark-brown hair tied in a high ponytail, with long bangs framing the face, her black Planet Diving suit with white panels, small mint-green accents and a high collar, and her slim silver sword resting on its back",
+   "look": "EVE from Stellar Blade: long dark-brown hair tied in a high ponytail, with long bangs framing the face, her black Planet Diving suit with white panels, small mint-green accents and a high collar, and her glowing hair band at the base of the ponytail",
    "body": 698
   },
   "nagisa": {
@@ -393,8 +393,8 @@
    "color": "#E8A0B4",
    "blurb": "Dango, dango… a big dango family of finished sessions.",
    "face": "calm",
-   "look": "Nagisa Furukawa from Clannad: short, wavy brown hair a little past the shoulders, with two thin strands sticking up from the top of the head like antennae and two small red hair clips at the sides, her pale-yellow school jacket with a white sailor collar, and the Big Dango Family sitting on its back like little plush toys: three soft, round, squishy dango characters (one pink, one white, one pale green), plain rounded blobs with no stick, skewer or plate, each with only two tiny dot eyes and no mouth at all, huddled together",
-   "body": 712
+   "look": "Nagisa Furukawa from Clannad: short, wavy brown hair a little past the shoulders, with two thin strands sticking up from the top of the head like antennae and two small red hair clips at the sides, her pale-yellow school jacket with a white sailor collar and a red ribbon, worn plainly over the round body with no sleeves or arms showing, and the Big Dango Family sitting on its back like little plush toys: three soft, squishy dango characters in Clannad's pastel colors (one pastel pink, one pastel sky blue, one pastel mint green, all different), each a flattened, wider-than-tall oval like a squished mochi dumpling with a slightly flat bottom, never a perfect circle, no stick, skewer or plate, each with only two tiny eyes drawn as short vertical lines (like two little slits, not dots) and no mouth at all, huddled together",
+   "body": 674
   },
   "monokuma": {
    "name": "Monokuma",
@@ -402,8 +402,8 @@
    "color": "#D43A3A",
    "blurb": "Puhuhu! Nothing despair-inducing about a finished session.",
    "face": "calm",
-   "look": "Monokuma from Danganronpa: a bear hood split straight down the middle, white on the face side and black on the back side, with two round bear ears on top (the front one white, the back one black). The hood carries Monokuma's own face marks and nothing else: a small black dot eye on the white half, his red jagged lightning-shaped eye on the black half, and his wide grin running along the bottom edge of the hood's face: a thin curved black line on the white half that becomes a jagged grin of white zigzag teeth on the black half. No bear muzzle, snout or nose. The duck's own calm face and beak show below the hood",
-   "body": 686
+   "look": "Monokuma from Danganronpa: a bear hood split straight down the middle, white on the face side (left) and black on the back side (right), with two round bear ears on top (the front one white, the back one black). The hood carries Monokuma's exact face, placed like the character's: on the white half only a small round solid black dot eye and nothing else (no mouth line, no teeth on the white half); on the black half his red eye, a jagged horizontal lightning-bolt streak with sharp pointed ends; at the bottom center of the hood's face a white muzzle that straddles the middle line, with a small black nose at its top; and his grin on the black half only: a long wide grin that starts right under the nose at the middle line and sweeps up toward the back ear, lined with a row of pointed white zigzag teeth. The duck's own calm face and beak show below the hood",
+   "body": 773
   },
   "yuta": {
    "name": "Yuta",
@@ -420,17 +420,8 @@
    "color": "#3D7A3D",
    "blurb": "Luck stat maxed out: this session will go perfectly.",
    "face": "calm",
-   "look": "Kazuma Satou from KonoSuba: short, messy brown hair, a green cape with a golden edge fastened at the neck over a plain gray shirt, and his katana Chunchunmaru in a dark sheath on its back",
-   "body": 563
-  },
-  "talon": {
-   "name": "Talon",
-   "kanji": "刃",
-   "color": "#2F6FD6",
-   "blurb": "In, out, done: an assassin of to-do lists.",
-   "face": "angry",
-   "look": "SSW Talon from League of Legends (the Samsung White skin): a white hood with blue edging pulled up over the head (the duck's eye and beak still show), a white coat with blue edging, a long white cape with blue edges flowing out behind, and his armblade, a sleek curved white-and-silver blade with blue trim, strapped against its wing and pointing back",
-   "body": 633
+   "look": "Kazuma Satou from KonoSuba: short, messy brown hair, a green cape with a golden edge fastened at the neck over a plain gray shirt. Nothing on its back: no sword, no weapon",
+   "body": 656
   },
   "denji": {
    "name": "Denji",
@@ -438,8 +429,8 @@
    "color": "#E8742A",
    "blurb": "Dreams of jam on toast. Rips through the syllabus.",
    "face": "angry",
-   "look": "Chainsaw Man (Denji in his chainsaw-devil form): the chainsaw devil's head as a helmet over the duck's head, rounded and orange, with a long gray chainsaw bar sticking straight up out of the forehead, its chain lined with small silver teeth, and a row of sharp teeth across the front; the duck's beak still sticks out below it, and it's fine if the helmet hides the eye; a white shirt with a loose black necktie, and the small pull-cord handle of the chainsaw hanging from its chest",
-   "body": 657,
+   "look": "Chainsaw Man (Denji in his chainsaw-devil form): the chainsaw devil's head as a helmet over the duck's head, rounded and orange like a chainsaw's engine casing, and it faces the same way as the duck: the long gray chainsaw bar sticks out of the FRONT of the helmet, from the forehead, pointing forward to the left and a little up (the way the duck faces), its chain lined with small silver teeth; the dark gray rear grip handle of the chainsaw sits at the BACK of the head, on the right side; a row of sharp white teeth across the helmet's jaw, with the duck's beak sticking out below; it's fine if the helmet hides the eye; a white shirt with a loose black necktie, and the small pull-cord handle of the chainsaw hanging from its chest",
+   "body": 622,
    "eye": "hidden"
   },
   "kid": {
@@ -448,8 +439,17 @@
    "color": "#D9B44A",
    "blurb": "Perfectly symmetrical study habits. Eight sessions, exactly.",
    "face": "calm",
-   "look": "Death the Kid from Soul Eater: short black hair with three white stripes running across the left side only, a black suit with small white rectangle trims placed perfectly symmetrically down the front and along the sleeves, a white shirt with a small silver skull at the collar, and his two ornate pistols Liz and Patti crossed on its back",
-   "body": 685
+   "look": "Death the Kid from Soul Eater: short black hair with three thin white stripes on the BACK half of the hair only, the right side of the picture, away from the beak: they start at the back edge of the hair and run forward to the exact center of the head, where they stop with squared-off ends; the front half of the hair, toward the beak, is plain black with no stripes, a black suit with small white rectangle trims placed perfectly symmetrically down the front and along the sleeves, a white shirt, and at the collar his small silver-white Shinigami skull brooch: a cartoon skull with two round black eyes and exactly three long, skinny, needle-thin points hanging down from its bottom edge, the middle one longest. Nothing on its back: no guns, no weapons",
+   "body": 697
+  },
+  "randy": {
+   "name": "Randy",
+   "kanji": "父",
+   "color": "#5B8FD6",
+   "blurb": "Geologist, Tegridy farmer, and a terrible influence on the pond.",
+   "face": "calm",
+   "look": "Randy Marsh from South Park: short black hair combed flat, a thick black mustache drawn right above the beak, and his light blue button-up shirt, open at the collar over a white T-shirt",
+   "body": 712
   }
  }
 }
