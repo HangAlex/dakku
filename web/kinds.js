@@ -19,10 +19,10 @@ window.DAKKU_DUCKS = {
   "blurb": "A cat-ear hoodie. Duck or cat? Yes."
  },
  "super": {
-  "kanji": "金",
-  "name": "Super",
+  "kanji": "悟",
+  "name": "Goku",
   "color": "#F2B83A",
-  "blurb": "Golden hair, orange gi, power level rising."
+  "blurb": "Charges up for three episodes before every session."
  },
  "ninja": {
   "kanji": "忍",
@@ -34,13 +34,13 @@ window.DAKKU_DUCKS = {
   "kanji": "狐",
   "name": "Kitsune",
   "color": "#D9463B",
-  "blurb": "A fox mask from the shrine festival."
+  "blurb": "Keeps its secrets. Also its flashcards."
  },
  "yukata": {
   "kanji": "祭",
   "name": "Matsuri",
   "color": "#4566B8",
-  "blurb": "Dressed up for the summer festival."
+  "blurb": "Fireworks later. Focus first."
  },
  "samurai": {
   "kanji": "侍",
@@ -64,7 +64,7 @@ window.DAKKU_DUCKS = {
   "kanji": "雫",
   "name": "Shizuku",
   "color": "#8EC5EE",
-  "blurb": "A school idol. Every session is a stage."
+  "blurb": "Every session is a stage. No encore needed."
  },
  "nurse": {
   "kanji": "看護",
@@ -82,19 +82,19 @@ window.DAKKU_DUCKS = {
   "kanji": "鳴門",
   "name": "Naruto",
   "color": "#F28C28",
-  "blurb": "Never gives up on a session."
+  "blurb": "Believe it: one more session, dattebayo."
  },
  "loid": {
   "kanji": "黄昏",
   "name": "Loid",
   "color": "#3E6B4F",
-  "blurb": "A spy on a mission: study hard and blend in."
+  "blurb": "Mission: study hard, blend in. Mostly the first one."
  },
  "yor": {
   "kanji": "茨",
   "name": "Yor",
   "color": "#B3243A",
-  "blurb": "The Thorn Princess. Deadly focused."
+  "blurb": "Assassinates distractions. Cooking is another matter."
  },
  "anya": {
   "kanji": "心",
@@ -112,13 +112,13 @@ window.DAKKU_DUCKS = {
   "kanji": "王子",
   "name": "Vegeta",
   "color": "#2F4FA8",
-  "blurb": "A Saiyan prince never skips a study day."
+  "blurb": "It's over 9,000 minutes. Still not satisfied."
  },
  "clive": {
   "kanji": "炎",
   "name": "Clive",
   "color": "#E0632A",
-  "blurb": "A Dominant of fire, with a study plan."
+  "blurb": "Burns through the reading list. Literally."
  },
  "sonic": {
   "kanji": "速",
@@ -130,7 +130,7 @@ window.DAKKU_DUCKS = {
   "kanji": "雲",
   "name": "Cloud",
   "color": "#4C5A7A",
-  "blurb": "Ex-SOLDIER. Carries a sword as big as the syllabus."
+  "blurb": "Carries a sword as big as the syllabus."
  },
  "sora": {
   "kanji": "空",
@@ -142,7 +142,7 @@ window.DAKKU_DUCKS = {
   "kanji": "金星",
   "name": "Venus",
   "color": "#F29A2E",
-  "blurb": "A guardian of love and good study habits."
+  "blurb": "In the name of the moon, you will finish this chapter."
  },
  "yu": {
   "kanji": "鳴上",
@@ -166,19 +166,19 @@ window.DAKKU_DUCKS = {
   "kanji": "龍",
   "name": "Kiryu",
   "color": "#8A2433",
-  "blurb": "The Dragon of Dojima never skips a session."
+  "blurb": "Never skips a session. Or a karaoke night."
  },
  "link": {
   "kanji": "勇",
   "name": "Link",
   "color": "#4F7A3A",
-  "blurb": "Hero of Twilight. Every session is another dungeon cleared."
+  "blurb": "Hey! Listen! Every session is another dungeon cleared."
  },
  "zelda": {
   "kanji": "姫",
   "name": "Zelda",
   "color": "#8E6BB8",
-  "blurb": "Princess of Hyrule. Wisdom, one session at a time."
+  "blurb": "Wisdom, one session at a time. Courage is your problem."
  },
  "miku": {
   "kanji": "初音",
@@ -220,7 +220,7 @@ window.DAKKU_DUCKS = {
   "kanji": "蒼炎",
   "name": "Ike",
   "color": "#2F4C9C",
-  "blurb": "Leader of the Greil Mercenaries. He fights for his focus!"
+  "blurb": "Fights for his friends. Studies for himself."
  },
  "witch": {
   "kanji": "魔女",
@@ -250,7 +250,7 @@ window.DAKKU_DUCKS = {
   "kanji": "探偵",
   "name": "Yagami",
   "color": "#3A3A42",
-  "blurb": "Private detective. Case closed: one more session."
+  "blurb": "Case closed: one more session."
  },
  "eve": {
   "kanji": "星",
@@ -298,6 +298,6 @@ window.DAKKU_DUCKS = {
   "kanji": "父",
   "name": "Randy",
   "color": "#5B8FD6",
-  "blurb": "Geologist, Tegridy farmer, and a terrible influence on the pond."
+  "blurb": "I thought this was a study app! (It is.)"
  }
 };

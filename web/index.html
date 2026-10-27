@@ -475,6 +475,13 @@
       <p class="done-kanji jp" id="done-kanji">誕生</p>
       <h2 class="done-title" id="done-title">A duck hatched!</h2>
       <p class="done-sub" id="done-sub"></p>
+      <div class="done-note" id="done-note">
+        <button class="link" type="button" id="done-note-btn">Add a note</button>
+        <form class="done-note-form" id="done-note-form" hidden>
+          <input type="text" id="done-note-in" maxlength="300" placeholder="What was this one for?" autocomplete="off" enterkeyhint="done">
+          <button class="btn small primary" type="submit">Save</button>
+        </form>
+      </div>
       <div class="done-stats" id="done-stats"></div>
       <div class="done-actions">
         <button class="btn" type="button" id="done-share"><span class="i-share" aria-hidden="true"></span> Share</button>

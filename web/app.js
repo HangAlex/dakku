@@ -1851,12 +1851,25 @@
     if (!dlg.open) dlg.showModal();
     if (sp) showDuck(sp);
     else $('#ducks-dialog .sheet-body').scrollTop = 0;
+    // the full pictures come in while you look at the grid, so an enlarged duck is sharp at once
+    // (each is small, and kept for good once fetched): the ones you've hatched first
+    if (!pick) warmDucks([...SPECIES].sort((a, b) => (d.bySpecies.get(b) ? 1 : 0) - (d.bySpecies.get(a) ? 1 : 0)));
+  }
+  let warming = false;
+  function warmDucks(kinds) {
+    if (warming) return;
+    warming = true;
+    const queue = [...kinds];
+    const later = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn) : setTimeout(fn, 50));
+    const next = () => { const k = queue.shift(); if (!k) { warming = false; return; } Art.sharpen([k]).finally(() => later(next)); };
+    next();
   }
 
   // one duck, big, with what it's about; ‹ › go through them all
   function showDuck(sp) {
     const info = Art.KINDS[sp], n = derive().bySpecies.get(sp) || 0, i = SPECIES.indexOf(sp);
     const before = SPECIES[(i - 1 + SPECIES.length) % SPECIES.length], after = SPECIES[(i + 1) % SPECIES.length];
+    Art.sharpen([before, after]); // the next ones ‹ › show are sharp at once
     $('#duck-detail').innerHTML = `
       <button class="link" type="button" data-back>← All ducks</button>
       <div class="duck-big">${Art.duckSVG(sp, { big: true })}</div>
@@ -2410,9 +2423,18 @@
     $('#done-stats').innerHTML = `<div><b>${todayMin}<small style="font-size:14px;font-weight:500">/${d.goal}</small></b><span>min today</span></div><div><b>${streak}</b><span>day streak</span></div><div><b>${d.trees + (pending ? 1 : 0)}</b><span>ducks in all</span></div>`;
     $('#done-share').hidden = false;
     $('#done-again').textContent = 'Hatch another';
+    noteBox(s);
     feathers(info.color);
     $('#done').hidden = false;
     render();
+  }
+  // a note on the duck that just hatched (what it was for), kept with its session and shown in the log
+  function noteBox(s) {
+    $('#done-note').hidden = false;
+    $('#done-note-form').hidden = true;
+    $('#done-note-btn').hidden = false;
+    $('#done-note-btn').textContent = s.note ? `Note: ${s.note}` : 'Add a note';
+    $('#done-note-in').value = s.note || '';
   }
   function showWithered(s) {
     if (!s) return;
@@ -2423,6 +2445,7 @@
     $('#done-title').textContent = 'This egg went cold';
     $('#done-sub').textContent = `${fmtMin(s.minutes)}${s.tag ? ` of ${s.tag}` : ''}${s.note ? ` · ${s.note}` : ''}. It stays in your pond, but doesn't count.`;
     $('#done-stats').innerHTML = '';
+    $('#done-note').hidden = true;
     $('#petals').innerHTML = '';
     $('#done-share').hidden = true;
     $('#done-again').textContent = 'Try again';
@@ -3067,6 +3090,24 @@
         return;
       }
       if (await confirmBox('Give up this egg?', 'It goes cold. Cold eggs stay in your pond but don\'t count toward your goal.', 'Give up')) timerAction('cancel');
+    });
+    $('#done-note-btn').addEventListener('click', () => {
+      $('#done-note-btn').hidden = true;
+      $('#done-note-form').hidden = false;
+      $('#done-note-in').focus();
+    });
+    $('#done-note-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const s = lastDone;
+      if (!s) return;
+      const note = $('#done-note-in').value.trim().slice(0, 300), now = serverNow();
+      s.note = note;
+      const have = S.sessions.get(s.id);
+      if (have) S.sessions.set(s.id, { ...have, note, updated: now });
+      // the whole session goes along, in case the PC hasn't confirmed this duck yet
+      enqueue({ op: 'upsert', session: { id: s.id, start: s.start, minutes: s.minutes, tag: s.tag, species: s.species, status: s.status, rounds: s.rounds || 0, note, updated: now } });
+      noteBox(s);
+      render();
     });
     $('#done-close').addEventListener('click', () => { $('#done').hidden = true; });
     $('#done').addEventListener('click', (e) => { if (e.target.id === 'done') $('#done').hidden = true; });

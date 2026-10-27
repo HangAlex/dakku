@@ -28,10 +28,10 @@
    "body": 339
   },
   "super": {
-   "kanji": "金",
-   "name": "Super",
+   "kanji": "悟",
+   "name": "Goku",
    "color": "#F2B83A",
-   "blurb": "Golden hair, orange gi, power level rising.",
+   "blurb": "Charges up for three episodes before every session.",
    "face": "angry",
    "look": "spiky golden hair standing straight up like flames, and an orange martial-arts top with a dark-blue belt",
    "body": 328
@@ -49,7 +49,7 @@
    "kanji": "狐",
    "name": "Kitsune",
    "color": "#D9463B",
-   "blurb": "A fox mask from the shrine festival.",
+   "blurb": "Keeps its secrets. Also its flashcards.",
    "face": "calm",
    "look": "a white fox mask with red markings worn tilted on the side of its head, small orange fox ears, and a red scarf",
    "body": 441
@@ -58,7 +58,7 @@
    "kanji": "祭",
    "name": "Matsuri",
    "color": "#4566B8",
-   "blurb": "Dressed up for the summer festival.",
+   "blurb": "Fireworks later. Focus first.",
    "face": "calm",
    "look": "an indigo summer yukata with a simple white wave pattern, a red obi sash, and a pink flower on its head",
    "body": 439
@@ -94,7 +94,7 @@
    "kanji": "雫",
    "name": "Shizuku",
    "color": "#8EC5EE",
-   "blurb": "A school idol. Every session is a stage.",
+   "blurb": "Every session is a stage. No encore needed.",
    "face": "calm",
    "look": "Shizuku Osaka from Love Live! Nijigasaki: long straight dark-brown hair with neat bangs flowing down behind its back, tied in a half-up ponytail with her big red ribbon bow at the back of the head, and a light-blue idol outfit with white frills",
    "body": 352
@@ -121,7 +121,7 @@
    "kanji": "鳴門",
    "name": "Naruto",
    "color": "#F28C28",
-   "blurb": "Never gives up on a session.",
+   "blurb": "Believe it: one more session, dattebayo.",
    "face": "calm",
    "look": "Naruto: spiky bright-yellow hair, a blue Leaf Village headband with a metal plate, three whisker marks on each cheek, and an orange-and-black jacket",
    "body": 352
@@ -130,7 +130,7 @@
    "kanji": "黄昏",
    "name": "Loid",
    "color": "#3E6B4F",
-   "blurb": "A spy on a mission: study hard and blend in.",
+   "blurb": "Mission: study hard, blend in. Mostly the first one.",
    "face": "calm",
    "look": "Loid Forger from Spy x Family: short neat blond hair swept to the side, a dark-green suit jacket over a black vest, a white shirt and a red tie",
    "body": 705
@@ -139,7 +139,7 @@
    "kanji": "茨",
    "name": "Yor",
    "color": "#B3243A",
-   "blurb": "The Thorn Princess. Deadly focused.",
+   "blurb": "Assassinates distractions. Cooking is another matter.",
    "face": "calm",
    "look": "Yor Forger as the Thorn Princess from Spy x Family: long straight black hair with bangs and two long locks in front, a golden rose headband, a black off-the-shoulder dress with red roses, and a small gold stiletto",
    "body": 719
@@ -166,7 +166,7 @@
    "kanji": "王子",
    "name": "Vegeta",
    "color": "#2F4FA8",
-   "blurb": "A Saiyan prince never skips a study day.",
+   "blurb": "It's over 9,000 minutes. Still not satisfied.",
    "face": "angry",
    "look": "Vegeta from Dragon Ball Z: tall black spiky flame-shaped hair with a sharp widow's peak, a blue bodysuit with white Saiyan armour and yellow shoulder pads",
    "body": 744
@@ -175,7 +175,7 @@
    "kanji": "炎",
    "name": "Clive",
    "color": "#E0632A",
-   "blurb": "A Dominant of fire, with a study plan.",
+   "blurb": "Burns through the reading list. Literally.",
    "face": "calm",
    "look": "Clive Rosfield from Final Fantasy XVI: short dark-brown hair, a short dark beard, a plain dark cape over his shoulders (no fur) on his dark leather outfit, and a big sword hilt over his shoulder",
    "body": 734
@@ -193,7 +193,7 @@
    "kanji": "雲",
    "name": "Cloud",
    "color": "#4C5A7A",
-   "blurb": "Ex-SOLDIER. Carries a sword as big as the syllabus.",
+   "blurb": "Carries a sword as big as the syllabus.",
    "face": "calm",
    "look": "Cloud Strife from Final Fantasy VII: tall spiky blond hair, a dark navy sleeveless SOLDIER top with a silver shoulder pauldron, and his huge Buster Sword strapped upright on his back",
    "body": 638
@@ -211,7 +211,7 @@
    "kanji": "金星",
    "name": "Venus",
    "color": "#F29A2E",
-   "blurb": "A guardian of love and good study habits.",
+   "blurb": "In the name of the moon, you will finish this chapter.",
    "face": "calm",
    "look": "Sailor Venus: long golden-blonde hair with a big red bow, a gold tiara with an orange gem, an orange choker, and her white sailor uniform with an orange collar and a blue front bow",
    "body": 780
@@ -247,7 +247,7 @@
    "kanji": "龍",
    "name": "Kiryu",
    "color": "#8A2433",
-   "blurb": "The Dragon of Dojima never skips a session.",
+   "blurb": "Never skips a session. Or a karaoke night.",
    "face": "angry",
    "look": "Kazuma Kiryu from Yakuza: short slicked-back dark hair, a light gray suit over an open-collared dark red shirt",
    "body": 771
@@ -256,7 +256,7 @@
    "name": "Link",
    "kanji": "勇",
    "color": "#4F7A3A",
-   "blurb": "Hero of Twilight. Every session is another dungeon cleared.",
+   "blurb": "Hey! Listen! Every session is another dungeon cleared.",
    "face": "calm",
    "look": "Link from The Legend of Zelda: Twilight Princess: his long floppy olive-green cap with the tip hanging down behind the head, light golden-brown hair with long side bangs, an olive-green tunic with a brown leather belt over a light chainmail collar, and on his back the Hylian Shield (blue with a silver rim, a silver Triforce and the red bird crest) with the Master Sword's blue-violet hilt sticking up over the shoulder",
    "body": 692
@@ -265,7 +265,7 @@
    "name": "Zelda",
    "kanji": "姫",
    "color": "#8E6BB8",
-   "blurb": "Princess of Hyrule. Wisdom, one session at a time.",
+   "blurb": "Wisdom, one session at a time. Courage is your problem.",
    "face": "calm",
    "look": "Princess Zelda from The Legend of Zelda: Twilight Princess: long straight brown hair with bangs and two long front locks wrapped in white bands, a gold tiara with a blue gem on the forehead, ornate gold shoulder pieces, and a white royal gown with lilac panels and a tabard down the front showing a gold Triforce above a red crest",
    "body": 773
@@ -328,7 +328,7 @@
    "name": "Ike",
    "kanji": "蒼炎",
    "color": "#2F4C9C",
-   "blurb": "Leader of the Greil Mercenaries. He fights for his focus!",
+   "blurb": "Fights for his friends. Studies for himself.",
    "face": "calm",
    "look": "young Ike from Super Smash Bros. Ultimate (his Path of Radiance costume): spiky dark-blue hair, a dark brown headband with long tails trailing behind, a red cape wrapped around his shoulders like a scarf, a brown leather guard on his shoulder, a navy-blue tunic with a high collar, and his sword Ragnell strapped upright on his back: a broad golden-yellow blade with a dark gray crossguard and grip",
    "body": 751
@@ -339,8 +339,8 @@
    "color": "#7B4FA8",
    "blurb": "Out trick-or-treating. The bucket is mostly flashcards.",
    "face": "calm",
-   "look": "a Halloween witch: a tall floppy black pointed witch hat with a purple band and a small buckle, a short black cape with a purple lining, and a little orange jack-o'-lantern treat bucket resting against its wing",
-   "body": 684
+   "look": "a Halloween witch: a tall floppy black pointed witch hat with a purple band and a small buckle, a short black cape with a purple lining, and a little orange jack-o'-lantern treat pail resting against its wing, with a thin black wire handle that arches neatly over the top of the pail, both ends fixed to the pail's rim, the handle standing straight up from the pail and touching nothing else",
+   "body": 627
   },
   "harvest": {
    "name": "Harvest",
@@ -366,14 +366,14 @@
    "color": "#C8352E",
    "blurb": "Sees the future: it's you, finishing this session.",
    "face": "calm",
-   "look": "Shulk from Xenoblade Chronicles: short, wavy pale-blond hair, a short wine-red jacket over a black sweater with a small pink-and-purple pattern, and the Monado standing upright on its back, drawn like the real Monado: a long flat red blade with a few thin light-blue glowing lines along it; near the BASE of the blade, just above the handle, a large round ring with a hole through it (the ring is at the bottom of the blade, not at the tip); and below the ring a long, straight, very thin red handle, like a narrow rod much thinner than the blade, ending in a tiny ring at the pommel",
-   "body": 626
+   "look": "Shulk from Xenoblade Chronicles: short, wavy pale-blond hair, a short wine-red jacket over a black sweater with a small pink-and-purple pattern, and the Monado slung on its back the way the other ducks carry their swords: point down, with only its thin handle and the big round ring at the base of the blade sticking up over the shoulder, and the long flat red blade (with a few thin light-blue glowing lines) hanging down behind the back. Drawn like the real Monado: the ring with a hole through it sits at the bottom of the blade next to the handle, and the handle is a long, very thin red rod coming straight down from the middle of the ring (centered under it, not off to one side), much thinner than the blade, with a tiny ring at its end",
+   "body": 627
   },
   "yagami": {
    "name": "Yagami",
    "kanji": "探偵",
    "color": "#3A3A42",
-   "blurb": "Private detective. Case closed: one more session.",
+   "blurb": "Case closed: one more session.",
    "face": "calm",
    "look": "Takayuki Yagami from Judgment: medium-length, slightly messy black hair parted in the middle, a black leather moto jacket over a plain white T-shirt, and a small wireless earpiece",
    "body": 618
@@ -446,10 +446,10 @@
    "name": "Randy",
    "kanji": "父",
    "color": "#5B8FD6",
-   "blurb": "Geologist, Tegridy farmer, and a terrible influence on the pond.",
+   "blurb": "I thought this was a study app! (It is.)",
    "face": "calm",
-   "look": "Randy Marsh from South Park: short black hair combed flat, a thick black mustache drawn right above the beak, and his light blue button-up shirt, open at the collar over a white T-shirt",
-   "body": 712
+   "look": "Randy Marsh from South Park: short black hair combed flat, his thick black mustache sitting right on top of the beak where the beak meets the face, directly below the eye, like a mustache under a nose (not beside or under the beak), and his light blue button-up shirt, buttoned all the way up with a plain collar (no T-shirt showing)",
+   "body": 677
   }
  }
 }

@@ -563,6 +563,10 @@ dialog.sheet.ducks-sheet { width: min(100%, 640px); }
 .done-kanji { font-size: 40px; line-height: 1.1; color: var(--accent); letter-spacing: .1em; }
 .done-title { font: 600 19px/1.3 var(--body); }
 .done-sub { color: var(--ink-2); }
+.done-note { margin: 4px 0 2px; }
+.done-note .link { color: var(--ink-2); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.done-note-form { display: flex; gap: 6px; justify-content: center; margin: 2px auto 0; max-width: 300px; }
+.done-note-form input { flex: 1; min-width: 0; padding: 8px 11px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font-size: 16px; }
 .done-stats { display: flex; gap: 18px; justify-content: center; margin: 8px 0 4px; flex-wrap: wrap; }
 .done-stats div { display: grid; }
 .done-stats b { font: 700 22px/1.1 var(--body); }

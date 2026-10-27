@@ -38,7 +38,7 @@
    "baseY": 500,
    "unit": 0.18902,
    "small": "/ducks/super.small.webp?v=7425bc9ae0",
-   "name": "Super"
+   "name": "Goku"
   },
   "ninja": {
    "src": "/ducks/ninja.webp?v=02ac2e5a60",
@@ -371,13 +371,13 @@
    "name": "Ike"
   },
   "witch": {
-   "src": "/ducks/witch.webp?v=8ef2ddc843",
-   "w": 487,
+   "src": "/ducks/witch.webp?v=7bfa92f705",
+   "w": 455,
    "h": 512,
-   "baseX": 224.8,
-   "baseY": 511.4,
-   "unit": 0.15314,
-   "small": "/ducks/witch.small.webp?v=dcd4726eed",
+   "baseX": 225.6,
+   "baseY": 510.7,
+   "unit": 0.15644,
+   "small": "/ducks/witch.small.webp?v=6dd9dd328e",
    "name": "Witch"
   },
   "harvest": {
@@ -401,13 +401,13 @@
    "name": "Santa"
   },
   "shulk": {
-   "src": "/ducks/shulk.webp?v=212fcd540e",
-   "w": 508,
+   "src": "/ducks/shulk.webp?v=5152b90c9d",
+   "w": 493,
    "h": 512,
-   "baseX": 187.5,
-   "baseY": 511.4,
-   "unit": 0.16384,
-   "small": "/ducks/shulk.small.webp?v=6d42b1547d",
+   "baseX": 298.6,
+   "baseY": 510.8,
+   "unit": 0.15972,
+   "small": "/ducks/shulk.small.webp?v=a5469f11e1",
    "name": "Shulk"
   },
   "yagami": {
@@ -491,13 +491,13 @@
    "name": "Kid"
   },
   "randy": {
-   "src": "/ducks/randy.webp?v=9d6124f71d",
-   "w": 468,
+   "src": "/ducks/randy.webp?v=33504c9f0d",
+   "w": 462,
    "h": 512,
-   "baseX": 225.2,
-   "baseY": 511.3,
-   "unit": 0.13385,
-   "small": "/ducks/randy.small.webp?v=9be2b00afc",
+   "baseX": 219.7,
+   "baseY": 510.7,
+   "unit": 0.1422,
+   "small": "/ducks/randy.small.webp?v=63a13629be",
    "name": "Randy"
   }
  },
