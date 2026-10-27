@@ -5,6 +5,7 @@
 const BUILD = '__BUILD__';
 const CACHE = `mori-${BUILD}`;
 const FONTS = 'mori-fonts';
+const PICTURES = 'mori-pictures'; // kept through updates: 70-odd pictures are slow to fetch again over the internet
 const SHELL = ['/', '/app.css', '/app.js', '/art.js', '/kinds.js', '/qr.js', '/lofi.js', '/manifest.webmanifest',
   '/icons/icon-192.png', '/icons/apple-touch-icon.png', '/icons/favicon.png'];
 
@@ -18,7 +19,7 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
-    for (const key of await caches.keys()) if (key !== CACHE && key !== FONTS) await caches.delete(key);
+    for (const key of await caches.keys()) if (![CACHE, FONTS, PICTURES].includes(key)) await caches.delete(key);
     await self.clients.claim();
   })());
 });
@@ -54,9 +55,9 @@ async function page(req) {
   }
 }
 
-// scripts, styles and icons: straight from the saved copy, refreshed in the background
+// scripts, styles, icons and pictures: straight from the saved copy, refreshed in the background
 async function asset(req) {
-  const cache = await caches.open(CACHE);
+  const cache = await caches.open(new URL(req.url).pathname.startsWith('/ducks/') ? PICTURES : CACHE);
   const hit = await cache.match(req, { ignoreSearch: true });
   const fresh = fetch(req).then((res) => {
     if (res.ok) cache.put(req, res.clone());

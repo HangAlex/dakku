@@ -3364,15 +3364,17 @@
     // added from here rather than in the page, so a slow or blocked Google never holds up opening Dakku
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = 'https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap';
+    link.href = 'https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap';
     document.head.appendChild(link);
   }
 
   function boot() {
     loadFonts();
     applyTheme();
-    // ChatGPT's paintings replace the drawn placeholders as soon as they've loaded
-    Art.loadSprites().then((ok) => { if (ok) { lastGrowKey = ''; render(); } });
+    // ChatGPT's paintings replace the drawn placeholders as they arrive (drawn again at most every quarter second)
+    let repaint = 0;
+    const paintIn = () => { repaint ||= setTimeout(() => { repaint = 0; lastGrowKey = ''; render(); }, 250); };
+    Art.loadSprites(paintIn).then((ok) => { if (ok) paintIn(); });
     wire();
     registerWorker();
     const cached = store.get(K.cache, null);
