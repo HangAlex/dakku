@@ -1,5 +1,5 @@
 /* 鴨 Dakku — the art: doodle call ducks, their eggs, and the pond they sit in.
-   The style follows art/style-reference.jpg: flat white ducks facing left, with a soft, slightly wobbly
+   The style: flat white ducks facing left, with a soft, slightly wobbly
    dark outline, a black dot eye and a little peach beak, floating on periwinkle water with ripple dashes.
    The real ducks are painted with ChatGPT (art/chatgpt-prompts.md); scripts/import_art.py cuts them
    into web/ducks/ and lists them in ducks.json. Until a picture exists, it's drawn here. Every duck

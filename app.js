@@ -773,12 +773,14 @@
 
   /* ───────────── navigation ───────────── */
   const VIEWS = ['plant', 'forest', 'together', 'stats', 'log', 'settings'];
+  // the addresses: #hatch and #pond (the views inside are still called plant and forest; old links work too)
+  const ROUTES = { hatch: 'plant', pond: 'forest' };
   function paintTabs() {
     $('#tabbar a[data-tab="together"]').hidden = !inGroups() && S.me?.role !== 'owner';
   }
   function route() {
     const name = location.hash.replace('#', '').split('?')[0];
-    const view = VIEWS.includes(name) ? name : 'plant';
+    const view = VIEWS.includes(ROUTES[name] || name) ? ROUTES[name] || name : 'plant';
     if (view !== S.view || !$(`#view-${view}`).dataset.shown) {
       S.view = view;
       for (const v of VIEWS) {
@@ -1357,7 +1359,7 @@
     if (!groups.some((g) => g.id === S.groupId)) S.groupId = groups[0].id;
     const rooms = tg.rooms || [];
     $('#rooms').innerHTML = rooms.length ? rooms.map(roomRow).join('')
-      : `<p class="empty">Nobody's studying right now.${S.timer ? '' : ' Start a session on the <a href="#plant">Hatch</a> tab and your friends can join you.'}</p>`;
+      : `<p class="empty">Nobody's studying right now.${S.timer ? '' : ' Start a session on the <a href="#hatch">Hatch</a> tab and your friends can join you.'}</p>`;
     const cached = S.groupData[S.groupId];
     if (cached) renderGroup(cached); // what we had, until the fresh one arrives
     const data = await loadGroup(true);
@@ -1487,7 +1489,7 @@
       $('#join-dialog').close();
       applyTimer(res.timer, res.timer.now);
       unlockAudio();
-      location.hash = '#plant';
+      location.hash = '#hatch';
       refreshTogether(0);
     } catch (err) {
       toast(err instanceof Offline ? "Your friend's PC can't be reached right now." : err.message);
@@ -1502,7 +1504,7 @@
     try {
       const res = await api('POST', '/api/invites', body);
       if (!res.url) {
-        await confirmBox('Open the friends\' door first', 'So friends can join without Tailscale, run this once on your PC:\n\n~/mori/scripts/enable-friends.sh\n\nThen make the invite again.', 'OK', true);
+        await confirmBox('Open the friends\' door first', 'So friends can join without Tailscale, run this once on your PC:\n\nscripts/enable-friends.sh (in Dakku\'s folder)\n\nThen make the invite again.', 'OK', true);
         return;
       }
       $('#invite-title').textContent = title;
@@ -2172,7 +2174,7 @@
     const door = S.server?.addresses?.friends;
     $('#set-friends-door').innerHTML = door
       ? `<div class="row"><span class="row-label">The friends' door is open<small>Friends join and study from anywhere, without Tailscale, at <b>${esc(door)}</b></small></span></div>`
-      : `<div class="row"><span class="row-label">The friends' door is closed<small>So friends can join without Tailscale, run <b>~/mori/scripts/enable-friends.sh</b> on your PC once.</small></span></div>`;
+      : `<div class="row"><span class="row-label">The friends' door is closed<small>So friends can join without Tailscale, run <b>scripts/enable-friends.sh</b> (in Dakku's folder) on your PC once.</small></span></div>`;
     if (refresh || !S.admin) {
       try { S.admin = await api('GET', '/api/people'); } catch { if (!S.admin) { $('#set-people').innerHTML = '<p class="empty">Unavailable offline.</p>'; return; } }
     }
@@ -2250,7 +2252,7 @@
     let html;
     if (location.protocol !== 'https:') {
       const a = S.server?.addresses?.https;
-      html = `<p class="note">Notifications need Dakku's secure address.${a ? ` Open <b>${esc(a)}</b> instead.` : ' Run <b>~/mori/scripts/enable-https.sh</b> on your PC once, then use the https address it prints.'}</p>`;
+      html = `<p class="note">Notifications need Dakku's secure address.${a ? ` Open <b>${esc(a)}</b> instead.` : ' Run <b>scripts/enable-https.sh</b> (in Dakku\'s folder) on your PC once, then use the https address it prints.'}</p>`;
     } else if (!('serviceWorker' in navigator) || !('PushManager' in window) || typeof Notification === 'undefined') {
       html = iOS && !standalone ? '<p class="note">On iPhone, notifications work once Dakku is on your Home Screen: tap Share → <b>Add to Home Screen</b>, then open it from there.</p>' : "<p class=\"note\">This browser can't receive notifications.</p>";
     } else if (Notification.permission === 'denied') {
@@ -2719,7 +2721,7 @@
     try {
       const canvas = await makeCard(kind, opts);
       const blob = await new Promise((r) => canvas.toBlob(r, 'image/png'));
-      const name = `mori-${kind}-${todayKey()}.png`;
+      const name = `dakku-${kind}-${todayKey()}.png`;
       shareFile = new File([blob], name, { type: 'image/png' });
       const url = URL.createObjectURL(blob);
       const img = $('#share-img');
@@ -2969,7 +2971,7 @@
       const chosen = e.target.closest('[data-pick]');
       if (chosen) { chooseDuck(chosen.dataset.pick); return; }
       const hatchWith = e.target.closest('[data-hatch-with]');
-      if (hatchWith) { chooseDuck(hatchWith.dataset.hatchWith); location.hash = '#plant'; return; }
+      if (hatchWith) { chooseDuck(hatchWith.dataset.hatchWith); location.hash = '#hatch'; return; }
       const duck = e.target.closest('[data-duck]');
       if (duck) { showDuck(duck.dataset.duck); return; }
       if (e.target.closest('[data-back]')) { $('#duck-detail').hidden = true; $('#duck-grid').hidden = false; }
@@ -3009,7 +3011,7 @@
     });
     $('#done-close').addEventListener('click', () => { $('#done').hidden = true; });
     $('#done').addEventListener('click', (e) => { if (e.target.id === 'done') $('#done').hidden = true; });
-    $('#done-again').addEventListener('click', () => { $('#done').hidden = true; location.hash = '#plant'; route(); });
+    $('#done-again').addEventListener('click', () => { $('#done').hidden = true; location.hash = '#hatch'; route(); });
     $('#done-share').addEventListener('click', () => { if (lastDone) share('session', { session: lastDone }); });
 
     // pond

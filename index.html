@@ -38,10 +38,10 @@
       <p class="gate-lede">Focus, and a duck hatches. On every device.</p>
       <p class="gate-friend" id="gate-friend" hidden>To get in, open the invite link you were sent, or type the 6-digit code from Dakku on your other device (Settings → <b>Add a device</b>).</p>
       <form id="login-form" class="gate-form" autocomplete="on">
-        <input class="sr-only" type="text" name="username" value="mori" autocomplete="username" tabindex="-1" aria-hidden="true">
+        <input class="sr-only" type="text" name="username" value="dakku" autocomplete="username" tabindex="-1" aria-hidden="true">
         <label for="login-code" id="login-label">Passcode or pairing code</label>
         <input id="login-code" name="password" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="five words, or 6 digits" required>
-        <button class="btn primary wide" type="submit" id="login-btn">Enter the forest</button>
+        <button class="btn primary wide" type="submit" id="login-btn">Open my pond</button>
         <p class="form-msg" id="login-msg" role="alert"></p>
       </form>
       <p class="gate-tip" id="gate-tip" hidden>
@@ -81,7 +81,7 @@
   <section class="gate" id="unreachable" hidden>
     <div class="gate-card">
       <span class="seal big muted" aria-hidden="true">鴨</span>
-      <h1 class="gate-title">Can't reach your forest</h1>
+      <h1 class="gate-title">Can't reach your pond</h1>
       <p class="gate-lede">Dakku lives on your PC at home. Check that:</p>
       <ul class="checklist">
         <li>Tailscale is switched on on this device</li>
@@ -95,13 +95,13 @@
   <!-- ───────────── The app ───────────── -->
   <div class="app" id="app" hidden>
     <header class="topbar">
-      <a class="brand" href="#plant" aria-label="Dakku home"><span class="seal small" aria-hidden="true">鴨</span><span class="brand-name">Dakku</span></a>
+      <a class="brand" href="#hatch" aria-label="Dakku home"><span class="seal small" aria-hidden="true">鴨</span><span class="brand-name">Dakku</span></a>
       <button class="sync" id="sync" type="button" title="Sync now"><i aria-hidden="true"></i><span id="sync-label">Synced</span></button>
     </header>
 
     <nav class="tabbar" id="tabbar" aria-label="Sections">
-      <a href="#plant" data-tab="plant"><span class="k" aria-hidden="true">孵</span><span class="l">Hatch</span></a>
-      <a href="#forest" data-tab="forest"><span class="k" aria-hidden="true">池</span><span class="l">Pond</span></a>
+      <a href="#hatch" data-tab="plant"><span class="k" aria-hidden="true">孵</span><span class="l">Hatch</span></a>
+      <a href="#pond" data-tab="forest"><span class="k" aria-hidden="true">池</span><span class="l">Pond</span></a>
       <a href="#together" data-tab="together"><span class="k" aria-hidden="true">共</span><span class="l">Together</span></a>
       <a href="#stats" data-tab="stats"><span class="k" aria-hidden="true">記</span><span class="l">Stats</span></a>
       <a href="#log" data-tab="log"><span class="k" aria-hidden="true">録</span><span class="l">Log</span></a>
@@ -109,7 +109,7 @@
     </nav>
 
     <main class="views">
-      <!-- 植 Plant -->
+      <!-- 孵 Hatch -->
       <section class="view plant" id="view-plant" data-view="plant">
         <div class="plant-grid">
           <div class="plant-main">
@@ -177,7 +177,7 @@
               <div id="live-rooms"></div>
             </div>
             <div class="card today-forest">
-              <div class="card-head"><h2><span class="jp">今日</span> Today's ducks</h2><a class="link" href="#forest">Pond →</a></div>
+              <div class="card-head"><h2><span class="jp">今日</span> Today's ducks</h2><a class="link" href="#pond">Pond →</a></div>
               <div id="today-trees"></div>
             </div>
             <div class="card recent">
@@ -531,7 +531,7 @@
       <div class="sheet-actions">
         <button class="btn" type="button" id="share-close">Close</button>
         <span class="grow-space"></span>
-        <a class="btn" id="share-download" download="mori.png">Download</a>
+        <a class="btn" id="share-download" download="dakku.png">Download</a>
         <button class="btn primary" type="button" id="share-go" hidden>Share…</button>
       </div>
     </div>
