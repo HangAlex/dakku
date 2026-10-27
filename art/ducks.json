@@ -24,7 +24,7 @@
    "color": "#9AA0AD",
    "blurb": "A cat-ear hoodie. Duck or cat? Yes.",
    "face": "calm",
-   "look": "a soft grey cat-ear hoodie with the hood up around its face",
+   "look": "a soft gray cat-ear hoodie with the hood up around its face",
    "body": 339
   },
   "super": {
@@ -222,7 +222,7 @@
    "color": "#9AA4B2",
    "blurb": "Maxed out his Knowledge. Naturally.",
    "face": "calm",
-   "look": "Yu Narukami from Persona 4 Revival: neat straight silver-grey hair with a bob and bangs (only medium-grey lines inside the hair, never black), and the black Yasogami High school jacket with a high collar, worn open over a white shirt",
+   "look": "Yu Narukami from Persona 4 Revival: neat straight silver-gray hair with a bob and bangs (only medium-gray lines inside the hair, never black), and the black Yasogami High school jacket with a high collar, worn open over a white shirt",
    "body": 719
   },
   "makoto": {
@@ -231,7 +231,7 @@
    "color": "#3B5BA8",
    "blurb": "Headphones on. Memento mori.",
    "face": "calm",
-   "look": "Makoto Yuki from Persona 3 Reload: dark blue hair with long bangs swept over one side of the face (the duck's own eye stays visible), the black Gekkoukan High blazer with a white shirt and red ribbon, a red S.E.E.S. armband, small grey clip-on earphones resting at his collar (not on the ear) with a black cable down to a small grey cylindrical MP3 player hanging on his chest",
+   "look": "Makoto Yuki from Persona 3 Reload: dark blue hair with long bangs swept over one side of the face (the duck's own eye stays visible), the black Gekkoukan High blazer with a white shirt and red ribbon, a red S.E.E.S. armband, small gray clip-on earphones resting at his collar (not on the ear) with a black cable down to a small gray cylindrical MP3 player hanging on his chest",
    "body": 688
   },
   "joker": {
@@ -249,7 +249,7 @@
    "color": "#8A2433",
    "blurb": "The Dragon of Dojima never skips a session.",
    "face": "angry",
-   "look": "Kazuma Kiryu from Yakuza: short slicked-back dark hair, a light grey suit over an open-collared dark red shirt",
+   "look": "Kazuma Kiryu from Yakuza: short slicked-back dark hair, a light gray suit over an open-collared dark red shirt",
    "body": 771
   },
   "link": {
@@ -276,14 +276,14 @@
    "color": "#39C5BB",
    "blurb": "Hums along to every session. The first sound of a focused future.",
    "face": "calm",
-   "look": "Hatsune Miku: very long turquoise twin tails tied high on the head with black-and-red hair ties, turquoise bangs, a black headset with turquoise lights and a small microphone, and her grey sleeveless top's collar with a turquoise necktie",
+   "look": "Hatsune Miku: very long turquoise twin tails tied high on the head with black-and-red hair ties, turquoise bangs, a black headset with turquoise lights and a small microphone, and her gray sleeveless top's collar with a turquoise necktie",
    "body": 649
   },
   "bocchi": {
    "name": "Bocchi",
    "kanji": "孤",
    "color": "#F3A5C0",
-   "blurb": "Practises for hours and talks to no one. The perfect study buddy.",
+   "blurb": "Practices for hours and talks to no one. The perfect study buddy.",
    "face": "calm",
    "look": "Hitori 'Bocchi' Gotoh from Bocchi the Rock!: long straight pink hair with bangs down to just above the eye, her two little square hair clips on top of the head, one blue and one yellow, a pink tracksuit jacket zipped up to the collar, and a black electric guitar on her back",
    "body": 638
@@ -294,7 +294,7 @@
    "color": "#7FB069",
    "blurb": "Just Monika. Just studying.",
    "face": "calm",
-   "look": "Monika from Doki Doki Literature Club!: long coral-brown hair in a high ponytail tied with a big white bow at the back, neat bangs with two long strands framing the face, and her school uniform: a warm grey blazer over a white shirt with a red ribbon at the collar",
+   "look": "Monika from Doki Doki Literature Club!: long coral-brown hair in a high ponytail tied with a big white bow at the back, neat bangs with two long strands framing the face, and her school uniform: a warm gray blazer over a white shirt with a red ribbon at the collar",
    "body": 727
   },
   "trunks": {
@@ -312,7 +312,7 @@
    "color": "#4A5A4F",
    "blurb": "King of the Monsters, and of the pond.",
    "face": "angry",
-   "look": "Godzilla: a charcoal grey-green Godzilla kigurumi hood framing the duck's own face and beak, with Godzilla's snout and a row of small white teeth along the top of the hood, and pale jagged dorsal plates running from the hood down the duck's back",
+   "look": "Godzilla: a charcoal gray-green Godzilla kigurumi hood framing the duck's own face and beak, with Godzilla's snout and a row of small white teeth along the top of the hood, and pale jagged dorsal plates running from the hood down the duck's back",
    "body": 641
   },
   "snoopy": {
@@ -330,7 +330,7 @@
    "color": "#2F4C9C",
    "blurb": "Leader of the Greil Mercenaries. He fights for his focus!",
    "face": "calm",
-   "look": "young Ike from Super Smash Bros. Ultimate (his Path of Radiance costume): spiky dark-blue hair, a dark brown headband with long tails trailing behind, a red cape wrapped around his shoulders like a scarf, a brown leather guard on his shoulder, a navy-blue tunic with a high collar, and his sword Ragnell strapped upright on his back: a broad golden-yellow blade with a dark grey crossguard and grip",
+   "look": "young Ike from Super Smash Bros. Ultimate (his Path of Radiance costume): spiky dark-blue hair, a dark brown headband with long tails trailing behind, a red cape wrapped around his shoulders like a scarf, a brown leather guard on his shoulder, a navy-blue tunic with a high collar, and his sword Ragnell strapped upright on his back: a broad golden-yellow blade with a dark gray crossguard and grip",
    "body": 751
   },
   "witch": {
@@ -348,7 +348,7 @@
    "color": "#C9782F",
    "blurb": "Thankful for every hour on the clock.",
    "face": "calm",
-   "look": "a cosy Thanksgiving harvest look: a knitted mustard-yellow scarf, a little brown pilgrim hat with a gold buckle, and a small round pumpkin pie resting against its wing",
+   "look": "a cozy Thanksgiving harvest look: a knitted mustard-yellow scarf, a little brown pilgrim hat with a gold buckle, and a small round pumpkin pie resting against its wing",
    "body": 730
   },
   "santa": {
