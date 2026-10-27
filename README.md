@@ -150,7 +150,7 @@ You need Python 3 and nothing else (I run it on 3.14). To try it with a pond ful
 screenshots here are from):
 
 ```bash
-python3 -m mori --demo
+python3 -m dakku --demo
 ```
 
 Then open http://localhost:8642. For the real thing, on your own PC with your phone, see [SETUP.md](SETUP.md).
@@ -160,7 +160,7 @@ Then open http://localhost:8642. For the real thing, on your own PC with your ph
 | Folder | What's in it |
 |---|---|
 | [`web/`](web) | The app you see on your phone and computer |
-| [`mori/`](mori) | The server, in plain Python (the folder still has Dakku's old name) |
+| [`dakku/`](dakku) | The server, in plain Python |
 | [`art/`](art) | The duck art, the prompts that made it, and the lofi playlist |
 | [`scripts/`](scripts) | Setup scripts, and the tools that make the art |
 | [`tests/`](tests) | The tests |
