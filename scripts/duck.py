@@ -394,16 +394,17 @@ def publish(say=print):
         img = Image.open(path).convert("RGBA")
         body = (d.get("body") or ia.BODY_UNITS / ia.measure(img, ia.BODY_UNITS)["unit"]) / float(d.get("scale", 1))
         entry = ia.save(img, did, ia.BODY_UNITS, width=body)
+        entry = ia.save_small(img, did, entry)
         entry["name"] = d["name"]
         kinds[did] = entry
         listed[did] = {"kanji": d["kanji"], "name": d["name"], "color": d.get("color", "#F4F1EA"), "blurb": d.get("blurb", "")}
     for gone in set(manifest.get("kinds", {})) - set(kinds):
         (ia.OUT / f"{gone}.webp").unlink(missing_ok=True)
+        (ia.OUT / f"{gone}.small.webp").unlink(missing_ok=True)
     manifest["kinds"] = kinds
-    text = json.dumps(manifest, ensure_ascii=False, indent=1)
-    ia.write(manifest_path, lambda part: Path(part).write_text(text, encoding="utf-8"))
+    ia.write_manifest(manifest)
     js = ("/* 鴨 Dakku: the ducks, from art/ducks.json. Written by scripts/duck.py: don't edit it by hand. */\n"
-          f"window.MORI_DUCKS = {json.dumps(listed, ensure_ascii=False, indent=1)};\n")
+          f"window.DAKKU_DUCKS = {json.dumps(listed, ensure_ascii=False, indent=1)};\n")
     ia.write(KINDS_JS, lambda part: Path(part).write_text(js, encoding="utf-8"))
     say(f"  {len(kinds)} ducks in Dakku")
     return len(kinds)

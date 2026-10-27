@@ -5,18 +5,18 @@
 # need https. Tailscale serves Dakku at https://<this-pc>.<your-tailnet>.ts.net with a real
 # certificate, reachable only by your own devices. Nothing is opened to the internet.
 #
-# Run once:   ~/mori/scripts/enable-https.sh
+# Run once, in Dakku's folder:   scripts/enable-https.sh
 # Undo:       tailscale serve --https=443 off
 set -euo pipefail
 
-PORT="${MORI_PORT:-8640}"
+PORT="${DAKKU_PORT:-8640}"
 say() { printf '\n\033[1m%s\033[0m\n' "$*"; }
 json() { tailscale status --json | python3 -c "import json, sys; d = json.load(sys.stdin); $1"; }
 
 command -v tailscale >/dev/null || { echo "Tailscale isn't installed."; exit 1; }
 DNS=$(json 'print((d.get("Self") or {}).get("DNSName", "").rstrip("."))')
 [ -n "$DNS" ] || { echo "Tailscale isn't connected. Run:  sudo tailscale up"; exit 1; }
-curl -fsS "http://127.0.0.1:$PORT/api/health" >/dev/null || { echo "Dakku isn't running on port $PORT. Start it:  systemctl --user start mori"; exit 1; }
+curl -fsS "http://127.0.0.1:$PORT/api/health" >/dev/null || { echo "Dakku isn't running on port $PORT. Start it:  systemctl --user start dakku"; exit 1; }
 
 certs() { json 'print(" ".join(d.get("CertDomains") or []))'; }
 if [ -z "$(certs)" ]; then

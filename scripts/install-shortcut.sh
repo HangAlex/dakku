@@ -2,21 +2,24 @@
 # 鴨 Dakku: a Dakku app on your dock. It opens your real Dakku (http://localhost:8640) in its own
 # Brave window, with the duck icon; right-click it for the Pond, your Stats, or the demo.
 #
-# Run once:   ~/mori/scripts/install-shortcut.sh
-# Undo:       ~/mori/scripts/install-shortcut.sh remove
+# Run once, in Dakku's folder:   scripts/install-shortcut.sh
+# Undo:                         scripts/install-shortcut.sh remove
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 APPS="$HOME/.local/share/applications"
-ICON="$HOME/.local/share/icons/hicolor/512x512/apps/mori.png"
-DESKTOP="$APPS/mori.desktop"
+ICON="$HOME/.local/share/icons/hicolor/512x512/apps/dakku.png"
+DESKTOP="$APPS/dakku.desktop"
+# the shortcut from before Dakku had its name: replaced by this one, in its place on the dock
+OLD_ICON="$HOME/.local/share/icons/hicolor/512x512/apps/mori.png"
+OLD_DESKTOP="$APPS/mori.desktop"
 
 favorites() { gsettings get org.gnome.shell favorite-apps 2>/dev/null || echo "[]"; }
 
 if [ "${1:-}" = "remove" ]; then
   now=$(favorites)
-  if printf '%s' "$now" | grep -q "'mori.desktop'"; then
-    gsettings set org.gnome.shell favorite-apps "$(python3 -c "import ast, sys; print([a for a in ast.literal_eval(sys.argv[1].replace('@as ', '')) if a != 'mori.desktop'])" "$now")"
+  if printf '%s' "$now" | grep -q "'dakku.desktop'"; then
+    gsettings set org.gnome.shell favorite-apps "$(python3 -c "import ast, sys; print([a for a in ast.literal_eval(sys.argv[1].replace('@as ', '')) if a != 'dakku.desktop'])" "$now")"
   fi
   rm -f "$DESKTOP" "$ICON"
   echo "Dakku is off your dock."
@@ -53,7 +56,7 @@ Exec=brave-browser --app=http://localhost:8640/
 Icon=$ICON
 Terminal=false
 Categories=Education;
-Keywords=study;focus;timer;pomodoro;ducks;mori;
+Keywords=study;focus;timer;pomodoro;ducks;
 StartupWMClass=brave-localhost__-Default
 StartupNotify=true
 Actions=pond;stats;demo;
@@ -71,11 +74,15 @@ Name=Demo (made-up ducks)
 Exec=brave-browser --app=http://localhost:8642/
 EOF
 command -v desktop-file-validate >/dev/null && desktop-file-validate "$DESKTOP"
+rm -f "$OLD_DESKTOP" "$OLD_ICON"
 update-desktop-database "$APPS" 2>/dev/null || true
 
-# pin it to the dock, after the apps already there
+# pin it to the dock: where the old shortcut was, or after the apps already there
 now=$(favorites)
-if ! printf '%s' "$now" | grep -q "'mori.desktop'"; then
-  gsettings set org.gnome.shell favorite-apps "$(python3 -c "import ast, sys; print(ast.literal_eval(sys.argv[1].replace('@as ', '')) + ['mori.desktop'])" "$now")"
+if ! printf '%s' "$now" | grep -q "'dakku.desktop'"; then
+  gsettings set org.gnome.shell favorite-apps "$(python3 -c "
+import ast, sys
+apps = ast.literal_eval(sys.argv[1].replace('@as ', ''))
+print([('dakku.desktop' if a == 'mori.desktop' else a) for a in apps] if 'mori.desktop' in apps else apps + ['dakku.desktop'])" "$now")"
 fi
 echo "Dakku is on your dock. Right-click it for the Pond, your Stats, or the demo."

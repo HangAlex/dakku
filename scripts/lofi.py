@@ -5,7 +5,7 @@ Spotify only plays whole songs to someone signed in to Spotify in that very brow
 finds each song on YouTube instead and plays them there, shuffled. Put the Spotify track links in
 art/lofi.txt (one per line, or however Spotify copies them), then run
 
-    python3 ~/mori/scripts/lofi.py
+    python3 scripts/lofi.py
 
 It looks up each track's title, artists and length on Spotify, finds the same recording on
 YouTube (the same title, within a few seconds of the same length, preferring the artist's own
@@ -13,7 +13,7 @@ upload or their "- Topic" channel, never a sped-up, slowed or hour-long version)
 lets it play inside other sites, and writes web/lofi.json. Songs already found keep their match,
 so running it again only looks up new ones. Reload Dakku.
 
-    python3 ~/mori/scripts/lofi.py --redo     looks every song up again
+    python3 scripts/lofi.py --redo     looks every song up again
 """
 import argparse
 import json

@@ -8,11 +8,11 @@
 # sessions they can join: never your settings, your data, your devices or your passcode, none of
 # which work there.
 #
-# Run once:   ~/mori/scripts/enable-friends.sh
-# Undo:       ~/mori/scripts/enable-friends.sh off    (friends can't reach Dakku until you run it again)
+# Run once, in Dakku's folder:   scripts/enable-friends.sh
+# Undo:                         scripts/enable-friends.sh off    (friends can't reach Dakku until you run it again)
 set -euo pipefail
 
-FRIENDS_PORT="${MORI_FRIENDS_PORT:-8643}"
+FRIENDS_PORT="${DAKKU_FRIENDS_PORT:-8643}"
 HTTPS_PORT=8443  # Funnel offers 443 (your own Dakku's), 8443 and 10000
 say() { printf '\n\033[1m%s\033[0m\n' "$*"; }
 json() { tailscale status --json | python3 -c "import json, sys; d = json.load(sys.stdin); $1"; }
@@ -28,10 +28,10 @@ fi
 
 DNS=$(json 'print((d.get("Self") or {}).get("DNSName", "").rstrip("."))')
 [ -n "$DNS" ] || { echo "Tailscale isn't connected. Run:  sudo tailscale up"; exit 1; }
-[ -n "$(json 'print(" ".join(d.get("CertDomains") or []))')" ] || { echo "Run ~/mori/scripts/enable-https.sh first: friends use the same secure address."; exit 1; }
+[ -n "$(json 'print(" ".join(d.get("CertDomains") or []))')" ] || { echo "Run scripts/enable-https.sh (in Dakku's folder) first: friends use the same secure address."; exit 1; }
 if ! curl -fsS "http://127.0.0.1:$FRIENDS_PORT/api/health" >/dev/null 2>&1; then
   echo "Dakku's door for friends (port $FRIENDS_PORT) isn't open. Restart Dakku so it runs the latest version:"
-  echo "  systemctl --user restart mori"
+  echo "  systemctl --user restart dakku"
   exit 1
 fi
 
@@ -88,5 +88,5 @@ To bring someone in:
 The first time, Funnel can take a few minutes to reach the whole internet. To try it yourself, open an
 invite link on your phone with Wi-Fi and Tailscale switched off.
 Who's in, and removing anyone: Dakku → Settings → People & groups.
-Closing the door again:  ~/mori/scripts/enable-friends.sh off
+Closing the door again:  scripts/enable-friends.sh off   (in Dakku's folder)
 EOF

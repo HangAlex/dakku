@@ -1,7 +1,7 @@
 /* 鴨 Dakku demo, on its own (no PC): the PC's side, worked out in your browser.
  *
  * It starts from a snapshot of the demo Dakku (snapshot.js, made by build.py) and answers the app's
- * /api calls the way mori/app.py does: timers run out and hatch, you can join Mina or Kai, sessions
+ * /api calls the way dakku/app.py does: timers run out and hatch, you can join Mina or Kai, sessions
  * and settings sync. The clock starts at the moment of the snapshot and runs on from your first
  * visit of the day, so the demo looks just as it did then. Your own ducks and choices are kept in
  * this browser until the next day, when it starts over.
@@ -20,7 +20,7 @@
     const keep = saved && saved.snap === SNAP.at ? { settings: saved.settings, person: saved.person, groupTheme: saved.groupTheme } : {};
     saved = { snap: SNAP.at, day: dayOf(), anchor: realNow(), sessions: {}, timer: null, ...keep };
     // a fresh start: what the app kept from last time would bring back sessions that are gone now
-    try { for (const k of Object.keys(localStorage)) if (k.startsWith('mori:') && k !== 'mori:lofi' && k !== 'mori:theme') localStorage.removeItem(k); } catch { /* private mode */ }
+    try { for (const k of Object.keys(localStorage)) if (/^(dakku|mori):/.test(k) && !/:(lofi|theme)$/.test(k)) localStorage.removeItem(k); } catch { /* private mode */ }
   }
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch { /* private mode */ } };
   save();
@@ -62,12 +62,12 @@
   };
   const publicSession = (s) => { const { rev: _, person: __, ...rest } = s; return rest; };
   const newId = () => Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6);
-  const kinds = () => (window.Art?.ORDER?.length ? window.Art.ORDER : Object.keys(window.MORI_DUCKS || { shiro: 1 }));
+  const kinds = () => (window.Art?.ORDER?.length ? window.Art.ORDER : Object.keys(window.DAKKU_DUCKS || { shiro: 1 }));
   const speciesFor = (requested) => (kinds().includes(requested) ? requested : settings.randomSpecies ? kinds()[Math.floor(Math.random() * kinds().length)] : settings.species);
 
   class ApiError extends Error { constructor(status, message, extra = {}) { super(message); this.status = status; this.extra = extra; } }
 
-  /* ── timers: the same rules as mori/app.py ── */
+  /* ── timers: the same rules as dakku/app.py ── */
   function pomoPhase(t, elapsed) {
     const p = t.pomo, cycle = p.focus + p.brk;
     const e = Math.max(0, Math.min(elapsed, t.planned)), rnd = Math.floor(e / cycle), rest = e % cycle;
@@ -118,7 +118,7 @@
     return elapsed;
   }
   function log(t, minutes, status, at, note = '', rounds = 0) {
-    const s = { id: t.id, start: t.startedAt, minutes, tag: t.tag, species: t.species, status, source: t.source || 'mori', manual: false,
+    const s = { id: t.id, start: t.startedAt, minutes, tag: t.tag, species: t.species, status, source: t.source || 'dakku', manual: false,
       note, updated: at, deleted: false, room: t.room || '', rounds, rev: ++rev };
     sessions.set(s.id, s);
     return publicSession(s);
@@ -152,7 +152,7 @@
       if (body.elapsed != null) { acc = Math.max(0, Math.min(body.elapsed, at - started)); runFrom = body.running === false ? null : at; }
       const t = { id: /^[A-Za-z0-9_-]{4,64}$/.test(body.id || '') && !sessions.has(body.id) ? body.id : newId(), mode, planned: mode === 'timer' ? minutes * MIN : null,
         startedAt: started, acc, runFrom, tag: String(body.tag ?? settings.tag).trim().slice(0, 40), species: speciesFor(body.species || (settings.randomSpecies ? null : settings.species)),
-        deep: !!body.deep, source: 'mori', device: 'Demo', updated: at, open: body.open ?? settings.openSessions !== false, announced: false };
+        deep: !!body.deep, source: 'dakku', device: 'Demo', updated: at, open: body.open ?? settings.openSessions !== false, announced: false };
       if (pomo) {
         t.pomo = { focus: pomo.focus * MIN, brk: pomo.brk * MIN, rounds: pomo.rounds };
         t.planned = pomo.rounds * t.pomo.focus + (pomo.rounds - 1) * t.pomo.brk;
@@ -166,7 +166,7 @@
       const [host, hostT] = entry, gid = newId();
       mine = { id: gid, mode: 'room', planned: null, room: hostT.id, host, startedAt: at, acc: 0, runFrom: at, tag: String(body.tag ?? settings.tag).trim().slice(0, 40),
         hostAt: view(hostT, at).elapsed, announced: false, species: speciesFor(body.species || (settings.randomSpecies ? null : settings.species)),
-        deep: !!body.deep, source: 'mori', device: 'Demo', updated: at };
+        deep: !!body.deep, source: 'dakku', device: 'Demo', updated: at };
       result = { timer: view(mine, at) };
     } else if (action === 'drop') {
       if (mine && body.id === mine.id) mine = null;
@@ -284,7 +284,7 @@
       if (p === '/anki') return SNAP.anki;
       if (p === '/devices') return { devices: [], current: 'demo' };
       if (p.startsWith('/groups/')) return groupView(decodeURIComponent(p.slice(8)));
-      if (p === '/health') return { ok: true, app: 'mori', version: me.version, demo: true };
+      if (p === '/health') return { ok: true, app: 'dakku', version: me.version, demo: true };
       throw new ApiError(404, 'Not found.');
     }
     if (method === 'POST' && p === '/sync') return push(body);

@@ -6,8 +6,8 @@
 # own auto-suspend after a restart), turns the screens off after a few idle minutes instead, and
 # adds a "Screens off" app that darkens them right away. Any key or mouse move wakes them.
 #
-# Run once:   ~/mori/scripts/always-on.sh        (asks for your password once)
-# Undo:       ~/mori/scripts/always-on.sh undo
+# Run once, in Dakku's folder:   scripts/always-on.sh        (asks for your password once)
+# Undo:                         scripts/always-on.sh undo
 set -euo pipefail
 
 BLANK_MINUTES="${BLANK_MINUTES:-5}"
@@ -21,15 +21,20 @@ ICON="$HOME/.local/share/icons/hicolor/512x512/apps/screens-off.png"
 BLANK='sh -c "sleep 1; gdbus call --session --dest org.gnome.ScreenSaver --object-path /org/gnome/ScreenSaver --method org.gnome.ScreenSaver.SetActive true"'
 HOTKEY='<Control><Super>End'  # the key marked Page Down on this PC's GMMK Pro sends End
 KEYS=org.gnome.settings-daemon.plugins.media-keys
-KEY_PATH=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/mori-screens-off/
+KEY_PATH=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/dakku-screens-off/
+OLD_PATH=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/mori-screens-off/  # (before Dakku had its name)
 shortcuts() { gsettings get $KEYS custom-keybindings; }
+forget() {  # one shortcut, gone
+  gsettings set $KEYS custom-keybindings "$(python3 -c "import ast, sys; print([k for k in ast.literal_eval(sys.argv[1].replace('@as ', '')) if k != sys.argv[2]])" "$(shortcuts)" "$1")"
+  for key in name command binding; do gsettings reset "$KEYS.custom-keybinding:$1" $key; done
+}
 
 if [ "${1:-}" = "undo" ]; then
   echo "Letting the PC suspend again (asks for your password):"
   sudo systemctl unmask "${TARGETS[@]}"
   rm -f "$LAUNCHER" "$ICON"
-  gsettings set $KEYS custom-keybindings "$(python3 -c "import ast, sys; print([k for k in ast.literal_eval(sys.argv[1].replace('@as ', '')) if k != sys.argv[2]])" "$(shortcuts)" "$KEY_PATH")"
-  for key in name command binding; do gsettings reset "$KEYS.custom-keybinding:$KEY_PATH" $key; done
+  forget "$KEY_PATH"
+  forget "$OLD_PATH"
   echo "Suspend is back. The screens still turn off when idle: change that in Settings → Power → Screen Blank."
   exit 0
 fi
@@ -73,6 +78,7 @@ Keywords=monitor;screen;display;off;blank;dark;sleep;
 EOF
 command -v desktop-file-validate >/dev/null && desktop-file-validate "$LAUNCHER"
 update-desktop-database "$APPS" 2>/dev/null || true
+forget "$OLD_PATH"
 gsettings set "$KEYS.custom-keybinding:$KEY_PATH" name "'Screens off'"
 gsettings set "$KEYS.custom-keybinding:$KEY_PATH" command "'$BLANK'"
 gsettings set "$KEYS.custom-keybinding:$KEY_PATH" binding "'$HOTKEY'"

@@ -21,8 +21,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from mori.app import App  # noqa: E402
-from mori.web import Server, make_handler  # noqa: E402
+from dakku.app import App  # noqa: E402
+from dakku.web import Server, make_handler  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 WEB = ROOT / "web"

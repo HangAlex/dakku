@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Brings the ducks painted with ChatGPT into Dakku.
 
-Save ChatGPT's pictures in ~/mori/art/incoming/ (PNG, WebP or JPEG) with these names, then run
-    python3 ~/mori/scripts/import_art.py
+Save ChatGPT's pictures in art/incoming/ (PNG, WebP or JPEG) with these names, then run, in Dakku's folder,
+    python3 scripts/import_art.py
 and reload Dakku. Any you haven't made yet keep their drawn placeholders.
 
     <duck id> one duck, like goku.png, for a duck in art/ducks.json (scripts/duck.py makes its prompt);
@@ -23,6 +23,7 @@ background is removed too, and so is a fake gray checkerboard painted in where t
 A pond is kept whole, with a map of its open water so Dakku only puts ducks where they can float.
 """
 import base64
+import hashlib
 import json
 import math
 import os
@@ -40,6 +41,10 @@ SHEETS = {"eggs": ["egg-0", "egg-1", "egg-2", "cold"]}  # the ducks are one pict
 BODY_UNITS = 62   # a duck's body is this many units wide in Dakku's 100 × 120 box
 EGG_UNITS = 62    # so is the nest (and the cold egg's lily pad)
 MAX_HEIGHT = 512  # pixels kept per picture: plenty for phones, small enough to load fast
+# Each duck also gets a small copy, which is all most screens need: the picker, the log, ponds and the
+# gallery never show a duck's 100 × 120 box bigger than this many pixels (on a 3x phone). Dakku loads
+# the small ones first, and a duck's full picture only for its own page, its hatching and share pictures.
+SMALL_BOX = 220
 RIPPLE_UNITS = 104  # a ripple ring is this wide in the duck's 100 × 120 box (its body is BODY_UNITS)
 RIPPLES = 3
 # each pond picture: (its theme, its shape, the widest kept); the plain pond-wide/-tall are the classic pond
@@ -49,8 +54,10 @@ for _theme in THEMES:
     PONDS[f"pond-{_theme}-wide"] = (_theme, "wide", 1600)
     PONDS[f"pond-{_theme}-tall"] = (_theme, "tall", 1100)
 GRID = 100        # the water map is this many cells across (Dakku's pond is 1000 units wide)
+POND_THUMB = 480  # pixels across a pond's thumbnail, for the pond pickers in Settings
 DECOR = ("torii", "lantern", "koi", "lanterns", "lotus")  # each saved as deco-<id>
 DECOR_WIDEST = 640  # pixels kept across a decoration
+DECOR_SMALL = 360  # and across its small copy, which is what Dakku shows: no screen draws one wider than ~300
 
 
 EXTS = (".png", ".webp", ".jpg", ".jpeg")
@@ -78,8 +85,40 @@ def write(path, save):
         part.unlink(missing_ok=True)
 
 
-def webp(img, path, quality=90):
-    write(path, lambda part: img.save(part, "WEBP", quality=quality, method=5))
+def stamped(manifest):
+    """The picture list with each picture's address ending in its version (?v= and a hash of the file), so
+    a phone can keep a picture for good and still never show an old one: a new picture is a new address."""
+    def walk(v):
+        if isinstance(v, dict):
+            return {k: (stamp(x) if k in ("src", "small", "thumb") and isinstance(x, str) else walk(x)) for k, x in v.items()}
+        return [walk(x) for x in v] if isinstance(v, list) else v
+
+    def stamp(src):
+        path = src.split("?")[0]
+        file = OUT / path.removeprefix("/ducks/")
+        return f"{path}?v={hashlib.sha256(file.read_bytes()).hexdigest()[:10]}" if file.is_file() else path
+    return walk(manifest)
+
+
+def write_manifest(manifest):
+    path = OUT / "ducks.json"
+    text = json.dumps(stamped(manifest), ensure_ascii=False, indent=1)
+    write(path, lambda part: part.write_text(text, encoding="utf-8"))
+
+
+def webp(img, path, quality=90, method=5, alpha_quality=100):
+    write(path, lambda part: img.save(part, "WEBP", quality=quality, method=method, alpha_quality=alpha_quality))
+
+
+def save_small(source, name, entry):
+    """The small copy of a duck's picture (see SMALL_BOX), next to the full one `entry` describes, made
+    from `source` (the same picture, at any size): it's added to `entry`."""
+    k = min(1.0, SMALL_BOX * entry["unit"] / 100)
+    if k > 0.9:  # hardly smaller: the full picture will do
+        return entry
+    small = source.resize((max(1, round(entry["w"] * k)), max(1, round(entry["h"] * k))), Image.LANCZOS)
+    webp(small, OUT / f"{name}.small.webp", quality=85, method=6)
+    return {**entry, "small": f"/ducks/{name}.small.webp"}
 
 
 def with_alpha(img):
@@ -449,7 +488,14 @@ def save_pond(path, name, widest):
     if not found:
         return None
     webp(img, OUT / f"pond-{name}.webp", quality=88)
-    return {"src": f"/ducks/pond-{name}.webp", "w": img.width, "h": img.height, **found}
+    return {"src": f"/ducks/pond-{name}.webp", "w": img.width, "h": img.height, **found, "thumb": pond_thumb(img, name)}
+
+
+def pond_thumb(img, name):
+    """A pond's thumbnail (see POND_THUMB): its address."""
+    thumb = img.resize((POND_THUMB, round(img.height * POND_THUMB / img.width)), Image.LANCZOS)
+    webp(thumb, OUT / f"pond-{name}.thumb.webp", quality=78, method=6, alpha_quality=60)  # (its edge is soft anyway)
+    return f"/ducks/pond-{name}.thumb.webp"
 
 
 def save_decor(path, name):
@@ -462,7 +508,16 @@ def save_decor(path, name):
     if img.width > DECOR_WIDEST:
         img = img.resize((DECOR_WIDEST, round(img.height * DECOR_WIDEST / img.width)), Image.LANCZOS)
     webp(img, OUT / f"deco-{name}.webp")
-    return {"src": f"/ducks/deco-{name}.webp", "w": img.width, "h": img.height}
+    return decor_small(img, name, {"src": f"/ducks/deco-{name}.webp", "w": img.width, "h": img.height})
+
+
+def decor_small(img, name, entry):
+    """A decoration's small copy (see DECOR_SMALL), added to its `entry`."""
+    if img.width <= DECOR_SMALL * 1.1:
+        return entry
+    small = img.resize((DECOR_SMALL, round(img.height * DECOR_SMALL / img.width)), Image.LANCZOS)
+    webp(small, OUT / f"deco-{name}.small.webp", quality=85, method=6)
+    return {**entry, "small": f"/ducks/deco-{name}.small.webp"}
 
 
 def icons(path):
@@ -546,7 +601,7 @@ def main():
         say(f"  {icon.name} → app icons")
         did += 1
     manifest["eggs"] = (manifest.get("eggs") or [None, None, None])[:3]
-    write(manifest_path, lambda part: part.write_text(json.dumps(manifest, ensure_ascii=False, indent=1)))
+    write_manifest(manifest)
     # the ducks: new ones from art/incoming, then every duck in art/ducks into Dakku (it adds them to the
     # list just written)
     import duck  # noqa: PLC0415  (it uses this file's helpers)
