@@ -6,12 +6,13 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=%h/mori
-ExecStart=/usr/bin/python3 -m mori --demo
+WorkingDirectory=DAKKU_FOLDER
+ExecStart=/usr/bin/python3 -m dakku --demo
 Environment=PYTHONUNBUFFERED=1
 Restart=always
 RestartSec=3
 NoNewPrivileges=yes
+UMask=0077
 
 [Install]
 WantedBy=default.target
