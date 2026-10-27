@@ -399,6 +399,106 @@
    "unit": 0.14168,
    "small": "/ducks/santa.small.webp?v=6ece94c713",
    "name": "Santa"
+  },
+  "shulk": {
+   "src": "/ducks/shulk.webp?v=f72bf0502f",
+   "w": 540,
+   "h": 512,
+   "baseX": 219.1,
+   "baseY": 510.7,
+   "unit": 0.15502,
+   "small": "/ducks/shulk.small.webp?v=ed7cca93fe",
+   "name": "Shulk"
+  },
+  "yagami": {
+   "src": "/ducks/yagami.webp?v=34f356f297",
+   "w": 466,
+   "h": 512,
+   "baseX": 235.8,
+   "baseY": 510.6,
+   "unit": 0.14519,
+   "small": "/ducks/yagami.small.webp?v=5ee6d00271",
+   "name": "Yagami"
+  },
+  "eve": {
+   "src": "/ducks/eve.webp?v=53e4fc740f",
+   "w": 515,
+   "h": 512,
+   "baseX": 201.4,
+   "baseY": 511.4,
+   "unit": 0.14868,
+   "small": "/ducks/eve.small.webp?v=1f4e1da9b2",
+   "name": "EVE"
+  },
+  "nagisa": {
+   "src": "/ducks/nagisa.webp?v=054531f703",
+   "w": 453,
+   "h": 512,
+   "baseX": 219.0,
+   "baseY": 510.9,
+   "unit": 0.15783,
+   "small": "/ducks/nagisa.small.webp?v=90a21fc43b",
+   "name": "Nagisa"
+  },
+  "monokuma": {
+   "src": "/ducks/monokuma.webp?v=7af3c43890",
+   "w": 414,
+   "h": 512,
+   "baseX": 193.7,
+   "baseY": 511.4,
+   "unit": 0.15199,
+   "small": "/ducks/monokuma.small.webp?v=08e1df4279",
+   "name": "Monokuma"
+  },
+  "yuta": {
+   "src": "/ducks/yuta.webp?v=f541dacc8f",
+   "w": 529,
+   "h": 512,
+   "baseX": 229.3,
+   "baseY": 510.6,
+   "unit": 0.14594,
+   "small": "/ducks/yuta.small.webp?v=13e879862c",
+   "name": "Yuta"
+  },
+  "kazuma": {
+   "src": "/ducks/kazuma.webp?v=ac98e93a4e",
+   "w": 451,
+   "h": 512,
+   "baseX": 209.1,
+   "baseY": 510.5,
+   "unit": 0.15164,
+   "small": "/ducks/kazuma.small.webp?v=5d31a94e5c",
+   "name": "Kazuma"
+  },
+  "talon": {
+   "src": "/ducks/talon.webp?v=c10423e4e2",
+   "w": 692,
+   "h": 512,
+   "baseX": 230.9,
+   "baseY": 510.5,
+   "unit": 0.13334,
+   "small": "/ducks/talon.small.webp?v=7bd911a455",
+   "name": "Talon"
+  },
+  "denji": {
+   "src": "/ducks/denji.webp?v=a0adad7f10",
+   "w": 442,
+   "h": 512,
+   "baseX": 173.3,
+   "baseY": 511.0,
+   "unit": 0.19058,
+   "small": "/ducks/denji.small.webp?v=3d9a9db40a",
+   "name": "Denji"
+  },
+  "kid": {
+   "src": "/ducks/kid.webp?v=f81e11717f",
+   "w": 530,
+   "h": 512,
+   "baseX": 231.2,
+   "baseY": 510.7,
+   "unit": 0.14089,
+   "small": "/ducks/kid.small.webp?v=eba1a58ae9",
+   "name": "Kid"
   }
  },
  "eggs": [
