@@ -1,5 +1,7 @@
 <p align="center"><img src="media/hero.webp" alt="Dakku: a study timer where every focus session hatches a little duck into your pond"></p>
 
+<p align="center"><a href="https://hangalex.github.io/dakku/"><b>▶ Try the demo</b></a> · runs in your browser, nothing to install</p>
+
 <p align="center">
   <img src="media/hatch.webp" width="290" alt="An egg cracking open and hatching into a witch duck as the timer runs out">
   &nbsp;
@@ -14,6 +16,14 @@ floats on your pond, so after a few weeks of studying there's a whole crowd of t
 It runs on my own PC at home and I use it every day as an app on my iPhone. Playing around with the idea of having others use it too
 
 My goal is to build long term study habits one duck at a time!
+
+## Try it
+
+**[hangalex.github.io/dakku](https://hangalex.github.io/dakku/)**: a playable demo, full of made-up ducks, that runs
+right in your browser. Start a timer and hatch a duck, join Mina while she studies, switch on Halloween. Nothing you do
+leaves your phone. On iPhone, tap Share → **Add to Home Screen** to use it like an app.
+
+<p align="center"><img src="media/demo-qr.png" width="240" alt="QR code for the demo: hangalex.github.io/dakku"></p>
 
 > **Status:** a personal project I'm still building. The code is all here; [SETUP.md](SETUP.md) explains how to run it
 > and how it works.
