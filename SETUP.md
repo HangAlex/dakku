@@ -23,9 +23,9 @@ phone, the Mac or the Genkan homepage lands in one place, on this PC.
   consistency, tags, time of day, the duck collection, your year so far, achievements and Anki.
   **Share** makes a picture for friends, of your stats or of your year.
 - **履歴 Log**: every session by day. Log time you studied without the timer, edit or delete anything.
-- **設定 Settings**: your name, colour and badge, daily goal, quick picks, tags and colours, the theme, the pond and its
+- **設定 Settings**: your name, color and badge, daily goal, quick picks, tags and colors, the theme, the pond and its
   decorations, events, notifications, devices, people & groups, passcode, export and import.
-- **行事 Events**: Halloween, Thanksgiving and Christmas, any time of year. Each one sets the colours and the pond together,
+- **行事 Events**: Halloween, Thanksgiving and Christmas, any time of year. Each one sets the colors and the pond together,
   with bats, falling leaves or snow drifting past. Tap it again to go back to your own theme and pond.
 - **Sunday recap**: on Sunday evening, a notification with your week: time studied, ducks and your best day. Turn it off
   in Settings → Notifications.
@@ -34,7 +34,7 @@ phone, the Mac or the Genkan homepage lands in one place, on this PC.
 
 A day counts once you reach your daily goal. Missing a **weekday** breaks the streak; weekends never do, and studying on
 one still adds a day. Today never breaks it, because it isn't over yet. Days are counted in your home time zone
-(Settings), so travelling doesn't scramble them.
+(Settings), so traveling doesn't scramble them.
 
 **Streak freezes:** every 7 days in a row earn one, and you can hold 2. A missed weekday uses one up instead of breaking
 the streak (it doesn't add a day). The streak in Hatch and Stats shows ❄ when you have one, and the consistency chart marks
@@ -96,7 +96,7 @@ an account, just a link from you.
    It opens a separate door for friends at https://your-pc.your-tailnet.ts.net:8443 with Tailscale Funnel. Your own
    address stays private.
 2. In Dakku: 共 **Together** → **New group**, then **Invite**, and send the link (or show the QR code).
-3. They open it and pick a name, a colour and a badge (a letter or an emoji), and they're in. On iPhone they can add
+3. They open it and pick a name, a color and a badge (a letter or an emoji), and they're in. On iPhone they can add
    it to the Home Screen too; there it asks for the 6-digit code from Dakku in Safari (Settings → Add a device).
 
 Then:
@@ -111,7 +111,7 @@ Then:
   It pops up over their egg and on their phone (Settings → Notifications → Cheers from friends switches that off),
   and the card for their duck says who cheered them on. Anyone who could join a session can cheer it.
 - **A pond for each group**: only the ducks from sessions you studied together, each with a small round badge in its
-  owner's colour and mark, and a legend. Your own pond is still all yours. Each group can have its own pond picture.
+  owner's color and mark, and a legend. Your own pond is still all yours. Each group can have its own pond picture.
 - **The group's stats**: a leaderboard for the week, month or all time, with today, streaks, ducks and time spent
   together, and the tags everyone studied.
 - **What friends see**: their own sessions, and in a group, its pond and stats. Never your settings, devices, passcode,
@@ -179,7 +179,7 @@ notifications and importing.
 ## The ducks
 
 Forty kinds of duck, all available from the start. Each one is a single picture in `art/ducks/` (`sonic.png`,
-`kirby.png`, …), finished and in Dakku's style, and a line in `art/ducks.json` with its name, kanji, colour, blurb,
+`kirby.png`, …), finished and in Dakku's style, and a line in `art/ducks.json` with its name, kanji, color, blurb,
 face and outfit. The app and the server both take the list from there, so adding a duck needs no code changes.
 
 ### Making a new duck
