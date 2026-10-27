@@ -8,8 +8,8 @@ themselves are in `art/sheets/`). The egg, pond, ripple and icon prompts are sti
 Paste these into ChatGPT one at a time, **all in the same chat** so the ducks stay consistent. With the first prompt,
 **attach a style picture**: a doodle duck on blue water in the look you want (`art/style-reference.jpg` on my PC; it
 isn't in the repo, since it's someone else's drawing), so ChatGPT can copy the look.
-Download each picture and save it in `~/mori/art/incoming/` under the name shown (PNG, WebP or JPEG). Then run
-`python3 ~/mori/scripts/import_art.py` and reload Dakku. Anything not made yet keeps its drawn placeholder.
+Download each picture and save it in `art/incoming/` (in Dakku's folder) under the name shown (PNG, WebP or JPEG). Then run
+`python3 scripts/import_art.py` and reload Dakku. Anything not made yet keeps its drawn placeholder.
 
 Tips:
 - If a background comes out white or as a gray checkerboard, reply: "Make the background truly transparent and give me
@@ -212,7 +212,7 @@ Now the same pond as a portrait image, 1024×1536, with the pond taller than it 
 In a new chat, attach `pond-tall.png` too and add: *Use the attached picture only for the shape: the same portrait size
 and shape of pond and bank, with the same small transparent margin. Keep this pond's own style, colors and details.*
 
-Then run `python3 ~/mori/scripts/import_art.py` as usual: it finds each pond's water by itself, even the dark night
+Then run `python3 scripts/import_art.py` as usual: it finds each pond's water by itself, even the dark night
 water, and only puts ducks where they can float.
 
 ## 10. Decorations (optional)

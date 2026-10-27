@@ -1,5 +1,5 @@
 # The lofi playlist on the Hatch screen: Spotify track links, one per line.
-# After changing it, run  python3 ~/mori/scripts/lofi.py  (it finds each song on YouTube).
+# After changing it, run  python3 scripts/lofi.py  in Dakku's folder (it finds each song on YouTube).
 https://open.spotify.com/track/6yhJOuBm2ByYujpV4FxWac
 https://open.spotify.com/track/491Paby6HGs5DxiWA7nFKe
 https://open.spotify.com/track/3dYMeRvMjzDxU7O7tcRAnc

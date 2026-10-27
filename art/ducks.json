@@ -359,6 +359,86 @@
    "face": "calm",
    "look": "Santa Claus: a red Santa hat with white fur trim and a white pompom, a red coat with white fur trim and a black belt with a gold buckle, and a small brown sack of presents on its back",
    "body": 700
+  },
+  "shulk": {
+   "name": "Shulk",
+   "kanji": "予知",
+   "color": "#C8352E",
+   "blurb": "Sees the future: it's you, finishing this session.",
+   "face": "calm",
+   "look": "Shulk from Xenoblade Chronicles: short, wavy pale-blond hair, a short wine-red jacket over a black sweater with a small pink-and-purple pattern, and the Monado on its back: a big red sword with a round hole near its tip, its two red halves slightly open around a glowing light-blue energy blade"
+  },
+  "yagami": {
+   "name": "Yagami",
+   "kanji": "探偵",
+   "color": "#3A3A42",
+   "blurb": "Private detective. Case closed: one more session.",
+   "face": "calm",
+   "look": "Takayuki Yagami from Judgment: medium-length, slightly messy black hair parted in the middle, a black leather moto jacket over a plain white T-shirt, and a small wireless earpiece"
+  },
+  "eve": {
+   "name": "EVE",
+   "kanji": "星",
+   "color": "#3E8E7E",
+   "blurb": "Takes back the Earth, one session at a time.",
+   "face": "calm",
+   "look": "EVE from Stellar Blade: long dark-brown hair tied in a high ponytail, with long bangs framing the face, her black Planet Diving suit with white panels, small mint-green accents and a high collar, and her slim silver sword resting on its back"
+  },
+  "nagisa": {
+   "name": "Nagisa",
+   "kanji": "団子",
+   "color": "#E8A0B4",
+   "blurb": "Dango, dango… a big dango family of finished sessions.",
+   "face": "calm",
+   "look": "Nagisa Furukawa from Clannad: short, wavy brown hair a little past the shoulders, with two thin strands sticking up from the top of the head like antennae and two small red hair clips at the sides, her pale-yellow school jacket with a white sailor collar, and on its back a skewer of three round dango (pink, white and green), each with a tiny happy face, like the Big Dango Family"
+  },
+  "monokuma": {
+   "name": "Monokuma",
+   "kanji": "絶望",
+   "color": "#D43A3A",
+   "blurb": "Puhuhu! Nothing despair-inducing about a finished session.",
+   "face": "angry",
+   "look": "Monokuma from Danganronpa: a bear hood split straight down the middle, white on the face side and black on the back side, with two round bear ears on top (the front one white, the back one black), and Monokuma's jagged red lightning-shaped eye on the black half, at the back of the head (the duck's own eye and beak stay as they are)"
+  },
+  "yuta": {
+   "name": "Yuta",
+   "kanji": "呪",
+   "color": "#3B4A7A",
+   "blurb": "Rika wants you to keep studying. Rika is very convincing.",
+   "face": "calm",
+   "look": "Yuta Okkotsu from Jujutsu Kaisen 0: messy black hair falling over the forehead, the white Jujutsu High uniform jacket with a high collar and gold buttons, and his katana inside a long black cloth sword bag slung across its back, the bag's drawstring top sticking up above the shoulder"
+  },
+  "kazuma": {
+   "name": "Kazuma",
+   "kanji": "冒険",
+   "color": "#3D7A3D",
+   "blurb": "Luck stat maxed out: this session will go perfectly.",
+   "face": "calm",
+   "look": "Kazuma Satou from KonoSuba: short, messy brown hair, a green cape with a golden edge fastened at the neck over a plain gray shirt, and his katana Chunchunmaru in a dark sheath on its back"
+  },
+  "talon": {
+   "name": "Talon",
+   "kanji": "刃",
+   "color": "#2F6FD6",
+   "blurb": "In, out, done: an assassin of to-do lists.",
+   "face": "angry",
+   "look": "SSW Talon from League of Legends (the Samsung White skin): a white hood with blue edging pulled up over the head (the duck's eye and beak still show), a white coat with blue edging, a long white cape with blue edges flowing out behind, and his armblade, a sleek curved white-and-silver blade with blue trim, strapped against its wing and pointing back"
+  },
+  "denji": {
+   "name": "Denji",
+   "kanji": "鋸",
+   "color": "#E8742A",
+   "blurb": "Dreams of jam on toast. Rips through the syllabus.",
+   "face": "angry",
+   "look": "Chainsaw Man (Denji in his chainsaw-devil form): the chainsaw devil's head as a helmet over the duck's head, rounded and orange, with a long gray chainsaw bar sticking straight up out of the forehead, its chain lined with small silver teeth, and a row of sharp teeth across the front; the duck's beak still sticks out below it, and it's fine if the helmet hides the eye; a white shirt with a loose black necktie, and the small pull-cord handle of the chainsaw hanging from its chest"
+  },
+  "kid": {
+   "name": "Kid",
+   "kanji": "対称",
+   "color": "#D9B44A",
+   "blurb": "Perfectly symmetrical study habits. Eight sessions, exactly.",
+   "face": "calm",
+   "look": "Death the Kid from Soul Eater: short black hair with three white stripes running across the left side only, a black suit with small white rectangle trims placed perfectly symmetrically down the front and along the sleeves, a white shirt with a small silver skull at the collar, and his two ornate pistols Liz and Patti crossed on its back"
   }
  }
 }
