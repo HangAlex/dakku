@@ -193,21 +193,21 @@ const Art = (() => {
   /* ── pictures painted with ChatGPT, when they exist ─────────────────────── */
   const sprites = { kinds: {}, eggs: [], cold: null, ponds: {}, ripples: [], decor: {} };
   let loading = null;
-  function loadSprites() {
+  // `onPicture` hears each time one more has arrived, to draw it in right away
+  function loadSprites(onPicture) {
     loading ||= fetch('ducks/ducks.json', { cache: 'no-cache' })
       .then((res) => (res.ok ? res.json() : null))
       .then(async (list) => {
         if (!list) return false;
-        const take = async (entry) => {
+        const take = async (entry, put) => {
           if (!entry) return null;
           const img = new Image();
           img.src = entry.src;
           await img.decode();
-          return { ...entry, img };
+          const pic = { ...entry, img };
+          if (put) { put(pic); onPicture?.(); }
+          return pic;
         };
-        for (const [k, entry] of Object.entries(list.kinds || {})) if (KINDS[k]) sprites.kinds[k] = await take(entry).catch(() => null);
-        sprites.eggs = await Promise.all((list.eggs || []).map((e) => take(e).catch(() => null)));
-        sprites.cold = await take(list.cold).catch(() => null);
         // ponds come in themes, each a wide and maybe a tall picture (the very first ponds were just the classic one).
         // Only their water maps are read now: a pond on screen just needs its picture's address, and a share
         // picture decodes it when it's drawn (see ready), so twenty big ponds don't sit decoded in a phone's memory.
@@ -216,8 +216,19 @@ const Art = (() => {
           sprites.ponds[theme] = {};
           for (const [shape, entry] of Object.entries(shapes || {})) { try { sprites.ponds[theme][shape] = waterMap({ ...entry, img: null }); } catch { /* no map */ } }
         }
-        sprites.ripples = (await Promise.all((list.ripples || []).map((e) => take(e).catch(() => null)))).filter(Boolean);
-        for (const [id, entry] of Object.entries(list.decor || {})) if (DECOR[id]) sprites.decor[id] = await take(entry).catch(() => null);
+        // every picture at once (one after another took seconds over Tailscale or the internet), each
+        // drawn in as soon as it's here; the eggs and ripples first, as they're on the first screen
+        const all = (entries, put) => Promise.all(entries.map((e, i) => take(e, put && ((pic) => put(pic, i))).catch(() => null)));
+        await Promise.all([
+          all(list.eggs || [], (pic, i) => { sprites.eggs[i] = pic; }),
+          all([list.cold], (pic) => { sprites.cold = pic; }),
+          // the ripples all together: how many there are picks each duck's ring
+          all(list.ripples || []).then((ripples) => { sprites.ripples = ripples.filter(Boolean); onPicture?.(); })]);
+        const kinds = Object.entries(list.kinds || {}).filter(([k]) => KINDS[k]);
+        const decor = Object.entries(list.decor || {}).filter(([id]) => DECOR[id]);
+        await Promise.all([
+          all(kinds.map(([, e]) => e), (pic, i) => { sprites.kinds[kinds[i][0]] = pic; }),
+          all(decor.map(([, e]) => e), (pic, i) => { sprites.decor[decor[i][0]] = pic; })]);
         return true;
       })
       .catch(() => false);
