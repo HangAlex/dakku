@@ -879,12 +879,15 @@
         : '';
       $('#presets').hidden = S.pick.mode !== 'timer';
       $('#pomo-pick').hidden = S.pick.mode !== 'pomo';
-      if (S.pick.mode === 'pomo') {
+      // (not while a number in it is being typed: that would wipe it)
+      if (S.pick.mode === 'pomo' && !document.activeElement?.matches('#pomo-pick input')) {
         const p = S.pick.pomo;
+        // the number can be typed too, for a big jump (95 minutes is a lot of taps)
         $('#pomo-pick').innerHTML = [['focus', 'Focus', 'min'], ['brk', 'Break', 'min'], ['rounds', 'Rounds', '']].map(([k, label, unit]) => `
           <div class="stepper"><span class="lbl">${label}</span>
             <button type="button" data-pomo="${k}" data-step="-1" aria-label="Less ${label.toLowerCase()}"${p[k] <= POMO_LIMITS[k][0] ? ' disabled' : ''}>−</button>
-            <b>${p[k]}${unit ? `<small> ${unit}</small>` : ''}</b>
+            <label class="val"><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" enterkeyhint="done" data-pomo-in="${k}" value="${p[k]}"
+              aria-label="${label}${unit ? ' in minutes' : ''}, ${POMO_LIMITS[k][0]} to ${POMO_LIMITS[k][1]}">${unit ? `<small>${unit}</small>` : ''}</label>
             <button type="button" data-pomo="${k}" data-step="1" aria-label="More ${label.toLowerCase()}"${p[k] >= POMO_LIMITS[k][1] ? ' disabled' : ''}>+</button></div>`).join('');
       }
       const tags = S.settings.tags;
@@ -2923,6 +2926,50 @@
       renderPlantControls();
       paintTimer();
       savePickSoon();
+    });
+    // a typed number: the clock follows as you type, and it settles (within the limits) on Enter or leaving
+    // it. Only that stepper is touched then, not redrawn, so a tap on its − or + right after still lands.
+    $('#pomo-pick').addEventListener('focusin', (e) => {
+      const input = e.target.closest('[data-pomo-in]');
+      if (!input) return;
+      input.dataset.was = S.pick.pomo[input.dataset.pomoIn];
+      input.dataset.fresh = '1';
+      setTimeout(() => input.select(), 0);
+    });
+    // all of it selected, so typing replaces it: on a tap, once it's over (letting go places the cursor)
+    $('#pomo-pick').addEventListener('click', (e) => {
+      const input = e.target.closest('[data-pomo-in]');
+      if (!input?.dataset.fresh) return;
+      delete input.dataset.fresh;
+      input.setSelectionRange(0, input.value.length);
+    });
+    const typed = (input, settle) => {
+      const k = input.dataset.pomoIn, [low, high] = POMO_LIMITS[k], n = parseInt(input.value, 10);
+      const v = !Number.isFinite(n) ? +input.dataset.was : settle ? clamp(n, low, high) : n >= low && n <= high ? n : null;
+      if (v === null || S.timer) return;
+      S.pick.pomo = { ...S.pick.pomo, [k]: v };
+      paintTimer();
+      if (!settle) return;
+      input.value = v;
+      input.closest('.stepper').querySelectorAll('[data-step]').forEach((b) => { b.disabled = +b.dataset.step < 0 ? v <= low : v >= high; });
+      savePickSoon();
+    };
+    $('#pomo-pick').addEventListener('input', (e) => {
+      const input = e.target.closest('[data-pomo-in]');
+      if (!input) return;
+      input.value = input.value.replace(/\D/g, '');
+      typed(input, false);
+    });
+    $('#pomo-pick').addEventListener('keydown', (e) => {
+      const input = e.target.closest('[data-pomo-in]');
+      if (!input) return;
+      delete input.dataset.fresh;
+      if (e.key === 'Escape') input.value = input.dataset.was;
+      if (e.key === 'Enter' || e.key === 'Escape') input.blur();
+    });
+    $('#pomo-pick').addEventListener('focusout', (e) => {
+      const input = e.target.closest('[data-pomo-in]');
+      if (input) typed(input, true);
     });
     $('#undo-btn').addEventListener('click', () => {
       const t = S.timer;

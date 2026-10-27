@@ -738,8 +738,12 @@ html:not(.demo) .demo-only, html.demo [data-real] { display: none !important; }
 .pomo-pick { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 .stepper { display: flex; align-items: center; gap: 6px; padding: 4px 6px 4px 12px; border: 1px solid var(--line); border-radius: 99px; background: var(--surface); }
 .stepper .lbl { font-size: 13px; color: var(--ink-2); margin-right: 2px; }
-.stepper b { min-width: 46px; text-align: center; font-variant-numeric: tabular-nums; }
-.stepper b small { font-weight: 400; color: var(--ink-3); }
+.stepper .val { min-width: 46px; display: flex; align-items: baseline; justify-content: center; gap: 3px; cursor: text; }
+.stepper .val input { width: 3ch; padding: 2px 0; border: 0; border-radius: 6px; background: none; color: var(--ink);
+  font: 700 16px/1.2 var(--body); text-align: center; font-variant-numeric: tabular-nums; }
+.stepper .val input:focus { outline: none; background: var(--surface-2); box-shadow: 0 0 0 1.5px var(--accent); }
+@media (hover: hover) { .stepper .val:hover input:not(:focus) { background: var(--surface-2); } }
+.stepper .val small { font-size: 13px; color: var(--ink-3); }
 .stepper button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); font-size: 16px; line-height: 1; }
 .stepper button:disabled { opacity: .35; }
 .btn.undo { border-color: var(--accent); color: var(--accent); font-variant-numeric: tabular-nums; }
