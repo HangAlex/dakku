@@ -25,7 +25,15 @@
     set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* full or blocked */ } },
     del(key) { try { localStorage.removeItem(key); } catch { /* blocked */ } },
   };
-  const K = { cache: 'mori:cache', outbox: 'mori:outbox', theme: 'mori:theme', seen: 'mori:seen', mine: 'mori:mine', away: 'mori:away', timer: 'mori:timer', ui: 'mori:ui', join: 'mori:join', cheers: 'mori:cheers', beforeEvent: 'mori:before-event' };
+  const K = { cache: 'dakku:cache', outbox: 'dakku:outbox', theme: 'dakku:theme', seen: 'dakku:seen', mine: 'dakku:mine', away: 'dakku:away', timer: 'dakku:timer', ui: 'dakku:ui', join: 'dakku:join', cheers: 'dakku:cheers', beforeEvent: 'dakku:before-event' };
+  // what this device kept from before Dakku had its name ("mori:…") is kept under Dakku's
+  try {
+    for (const key of Object.keys(localStorage)) {
+      if (!key.startsWith('mori:')) continue;
+      if (localStorage.getItem('dakku:' + key.slice(5)) === null) localStorage.setItem('dakku:' + key.slice(5), localStorage.getItem(key));
+      localStorage.removeItem(key);
+    }
+  } catch { /* storage blocked: nothing kept to move */ }
 
   /* ───────────── constants ───────────── */
   const SPECIES = Art.ORDER;
@@ -225,7 +233,7 @@
     try {
       res = await fetch(path, {
         method, credentials: 'same-origin', cache: 'no-store', signal: ctrl.signal,
-        headers: { 'X-Mori': '1', ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
+        headers: { 'X-Dakku': '1', ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
         body: body !== undefined ? JSON.stringify(body) : undefined,
       });
     } catch {
@@ -324,7 +332,7 @@
     if (op.op === 'upsert') {
       const old = S.sessions.get(op.session.id);
       if (old && old.updated > op.session.updated) return;
-      S.sessions.set(op.session.id, { tag: '', species: 'matsu', status: 'done', source: 'mori', manual: false, note: '', ...old, ...op.session, deleted: false });
+      S.sessions.set(op.session.id, { tag: '', species: 'matsu', status: 'done', source: 'dakku', manual: false, note: '', ...old, ...op.session, deleted: false });
     } else if (op.op === 'delete') {
       S.sessions.delete(op.id);
     } else if (op.op === 'settings' && S.settings) {
@@ -524,7 +532,7 @@
     const t = {
       id: uid(), mode: S.pick.mode, planned: S.pick.mode === 'timer' ? S.pick.minutes * MIN : pomo ? pomoPlanned(pomo) : null,
       startedAt: now, acc: 0, runFrom: now, tag: S.pick.tag, species, deep: !!S.settings.deepFocus,
-      source: 'mori', device: S.me?.device?.name || 'This device', updated: now, pending: true, open: S.settings.openSessions !== false,
+      source: 'dakku', device: S.me?.device?.name || 'This device', updated: now, pending: true, open: S.settings.openSessions !== false,
       ...(pomo ? { pomo: pomoMs(pomo) } : {}),
     };
     markMine(t.id);
@@ -534,7 +542,7 @@
     paintTimer();
     wakeLock(true);
     try {
-      const res = await api('POST', '/api/timer', { action: 'start', id: t.id, mode: t.mode, minutes: S.pick.minutes, tag: t.tag, species, deep: t.deep, source: 'mori', open: t.open, pomo });
+      const res = await api('POST', '/api/timer', { action: 'start', id: t.id, mode: t.mode, minutes: S.pick.minutes, tag: t.tag, species, deep: t.deep, source: 'dakku', open: t.open, pomo });
       S.timer = null;
       applyTimer(res.timer, res.timer?.now);
       if (res.session) { S.sessions.set(res.session.id, res.session); invalidate(); celebrate(res.session); }
@@ -627,7 +635,7 @@
     // the PC may log this timer by itself when it runs out; make sure this device's ending wins
     const serverEnd = t.startedAt + (t.planned ?? 240 * MIN) + 1000;
     const session = {
-      id: t.id, start: t.startedAt, minutes, tag: t.tag, species: t.species, status, source: t.source || 'mori', manual: false,
+      id: t.id, start: t.startedAt, minutes, tag: t.tag, species: t.species, status, source: t.source || 'dakku', manual: false,
       rounds: t.mode === 'pomo' ? pomoRounds(t, elapsedOf(t, now)) : 0,
       note: extra.reason === 'left' ? 'Left Dakku during deep focus' : '', updated: Math.max(now, t.detached ? serverEnd : now),
     };
@@ -1847,7 +1855,7 @@
     const before = SPECIES[(i - 1 + SPECIES.length) % SPECIES.length], after = SPECIES[(i + 1) % SPECIES.length];
     $('#duck-detail').innerHTML = `
       <button class="link" type="button" data-back>← All ducks</button>
-      <div class="duck-big">${Art.duckSVG(sp)}</div>
+      <div class="duck-big">${Art.duckSVG(sp, { big: true })}</div>
       <h3 class="duck-name"><span class="jp">${esc(info.kanji)}</span> ${esc(info.name)}</h3>
       <p class="duck-blurb">${esc(info.blurb || '')}</p>
       <p class="muted small">${n ? `You've hatched ${plural(n, 'duck')} like this.` : 'Not hatched yet.'}</p>
@@ -2121,7 +2129,7 @@
       const pic = Art.sprites.ponds[t]?.wide || Art.sprites.ponds[t]?.tall || Art.sprites.ponds[themeFor('seasonal')]?.wide;
       const [kanji, name] = PONDS[t] || ['池', t];
       return `<button type="button" class="pond-pick" data-pond-pick="${t}" aria-pressed="${(s.pondTheme || 'classic') === t}">
-        ${pic ? `<img src="${esc(pic.src)}" alt="" loading="lazy">` : ''}<span class="nm"><span class="jp">${kanji}</span>${name}</span></button>`;
+        ${pic ? `<img src="${esc(pic.thumb || pic.src)}" alt="" loading="lazy">` : ''}<span class="nm"><span class="jp">${kanji}</span>${name}</span></button>`;
     }).join('');
     $('#set-decor').innerHTML = DECOR.map(([id, kanji, name]) => {
       const pic = Art.sprites.decor[id];
@@ -2131,7 +2139,7 @@
     $('#set-events').innerHTML = EVENTS.map(([id, icon, about]) => {
       const pic = Art.sprites.ponds[id]?.wide || Art.sprites.ponds[id]?.tall, [kanji, name] = PONDS[id];
       return `<button type="button" class="event-pick" data-event="${id}" data-theme="${id}" aria-pressed="${s.theme === id && s.pondTheme === id}">
-        ${pic ? `<img src="${esc(pic.src)}" alt="" loading="lazy">` : `<span class="ev-icon" aria-hidden="true">${icon}</span>`}
+        ${pic ? `<img src="${esc(pic.thumb || pic.src)}" alt="" loading="lazy">` : `<span class="ev-icon" aria-hidden="true">${icon}</span>`}
         <span class="nm"><span class="jp">${kanji}</span>${name}</span><small>${about}</small></button>`;
     }).join('');
     const unpainted = ['spring', 'autumn', 'winter', 'night', 'garden', 'sakura'].filter((t) => !ponds.includes(t)).map((t) => (t === 'garden' ? 'a garden' : t));
@@ -2383,7 +2391,7 @@
     const info = Art.KINDS[Art.kindOf(s.species)];
     const card = $('#done .done-card');
     card.classList.remove('withered');
-    $('#done-tree').innerHTML = Art.duckSVG(s.species);
+    $('#done-tree').innerHTML = Art.duckSVG(s.species, { big: true });
     $('#done-kanji').textContent = '誕生';
     $('#done-title').textContent = `${info.kanji} ${info.name} hatched!`;
     const cheered = [...new Set(cheeredBy.get(s.id) || [])];
@@ -2698,6 +2706,7 @@
       blobFill(W / 2 + 316, base - 26, 28, 10, '#9CC48C');
       blobFill(W / 2 + 309, base - 32, 9, 6, '#F2A5C0');
       const size = 560;
+      await Art.sharpen([s.species]); // its full picture, at this size
       Art.drawDuck(ctx, s.species, W / 2 - size / 2, base - 1.12 * size, size, false, true);
       ctx.textAlign = 'center';
       ctx.textBaseline = 'alphabetic';
@@ -3412,7 +3421,7 @@
     // added from here rather than in the page, so a slow or blocked Google never holds up opening Dakku
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = 'https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap';
+    link.href = 'https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@700&display=swap';
     document.head.appendChild(link);
   }
 

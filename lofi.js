@@ -14,7 +14,7 @@
     play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2v13.6L18.6 12z"/></svg>',
     pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 5h4v14h-4zM13.5 5h4v14h-4z"/></svg>',
   };
-  const KEY = 'mori:lofi'; // this device's volume
+  const KEY = 'dakku:lofi'; // this device's volume
   // iPhones leave the volume to their own buttons (a page can't change it), so they get no slider
   const CAN_SET_VOLUME = (() => { try { const a = document.createElement('audio'); a.volume = 0.5; return a.volume === 0.5; } catch { return false; } })();
   const L = {

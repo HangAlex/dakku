@@ -68,7 +68,7 @@ const Art = (() => {
     astro: { kanji: '宙', name: 'Astro', hours: 300, color: '#9CC2EE', blurb: 'Studied so much it reached space.' },
   };
   // and the rest of the ducks, painted ones from the duck list (art/ducks.json, published as web/kinds.js)
-  for (const [id, info] of Object.entries(window.MORI_DUCKS || {})) KINDS[id] = { hours: 0, ...KINDS[id], ...info };
+  for (const [id, info] of Object.entries(window.DAKKU_DUCKS || {})) KINDS[id] = { hours: 0, ...KINDS[id], ...info };
   const ORDER = Object.keys(KINDS);
   const OLD = { matsu: 'shiro', take: 'sailor', sakura: 'neko', momiji: 'super', icho: 'ninja', sugi: 'kitsune', ume: 'yukata' };
   const kindOf = (k) => (KINDS[k] ? k : OLD[k] || 'shiro');
@@ -193,9 +193,10 @@ const Art = (() => {
   /* ── pictures painted with ChatGPT, when they exist ─────────────────────── */
   const sprites = { kinds: {}, eggs: [], cold: null, ponds: {}, ripples: [], decor: {} };
   let loading = null;
-  // `onPicture` hears each time one more has arrived, to draw it in right away
+  let changed = null; // what hears each time one more picture has arrived, to draw it in right away
   function loadSprites(onPicture) {
-    loading ||= fetch('ducks/ducks.json', { cache: 'no-cache' })
+    changed ||= onPicture;
+    loading ||= fetch('ducks/ducks.json')
       .then((res) => (res.ok ? res.json() : null))
       .then(async (list) => {
         if (!list) return false;
@@ -205,7 +206,7 @@ const Art = (() => {
           img.src = entry.src;
           await img.decode();
           const pic = { ...entry, img };
-          if (put) { put(pic); onPicture?.(); }
+          if (put) { put(pic); changed?.(); }
           return pic;
         };
         // ponds come in themes, each a wide and maybe a tall picture (the very first ponds were just the classic one).
@@ -223,25 +224,44 @@ const Art = (() => {
           all(list.eggs || [], (pic, i) => { sprites.eggs[i] = pic; }),
           all([list.cold], (pic) => { sprites.cold = pic; }),
           // the ripples all together: how many there are picks each duck's ring
-          all(list.ripples || []).then((ripples) => { sprites.ripples = ripples.filter(Boolean); onPicture?.(); })]);
+          all(list.ripples || []).then((ripples) => { sprites.ripples = ripples.filter(Boolean); changed?.(); })]);
+        // A decoration is placed by its size, and shown by its address: so nothing is fetched for it until a
+        // pond with it is on screen (most ponds have none), or a share picture decodes it (see ready).
+        // Its small copy is all any screen needs.
+        for (const [id, e] of Object.entries(list.decor || {})) if (DECOR[id]) sprites.decor[id] = { ...e, src: e.small || e.src };
+        // each duck's small copy, which is all most screens need (a duck's full picture comes with sharpen)
         const kinds = Object.entries(list.kinds || {}).filter(([k]) => KINDS[k]);
-        const decor = Object.entries(list.decor || {}).filter(([id]) => DECOR[id]);
-        await Promise.all([
-          all(kinds.map(([, e]) => e), (pic, i) => { sprites.kinds[kinds[i][0]] = pic; }),
-          all(decor.map(([, e]) => e), (pic, i) => { sprites.decor[decor[i][0]] = pic; })]);
+        await all(kinds.map(([, e]) => ({ ...e, src: e.small || e.src, full: e.src })), (pic, i) => { if (!sprites.kinds[kinds[i][0]]?.sharp) sprites.kinds[kinds[i][0]] = { ...pic, sharp: !pic.small }; });
         return true;
       })
       .catch(() => false);
     return loading;
   }
-  // Decodes the pictures a scene needs for drawing on a canvas (a share picture), once each.
+  // Decodes a picture, once.
   const decoded = new Map();
+  const decode = (src) => {
+    if (!decoded.has(src)) { const img = new Image(); img.src = src; decoded.set(src, img.decode().then(() => img)); }
+    return decoded.get(src);
+  };
+  // Swaps ducks' small copies for their full pictures (for a duck's own page, its hatching, and share
+  // pictures, which show it big), and draws them in as they arrive; resolves once they're all in.
+  function sharpen(kinds) {
+    return Promise.all([...new Set(kinds.map(kindOf))].map(async (k) => {
+      const s = sprites.kinds[k];
+      if (!s || s.sharp) return;
+      const img = await decode(s.full).catch(() => null);
+      if (!img || sprites.kinds[k]?.sharp) return;
+      sprites.kinds[k] = { ...s, src: s.full, img, sharp: true };
+      // and wherever its small copy is on screen already (a duck's page, a hatching), in place
+      for (const el of document.querySelectorAll(`image[href="${s.src}"]`)) el.setAttribute('href', s.full);
+      changed?.();
+    }));
+  }
+  // Decodes the pictures a scene needs for drawing on a canvas (a share picture), its ducks at full size.
   async function ready(scene) {
-    const load = (src) => {
-      if (!decoded.has(src)) { const img = new Image(); img.src = src; decoded.set(src, img.decode().then(() => img)); }
-      return decoded.get(src);
-    };
-    await Promise.all([...scene.ground, ...(scene.decor || [])].filter((s) => s.src && !s.img).map(async (s) => { s.img = await load(s.src).catch(() => null); }));
+    await loadSprites();
+    await Promise.all([sharpen((scene.drawn || []).map((d) => d.item.kind)),
+      ...[...scene.ground, ...(scene.decor || [])].filter((s) => s.src && !s.img).map(async (s) => { s.img = await decode(s.src).catch(() => null); })]);
     return scene;
   }
   // A painted pond comes with a coarse map of its open water, made by import_art.py: for each cell,
@@ -278,8 +298,10 @@ const Art = (() => {
   // On its own (the picker, the log, the collection, a hatching), a duck gets a frame without the
   // headroom the pond needs, so it shows bigger. 84 × 100 keeps the 5:6 shape of those spots. Every
   // duck is drawn the same size in it: hair, a ponytail or a sword that reaches further shows past
-  // the frame instead of being cut off (so leave a little room around it).
-  function duckSVG(kind, { cold = false, cls = '' } = {}) {
+  // the frame instead of being cut off (so leave a little room around it). `big`: shown big (its own page,
+  // a hatching), so its full picture is fetched in place of the small copy.
+  function duckSVG(kind, { cold = false, cls = '', big = false } = {}) {
+    if (big && !cold) sharpen([kind]);
     return `<svg class="${cls}" viewBox="8 14 84 100" style="overflow:visible" aria-hidden="true">${duckInner(kind, cold)}</svg>`;
   }
   /** The egg in its nest at `progress` (0 to 1): whole, then a crack, then a peek. */
@@ -342,7 +364,7 @@ const Art = (() => {
    * drawn as big as fits. With a pond painted with ChatGPT, that's the picture; until then, the
    * pond is drawn here, in a shape that suits how many ducks there are.
    */
-  function pond(items, { seed = 'mori', max = 400, minAspect = 0.42, maxAspect = 1, shape = 'wide', theme = 'classic', decor = [] } = {}) {
+  function pond(items, { seed = 'dakku', max = 400, minAspect = 0.42, maxAspect = 1, shape = 'wide', theme = 'classic', decor = [] } = {}) {
     const shown = items.slice(-max);
     const set = (sprites.ponds[theme]?.wide || sprites.ponds[theme]?.tall ? sprites.ponds[theme] : sprites.ponds.classic) || {};
     const pic = set[shape] || set.wide || set.tall;
@@ -543,7 +565,7 @@ const Art = (() => {
 
   let svgCount = 0;
   function pondSVG(scene, { cls = '', label = '', people = null } = {}) {
-    const prefix = `mori-d${++svgCount}`;
+    const prefix = `dakku-d${++svgCount}`;
     const defs = new Map([['line', pathsSVG(CONTACT)]]); // each kind of duck, and each ripple, is drawn once and placed many times
     const parts = [pathsSVG(scene.ground)];
     const decor = scene.decor || [];
@@ -663,5 +685,5 @@ const Art = (() => {
     ctx.restore();
   }
 
-  return { KINDS, ORDER, kindOf, duckSVG, duckInner, eggInner, pond, pondSVG, pondThemes, drawShapes, drawPond, drawDuck, loadSprites, ready, sprites, rng, WATER, INK };
+  return { KINDS, ORDER, kindOf, duckSVG, duckInner, eggInner, pond, pondSVG, pondThemes, drawShapes, drawPond, drawDuck, loadSprites, sharpen, ready, sprites, rng, WATER, INK };
 })();
