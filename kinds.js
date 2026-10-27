@@ -239,5 +239,65 @@ window.DAKKU_DUCKS = {
   "name": "Santa",
   "color": "#D23B3B",
   "blurb": "Making a list of chapters, checking it twice."
+ },
+ "shulk": {
+  "kanji": "予知",
+  "name": "Shulk",
+  "color": "#C8352E",
+  "blurb": "Sees the future: it's you, finishing this session."
+ },
+ "yagami": {
+  "kanji": "探偵",
+  "name": "Yagami",
+  "color": "#3A3A42",
+  "blurb": "Private detective. Case closed: one more session."
+ },
+ "eve": {
+  "kanji": "星",
+  "name": "EVE",
+  "color": "#3E8E7E",
+  "blurb": "Takes back the Earth, one session at a time."
+ },
+ "nagisa": {
+  "kanji": "団子",
+  "name": "Nagisa",
+  "color": "#E8A0B4",
+  "blurb": "Dango, dango… a big dango family of finished sessions."
+ },
+ "monokuma": {
+  "kanji": "絶望",
+  "name": "Monokuma",
+  "color": "#D43A3A",
+  "blurb": "Puhuhu! Nothing despair-inducing about a finished session."
+ },
+ "yuta": {
+  "kanji": "呪",
+  "name": "Yuta",
+  "color": "#3B4A7A",
+  "blurb": "Rika wants you to keep studying. Rika is very convincing."
+ },
+ "kazuma": {
+  "kanji": "冒険",
+  "name": "Kazuma",
+  "color": "#3D7A3D",
+  "blurb": "Luck stat maxed out: this session will go perfectly."
+ },
+ "talon": {
+  "kanji": "刃",
+  "name": "Talon",
+  "color": "#2F6FD6",
+  "blurb": "In, out, done: an assassin of to-do lists."
+ },
+ "denji": {
+  "kanji": "鋸",
+  "name": "Denji",
+  "color": "#E8742A",
+  "blurb": "Dreams of jam on toast. Rips through the syllabus."
+ },
+ "kid": {
+  "kanji": "対称",
+  "name": "Kid",
+  "color": "#D9B44A",
+  "blurb": "Perfectly symmetrical study habits. Eight sessions, exactly."
  }
 };
