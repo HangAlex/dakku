@@ -112,7 +112,7 @@ window.DAKKU_DUCKS = {
   "kanji": "王子",
   "name": "Vegeta",
   "color": "#2F4FA8",
-  "blurb": "It's over 9,000 minutes. Still not satisfied."
+  "blurb": "It's over 9,000 minutes! Still not satisfied."
  },
  "clive": {
   "kanji": "炎",
