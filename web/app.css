@@ -282,6 +282,14 @@ input, select, textarea { font-size: 16px; } /* no zoom-on-focus on iPhone */
 .pick-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
 .species-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 6px; }
 .species-row::-webkit-scrollbar { display: none; }
+/* with a mouse or trackpad: a thin scrollbar, so the rows that scroll sideways show it (phones just swipe) */
+@media (hover: hover) and (pointer: fine) {
+  .chips.scroll, .species-row { scrollbar-width: thin; scrollbar-color: var(--line) transparent; padding-bottom: 10px; }
+  .chips.scroll:hover, .species-row:hover { scrollbar-color: var(--ink-3) transparent; }
+  .chips.scroll::-webkit-scrollbar, .species-row::-webkit-scrollbar { display: block; height: 8px; }
+  .chips.scroll::-webkit-scrollbar-thumb, .species-row::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; }
+  .chips.scroll::-webkit-scrollbar-track, .species-row::-webkit-scrollbar-track { background: transparent; }
+}
 .sp { flex: none; width: 62px; display: grid; justify-items: center; gap: 2px; padding: 6px 2px 5px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); position: relative; }
 .sp svg { width: 40px; height: 48px; }
 .sp .n { font: 600 13px/1 var(--display); }

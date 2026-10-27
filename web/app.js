@@ -3054,6 +3054,16 @@
     $('#join-room-cancel').addEventListener('click', () => $('#join-dialog').close());
     $('#invite-close').addEventListener('click', () => $('#invite-dialog').close());
 
+    // a mouse wheel over a row that scrolls sideways (tags, ducks) scrolls it, until it reaches its end
+    document.addEventListener('wheel', (e) => {
+      if (e.ctrlKey || Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
+      const row = e.target.closest?.('.chips.scroll, .species-row');
+      const max = row ? row.scrollWidth - row.clientWidth : 0;
+      if (max <= 0 || (e.deltaY < 0 && row.scrollLeft <= 0) || (e.deltaY > 0 && row.scrollLeft >= max - 1)) return;
+      row.scrollLeft += e.deltaY * (e.deltaMode === 1 ? 16 : 1);
+      e.preventDefault();
+    }, { passive: false });
+
     // stats
     $('#stats-share').addEventListener('click', () => share('stats'));
     $('#year-share').addEventListener('click', () => share('year'));
