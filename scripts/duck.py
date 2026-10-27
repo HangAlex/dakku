@@ -2,7 +2,8 @@
 """The duck maker: every duck in Dakku, one picture each, all in the same style.
 
 The ducks live in two places, and this keeps them in step:
-    art/ducks.json        the list: each duck's name, kanji, color, blurb, face and outfit
+    art/ducks.json        the list: each duck's name, kanji, color, blurb, face and outfit (and "eye": "hidden"
+                          for one whose outfit covers the eye on purpose, so the checks don't look for it)
     art/ducks/<id>.png    its picture, finished: transparent, facing left, beak in Dakku's peach
 
 Making a new duck:
@@ -270,9 +271,10 @@ def eye_height(img, eye, beak):
     return (ia.measure(img, ia.BODY_UNITS)["baseY"] - eye["y"]) / body_from_beak(beak)
 
 
-def finish(img, body=None, notes=None):
+def finish(img, body=None, notes=None, hidden_eye=False):
     """A duck picture made ready for Dakku: cut out, facing left, with the beak in Dakku's peach.
-    Returns (picture, facts). `body` is its body width when already known (from a sheet)."""
+    Returns (picture, facts). `body` is its body width when already known (from a sheet). `hidden_eye`:
+    its outfit covers the eye on purpose ("eye": "hidden" in the list), so no eye is looked for."""
     notes = notes if notes is not None else []
     img = img.convert("RGBA")
     measured = body is None
@@ -296,14 +298,14 @@ def finish(img, body=None, notes=None):
         notes.append(text)
         facts["problems"].append(text)
 
-    up = eye_height(img, eye, beak) if eye and beak else None
+    up = eye_height(img, eye, beak) if eye and beak and not hidden_eye else None
     if up is not None:
         facts["eye_height"] = round(up, 2)
         if up < FLAT:
             problem(f"its body is drawn lower and longer than Dakku's ducks (the eye {up:.2f} body widths over the water, "
                     f"usually {EYE_HEIGHT}), so it looks short next to them: ask ChatGPT to redraw it with the "
                     "reference ducks' rounder body")
-    if not eye:
+    if not eye and not hidden_eye:
         problem("couldn't find its eye (a small dark dot on the white face)")
     elif not beak:
         problem("couldn't find its beak (a peach patch in front of the eye)")
@@ -416,7 +418,7 @@ def add(did, path, say=print):
     if did not in ducks:
         raise SystemExit(f"There's no duck called {did!r} in the list yet. Add it first: duck.py new {did} \"<its outfit>\"")
     piece, notes = from_chatgpt(path)
-    img, facts = finish(piece, notes=notes)
+    img, facts = finish(piece, notes=notes, hidden_eye=ducks[did].get("eye") == "hidden")
     PICTURES.mkdir(parents=True, exist_ok=True)
     ia.write(PICTURES / f"{did}.png", lambda part: img.save(part, "PNG", optimize=True))
     ORIGINALS.mkdir(parents=True, exist_ok=True)
@@ -523,7 +525,7 @@ def check(say=print):
             continue
         img = Image.open(path).convert("RGBA")
         notes = []
-        _, facts = finish(img.copy(), body=d.get("body"), notes=notes)
+        _, facts = finish(img.copy(), body=d.get("body"), notes=notes, hidden_eye=d.get("eye") == "hidden")
         # a finished picture's beak is already Dakku's peach: one that still needed matching is a problem
         problems = facts["problems"] + [n for n in notes if n.startswith("beak ")]
         flagged += bool(problems)
