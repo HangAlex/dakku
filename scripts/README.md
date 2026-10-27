@@ -15,3 +15,7 @@ Making the art:
 - `import_art.py`: brings ChatGPT's pictures in: ducks, eggs, ponds, ripples, decorations and the icon
 - `lofi.py`: finds each song of the lofi playlist on YouTube
 - `make_icons.py`: the first, drawn app icon
+
+The playable demo on GitHub Pages:
+
+- `static-demo/`: builds the demo as a website that runs on its own in the browser, no PC needed
