@@ -1,5 +1,7 @@
 # 鴨 Dakku: setting it up, and how it works
 
+← [Back to the tour](README.md)
+
 A focus timer that runs on your own PC. While you focus, an egg warms in its nest; when the
 session ends, a chibi call duck hatches into your pond. It's a web app, so there's nothing to buy and no Apple developer
 account: open the link on your iPhone, add it to your Home Screen, and it behaves like an app. Everything you log on the
