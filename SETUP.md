@@ -12,7 +12,8 @@ phone, the Mac or the Genkan homepage lands in one place, on this PC.
   and the homepage shows it too. Give up and the egg goes cold. Tap ♪ for lofi while you study.
 - **池 Pond**: your ducks floating on a pond, by day, week, month or year. They spread out across the water and bob
   gently; the more there are, the smaller they're drawn. Tap a duck to see its session. Pick the pond in Settings:
-  the classic one, spring, autumn, winter, night, a Japanese garden, sakura, Halloween, Thanksgiving, Christmas, or one
+  the classic one, spring, autumn, winter, night, a Japanese garden, sakura, Halloween, Thanksgiving, Christmas, Lunar
+  New Year, or one
   that follows the seasons (with the holiday ponds around their days). Add decorations if you like: a torii gate, a
   stone lantern, koi, floating lanterns and lotus. The ducks float around them.
 - **共 Together**: study with friends, with nothing for them to install. Join someone's session halfway through with any
@@ -25,8 +26,9 @@ phone, the Mac or the Genkan homepage lands in one place, on this PC.
 - **履歴 Log**: every session by day. Log time you studied without the timer, edit or delete anything.
 - **設定 Settings**: your name, color and badge, daily goal, quick picks, tags and colors, the theme, the pond and its
   decorations, events, notifications, devices, people & groups, passcode, export and import.
-- **行事 Events**: Halloween, Thanksgiving and Christmas, any time of year. Each one sets the colors and the pond together,
-  with bats, falling leaves or snow drifting past. Tap it again to go back to your own theme and pond.
+- **行事 Events**: Halloween, Thanksgiving, Christmas and Lunar New Year, any time of year. Each one sets the colors, the
+  pond and a painted ring around the timer together, with bats, falling leaves, snow or plum petals drifting past
+  (Christmas is a light theme). Tap it again to go back to your own theme and pond.
 - **Sunday recap**: on Sunday evening, a notification with your week: time studied, ducks and your best day. Turn it off
   in Settings → Notifications.
 
@@ -179,7 +181,7 @@ notifications and importing.
 
 ## The ducks
 
-Forty kinds of duck, all available from the start. Each one is a single picture in `art/ducks/` (`sonic.png`,
+Fifty kinds of duck, all available from the start. Each one is a single picture in `art/ducks/` (`sonic.png`,
 `kirby.png`, …), finished and in Dakku's style, and a line in `art/ducks.json` with its name, kanji, color, blurb,
 face and outfit. The app and the server both take the list from there, so adding a duck needs no code changes.
 
@@ -227,8 +229,10 @@ brought in with the same `import_art.py`. The pond is kept whole, with a map of 
 put where they can float: not on the bank or a lily pad. The ripple rings go under the ducks; Dakku makes them swell as
 a duck bobs and sends one spreading out now and then. More ponds to choose from are `pond-spring-wide`,
 `pond-autumn-wide`, `pond-winter-wide`, `pond-night-wide`, `pond-garden-wide`, `pond-sakura-wide`, `pond-halloween-wide`,
-`pond-thanksgiving-wide` and `pond-christmas-wide` (each with an optional `-tall`); Settings → Pond offers whichever have
-been imported. The decorations are `deco-torii`, `deco-lantern`, `deco-koi`, `deco-lanterns` and `deco-lotus`, one
+`pond-thanksgiving-wide`, `pond-christmas-wide` and `pond-lunar-wide` (each with an optional `-tall`); Settings → Pond
+offers whichever have been imported. Each event's ring around the timer is `ring-christmas`, `ring-halloween`,
+`ring-thanksgiving` or `ring-lunar`: a round decoration with an empty middle, which `import_art.py` centers and sizes by
+that middle. The decorations are `deco-torii`, `deco-lantern`, `deco-koi`, `deco-lanterns` and `deco-lotus`, one
 picture each: Dakku finds each one a spot on the open water and keeps the ducks clear of it. Dakku decides where each duck goes and how big
 it is, because that changes with every session; the pictures decide how everything looks. The first ten ducks are
 drawn from simple shapes when their pictures are missing.

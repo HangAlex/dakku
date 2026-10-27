@@ -191,7 +191,7 @@ const Art = (() => {
   }
 
   /* ── pictures painted with ChatGPT, when they exist ─────────────────────── */
-  const sprites = { kinds: {}, eggs: [], cold: null, ponds: {}, ripples: [], decor: {} };
+  const sprites = { kinds: {}, eggs: [], cold: null, ponds: {}, ripples: [], decor: {}, rings: {} };
   let loading = null;
   let changed = null; // what hears each time one more picture has arrived, to draw it in right away
   function loadSprites(onPicture) {
@@ -229,6 +229,8 @@ const Art = (() => {
         // pond with it is on screen (most ponds have none), or a share picture decodes it (see ready).
         // Its small copy is all any screen needs.
         for (const [id, e] of Object.entries(list.decor || {})) if (DECOR[id]) sprites.decor[id] = { ...e, src: e.small || e.src };
+        // the events' rings around the timer: just their addresses too (one is shown only while its event is on)
+        sprites.rings = list.rings || {};
         // each duck's small copy, which is all most screens need (a duck's full picture comes with sharpen)
         const kinds = Object.entries(list.kinds || {}).filter(([k]) => KINDS[k]);
         await all(kinds.map(([, e]) => ({ ...e, src: e.small || e.src, full: e.src })), (pic, i) => { if (!sprites.kinds[kinds[i][0]]?.sharp) sprites.kinds[kinds[i][0]] = { ...pic, sharp: !pic.small }; });

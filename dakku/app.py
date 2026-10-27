@@ -39,14 +39,14 @@ TIME_RE = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
 # 朱 vermilion, 若竹 bamboo, 山吹 gold, 牡丹 peony, 瑠璃 lapis, 常磐 evergreen, 菫 violet, 紅 crimson:
 # traditional colors in an order that stays distinguishable for color-blind eyes (checked with a validator)
 TAG_COLORS = ("#D9482B", "#12A37A", "#E9A100", "#D9568F", "#2B6CC4", "#2E8B3A", "#6C55C8", "#C9283E")
-THEMES = ("ai", "sumi", "yozakura", "sakura", "halloween", "thanksgiving", "christmas")  # dark, and Sakura, the one light one
+THEMES = ("ai", "sumi", "yozakura", "sakura", "halloween", "thanksgiving", "christmas", "lunar")  # dark, and the light Sakura and Christmas
 EXTENSION_ORIGINS = ("chrome-extension://laplipljbbgpfinlebaaphokcbijpgoo",)  # the Genkan homepage
 KEEP_BACKUPS = 30
 PAIR_MINUTES = 10
 PAIR_RE = re.compile(r"^\d{3}[\s-]?\d{3}$")
 INVITE_DAYS = 7
 FRIENDS_HTTPS = 8443  # the port Tailscale Funnel opens the friends' door on (see scripts/enable-friends.sh)
-EVENTS = ("halloween", "thanksgiving", "christmas")  # each a theme and a pond, to pick any time
+EVENTS = ("halloween", "thanksgiving", "christmas", "lunar")  # each a theme and a pond, to pick any time
 POND_THEMES = ("classic", "spring", "autumn", "winter", "night", "garden", "sakura") + EVENTS + ("seasonal",)
 DECOR = ("torii", "lantern", "koi", "lanterns", "lotus")  # things to put on the pond, as many as you like
 POMO_LIMITS = {"focus": (5, 120), "brk": (1, 60), "rounds": (1, 12)}  # minutes, minutes, rounds

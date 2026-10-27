@@ -200,6 +200,14 @@ The same pond again, at harvest time for Thanksgiving: the same doodle style, si
 The same pond again, at Christmas: the same doodle style, size, shape and truly transparent background. The bank is covered in soft snow (white, with a pale gray-blue outline), with a small Christmas tree at one back corner decorated with a gold star and a few round red and gold baubles, a string of small colored lights along part of the back bank, two little wrapped presents with ribbons, a couple of red-and-white candy canes stuck in the snow and a few snow-capped stones. Most of the water stays open, one flat cool blue that's clearly darker than the snow, and empty in the middle. No falling snow over the water, and no ducks, animals, people, snowmen, text or bridge.
 ```
 
+### pond-lunar-wide.png (an event)
+
+```
+The same pond again for Lunar New Year, as a landscape image, 1536x1024, in exactly the same doodle style, shape, size and truly transparent background (real alpha, no white, no checkerboard). The bank is a soft spring green with a few gray stones. Along the back bank, a string of round red paper lanterns with little gold tassels hangs between two short red wooden posts; at one back corner, a small plum blossom tree with dark twisty branches and pink-red blossoms; at a front corner, a small potted mandarin orange tree with round orange fruit; a couple of red envelopes with gold trim and a few round gold coins with square holes resting on the bank, and a short string of small red firecrackers on a stone. Two lily pads near the shore, one with a pink lotus. Most of the water stays open: one flat periwinkle blue, clearly different from the bank, empty in the middle. No ducks, animals, people, dragons, text or bridge, nothing in the middle of the water.
+```
+
+(Made in the Christmas pond's chat, so it kept that pond's shape and style.)
+
 ### The tall ones (optional, for phones)
 
 After each wide pond you like, ask for its tall one in the same way, and save it with `-tall` instead of `-wide`
@@ -244,3 +252,22 @@ The picture: one square image, 1024×1024, with only this one decoration, center
 
 Dakku finds each decoration a spot on the open water (the torii toward the back, the stone lantern and lotus near the
 shore, the koi and floating lanterns out on the water) and keeps the ducks clear of it.
+
+## 11. The events' rings around the timer
+
+Each event puts a ring around the timer: `ring-christmas.png`, `ring-halloween.png`, `ring-thanksgiving.png` and
+`ring-lunar.png`. `import_art.py` finds each ring's empty middle and centers and sizes the picture by it, so it sits just
+outside the timer's track. Attach `art/reference.png` for the style. The first one:
+
+```
+Draw a round decoration for the timer in my study app Dakku: a ring that goes around the app's circular timer dial. Match the attached reference ducks' style exactly: flat colors, no shading, gradients or shine, and the same slightly wobbly soft dark charcoal crayon outline (dark gray-brown, about #342C26). Layout, very important: one square image, 1024x1024, on a truly transparent background (real alpha, no white, no gray checkerboard). The decoration is a perfect circle centered in the picture: a narrow ring whose inside is a big, completely empty, transparent circle about 800 pixels across (the dial shows through it), and the ring band itself is only about 70 to 90 pixels thick, reaching about 980 pixels across at most, so a small transparent margin is left at the edges. Keep the band even all the way round, with nothing pointing into the empty middle. No ducks, animals, people, text, numbers, clock hands or background. The ring: a Christmas wreath of soft evergreen fir branches all the way round, with a string of small round Christmas lights (red, gold, green and blue bulbs) looping along it, a few small red and gold baubles, a couple of holly leaves with red berries, and a red ribbon bow at the bottom.
+```
+
+The others in the same chat: *Now a new picture (not an edit), the same kind of ring with exactly the same layout, size,
+style and truly transparent background, for …*
+
+- Halloween: dark purple twisty thorny vines all the way round, with three or four small orange jack-o'-lanterns sitting on it, a few small purple-black bats tucked against it, a little spiderweb in the top right part of the band with a tiny spider, and a few small orange autumn leaves.
+- Thanksgiving: a harvest wreath of autumn leaves all the way round (maple and oak leaves in red, orange, gold and brown), with a few acorns, small pinecones, golden wheat stalks and two or three tiny orange pumpkins, and a cream ribbon bow at the bottom.
+- Lunar New Year: a red ring band with a thin gold rim and a simple gold cloud pattern, wrapped with plum blossom branches (dark twisty twigs with pink-red blossoms) on the upper left and lower right, three or four small round red paper lanterns with gold tassels sitting on the band, a few round gold coins with square holes, and a red Chinese knot with tassels at the bottom.
+
+If one comes back on black instead of transparent, ask again for real transparency (or cut the black away).

@@ -11,10 +11,12 @@ and reload Dakku. Any you haven't made yet keep their drawn placeholders.
     pond-wide the pond the ducks float in (landscape)
     pond-tall the same kind of pond for phones (portrait; optional, the wide one is used otherwise)
     pond-spring-wide, pond-autumn-wide, pond-winter-wide, pond-night-wide, pond-garden-wide,
-              pond-sakura-wide, pond-halloween-wide, pond-thanksgiving-wide, pond-christmas-wide
+              pond-sakura-wide, pond-halloween-wide, pond-thanksgiving-wide, pond-christmas-wide, pond-lunar-wide
               more ponds to pick from (each with an optional -tall one too)
     deco-torii, deco-lantern, deco-koi, deco-lanterns, deco-lotus
               decorations to put on the pond's water (one picture each)
+    ring-christmas, ring-halloween, ring-thanksgiving, ring-lunar
+              each event's ring around the timer (a round decoration with an empty middle)
     ripples   3 ripple rings, left to right, that go under the floating ducks
     icon      the app icon (square)
 
@@ -48,7 +50,7 @@ SMALL_BOX = 220
 RIPPLE_UNITS = 104  # a ripple ring is this wide in the duck's 100 × 120 box (its body is BODY_UNITS)
 RIPPLES = 3
 # each pond picture: (its theme, its shape, the widest kept); the plain pond-wide/-tall are the classic pond
-THEMES = ("spring", "autumn", "winter", "night", "garden", "sakura", "halloween", "thanksgiving", "christmas")
+THEMES = ("spring", "autumn", "winter", "night", "garden", "sakura", "halloween", "thanksgiving", "christmas", "lunar")
 PONDS = {"pond-wide": ("classic", "wide", 1600), "pond-tall": ("classic", "tall", 1100)}
 for _theme in THEMES:
     PONDS[f"pond-{_theme}-wide"] = (_theme, "wide", 1600)
@@ -58,6 +60,10 @@ POND_THUMB = 480  # pixels across a pond's thumbnail, for the pond pickers in Se
 DECOR = ("torii", "lantern", "koi", "lanterns", "lotus")  # each saved as deco-<id>
 DECOR_WIDEST = 640  # pixels kept across a decoration
 DECOR_SMALL = 360  # and across its small copy, which is what Dakku shows: no screen draws one wider than ~300
+RINGS = ("christmas", "halloween", "thanksgiving", "lunar")  # the events' rings around the timer, each saved as ring-<event>
+RING_HOLE = 0.34  # the radius of a ring's empty middle, in its picture's widths (web/app.css places it by that):
+                  # room for a ring reaching 1.47 times that far out (bows and tassels reach about 1.43)
+RING_SIZE = 1024  # pixels across a ring's picture: the timer is up to 340px wide, and a ring 117.5% of that, on a 3x phone
 
 
 EXTS = (".png", ".webp", ".jpg", ".jpeg")
@@ -520,6 +526,49 @@ def decor_small(img, name, entry):
     return {**entry, "small": f"/ducks/deco-{name}.small.webp"}
 
 
+def save_ring(path, name):
+    """An event's ring around the timer, centered on its empty middle and sized by it (see RING_HOLE), so
+    every ring sits just outside the timer's track whatever ChatGPT made of the layout. None if the
+    middle isn't a closed, empty circle."""
+    from PIL import ImageDraw  # noqa: PLC0415
+    img = with_alpha(Image.open(path))
+    empty = img.getchannel("A").point(lambda v: 255 if v <= 40 else 0)
+    w, h = empty.size
+    cx, cy = w // 2, h // 2
+    if not empty.getpixel((cx, cy)):
+        return None
+    ImageDraw.floodfill(empty, (cx, cy), 128)
+    hole = empty.point(lambda v: 255 if v == 128 else 0)
+    box = hole.getbbox()
+    area = hole.histogram()[255]
+    if not box or box[0] == 0 or box[1] == 0 or box[2] == w or box[3] == h or area > 0.6 * w * h:
+        return None  # the middle runs out to the edge: not a closed ring
+    xs = ys = 0
+    data = hole.load()
+    for y in range(box[1], box[3]):
+        for x in range(box[0], box[2]):
+            if data[x, y]:
+                xs += x
+                ys += y
+    cx, cy = xs / area, ys / area
+    # a middle drawn a little oval is made round (by a few percent), so the ring follows the round dial
+    bw, bh = box[2] - box[0], box[3] - box[1]
+    kx, ky = math.sqrt(bh / bw), math.sqrt(bw / bh)
+    img = img.resize((round(w * kx), round(h * ky)), Image.LANCZOS)
+    cx, cy = cx * kx, cy * ky
+    r = math.sqrt(area / math.pi)  # the middle's own radius (a lantern poking in only trims it a little)
+    side = r / RING_HOLE
+    out = Image.new("RGBA", (round(side), round(side)), (0, 0, 0, 0))
+    out.paste(img, (round(side / 2 - cx), round(side / 2 - cy)))
+    reach = max((math.hypot(x - side / 2, y - side / 2) for y in range(0, round(side), 4) for x in range(0, round(side), 4)
+                 if out.getpixel((x, y))[3] > 40), default=0)
+    if reach > side / 2:
+        print(f"    (ring-{name}: a bit of it reaches past its picture's edge, {reach / r:.2f} times the middle's radius)")
+    out = out.resize((RING_SIZE, RING_SIZE), Image.LANCZOS)
+    webp(out, OUT / f"ring-{name}.webp", quality=88)
+    return {"src": f"/ducks/ring-{name}.webp"}
+
+
 def icons(path):
     img = Image.open(path).convert("RGB")
     side = min(img.size)
@@ -595,6 +644,19 @@ def main():
         say(f"  {path.name} → the {name} decoration")
         did += 1
     manifest["decor"] = decor
+    rings = manifest.get("rings") or {}
+    for name in RINGS:
+        path = find(f"ring-{name}")
+        if not path:
+            continue
+        found = save_ring(path, name)
+        if not found:
+            say(f"  {path.name}: couldn't find the ring's empty middle. Ask ChatGPT for a closed ring with an empty, transparent middle.")
+            continue
+        rings[name] = found
+        say(f"  {path.name} → the {name} ring around the timer")
+        did += 1
+    manifest["rings"] = rings
     icon = find("icon")
     if icon:
         icons(icon)
@@ -608,7 +670,7 @@ def main():
     did += duck.incoming(say)
     ducks = duck.publish(say)
     # ChatGPT names its downloads with long random ids: those can't be told apart, so say so
-    known = set(SHEETS) | set(PONDS) | {f"deco-{d}" for d in DECOR} | {"ripples", "icon"} | set(duck.load())
+    known = set(SHEETS) | set(PONDS) | {f"deco-{d}" for d in DECOR} | {f"ring-{r}" for r in RINGS} | {"ripples", "icon"} | set(duck.load())
     unnamed = sorted(p.name for p in INCOMING.glob("*") if p.suffix.lower() in EXTS
                      and p.stem.replace(" ", "-").replace("_", "-") not in known
                      and p.stem.lower().replace(" ", "").replace("_", "").replace("-", "") not in known) if INCOMING.exists() else []

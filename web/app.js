@@ -43,12 +43,12 @@
     ['#D9568F', '#D9558C', '牡丹', 'Peony'], ['#2B6CC4', '#4A8BE0', '瑠璃', 'Lapis'], ['#2E8B3A', '#3A9A45', '常磐', 'Evergreen'],
     ['#6C55C8', '#9080E6', '菫', 'Violet'], ['#C9283E', '#E25563', '紅', 'Crimson'],
   ];
-  const THEMES = [ // dark, and Sakura, the one light one
+  const THEMES = [ // dark, and the light ones: Sakura and Christmas
     ['ai', '藍', 'Ai', '#0F1727', '#57C7CF'], ['sumi', '墨', 'Sumi', '#151413', '#D9573F'], ['yozakura', '夜桜', 'Yozakura', '#1A1220', '#F29BB8'], ['sakura', '桜', 'Sakura', '#F2DCE5', '#D93D80'],
-    ['halloween', '南瓜', 'Halloween', '#16101E', '#FF8A3D'], ['thanksgiving', '感謝', 'Thanksgiving', '#1A1410', '#E3A13B'], ['christmas', '聖夜', 'Christmas', '#0E1A16', '#EC5A5E'],
+    ['halloween', '南瓜', 'Halloween', '#16101E', '#FF8A3D'], ['thanksgiving', '感謝', 'Thanksgiving', '#1A1410', '#E3A13B'], ['christmas', '聖夜', 'Christmas', '#F4F1EA', '#C8343B'], ['lunar', '春節', 'Lunar New Year', '#2B0E11', '#F2C14E'],
   ];
   // the events: each one is a theme and a pond together (and what drifts down the screen), any time of year
-  const EVENTS = [['halloween', '🎃', 'Bats and jack-o\u2019-lanterns'], ['thanksgiving', '🍂', 'Falling leaves and a harvest pond'], ['christmas', '🎄', 'Snow and a Christmas pond']];
+  const EVENTS = [['halloween', '🎃', 'Bats and jack-o\u2019-lanterns'], ['thanksgiving', '🍂', 'Falling leaves and a harvest pond'], ['christmas', '🎄', 'Snow and a Christmas pond'], ['lunar', '🧧', 'Red lanterns and plum blossoms']];
   // things to put on the pond: [id, kanji, name]
   const DECOR = [['torii', '鳥居', 'Torii gate'], ['lantern', '灯籠', 'Stone lantern'], ['koi', '鯉', 'Koi'], ['lanterns', '灯', 'Floating lanterns'], ['lotus', '蓮', 'Lotus']];
   const RANKS = [
@@ -60,9 +60,19 @@
   // the pond for each month, when it follows the seasons (summer is the classic pond)
   const SEASONS = ['winter', 'winter', 'spring', 'spring', 'spring', 'classic', 'classic', 'classic', 'autumn', 'autumn', 'autumn', 'winter'];
   const PONDS = { classic: ['夏', 'Classic'], spring: ['春', 'Spring'], autumn: ['秋', 'Autumn'], winter: ['冬', 'Winter'], night: ['夜', 'Night'], garden: ['庭', 'Garden'], sakura: ['桜', 'Sakura'],
-    halloween: ['南瓜', 'Halloween'], thanksgiving: ['感謝', 'Thanksgiving'], christmas: ['聖夜', 'Christmas'], seasonal: ['季', 'Seasonal'] };
+    halloween: ['南瓜', 'Halloween'], thanksgiving: ['感謝', 'Thanksgiving'], christmas: ['聖夜', 'Christmas'], lunar: ['春節', 'Lunar New Year'], seasonal: ['季', 'Seasonal'] };
   // when the seasonal pond turns into an event's: [month, from day, to day, pond]
   const EVENT_DAYS = [[10, 20, 31, 'halloween'], [11, 20, 30, 'thanksgiving'], [12, 10, 26, 'christmas']];
+  // Lunar New Year moves with the moon: its day each year [month, day]. The pond is up from a week before
+  // to the Lantern Festival, two weeks after.
+  const LUNAR_NEW_YEAR = { 2026: [2, 17], 2027: [2, 6], 2028: [1, 26], 2029: [2, 13], 2030: [2, 3], 2031: [1, 23], 2032: [2, 11],
+    2033: [1, 31], 2034: [2, 19], 2035: [2, 8], 2036: [1, 28], 2037: [2, 15], 2038: [2, 4], 2039: [1, 24], 2040: [2, 12] };
+  const lunarNear = (key) => {
+    const [y, m, d] = key.split('-').map(Number), at = LUNAR_NEW_YEAR[y];
+    if (!at) return false;
+    const days = (Date.UTC(y, m - 1, d) - Date.UTC(y, at[0] - 1, at[1])) / 86_400_000;
+    return days >= -7 && days <= 15;
+  };
   const DIAL_MAX = 180;
   const POMO = { focus: 25, brk: 5, rounds: 4 }; // minutes of focus, minutes of break, rounds
   const POMO_LIMITS = { focus: [5, 120, 5], brk: [1, 60, 1], rounds: [1, 12, 1] }; // lowest, highest, step
@@ -198,7 +208,7 @@
     if (tag) { const hit = PALETTE.find((p) => p[0].toLowerCase() === color.toLowerCase()); if (hit) return lightTheme() ? hit[0] : hit[1]; } // the dark themes' step
     return color;
   };
-  const lightTheme = () => document.documentElement.dataset.theme === 'sakura';
+  const lightTheme = () => ['sakura', 'christmas'].includes(document.documentElement.dataset.theme);
   const speciesName = (sp) => { const k = Art.KINDS[Art.kindOf(sp)]; return `${k.kanji} ${k.name}`; };
   const myId = () => S.me?.person?.id || 'me';
   const personOf = (id) => S.together?.people?.find((p) => p.id === id) || (id === myId() ? S.me?.person : null) || { id, name: 'Someone', color: '#5F6880', mark: '?' };
@@ -213,7 +223,7 @@
     if (pref === 'seasonal') {
       const month = +todayKey().slice(5, 7), day = +todayKey().slice(8, 10);
       const event = EVENT_DAYS.find(([m, a, b, pond]) => m === month && day >= a && day <= b && Art.pondThemes().includes(pond));
-      t = event ? event[3] : SEASONS[month - 1];
+      t = lunarNear(todayKey()) && Art.pondThemes().includes('lunar') ? 'lunar' : event ? event[3] : SEASONS[month - 1];
     }
     return Art.pondThemes().includes(t) ? t : 'classic';
   }
@@ -805,6 +815,7 @@
 
   function render() {
     if (!S.settings) return;
+    paintRing(document.documentElement.dataset.theme); // (the picture list may have just arrived)
     if (D && D.today !== todayKey()) invalidate();
     paintSync();
     paintTabs();
@@ -2801,22 +2812,35 @@
     host.dataset.sakura ||= host.innerHTML;
     if (host.dataset.for === theme) return;
     host.dataset.for = theme;
-    const r = Art.rng('drift' + theme), n = { halloween: 9, thanksgiving: 16, christmas: 34 }[theme], r1 = (v) => Math.round(v * 10) / 10;
+    const r = Art.rng('drift' + theme), n = { halloween: 9, thanksgiving: 16, christmas: 34, lunar: 18 }[theme], r1 = (v) => Math.round(v * 10) / 10;
     if (!n) { host.innerHTML = theme === 'sakura' ? host.dataset.sakura : ''; return; }
     let html = '';
     for (let i = 0; i < n; i++) {
       const x = r1(r() * 100), d = r1((theme === 'christmas' ? 14 : theme === 'halloween' ? 22 : 16) + r() * 14), w = r1(-r() * 30);
-      const v = theme === 'thanksgiving' ? ` data-v="${i % 3}"` : theme === 'christmas' ? ` style="--x:${x}%;--d:${d}s;--w:${w}s;--s:${r1(4 + r() * 6)}px;--o:${r1(0.35 + r() * 0.5)}"` : '';
+      const v = theme === 'thanksgiving' || theme === 'lunar' ? ` data-v="${i % 3}"` : theme === 'christmas' ? ` style="--x:${x}%;--d:${d}s;--w:${w}s;--s:${r1(4 + r() * 6)}px;--o:${r1(0.35 + r() * 0.5)}"` : '';
       html += theme === 'christmas' ? `<i${v}></i>` : `<i style="--x:${x}%;--y:${r1(8 + r() * 60)}vh;--d:${d}s;--w:${w}s"${v}></i>`;
     }
+    if (theme === 'lunar') html += '<b style="--x:18%;--d:29s;--w:-4s">✦</b><b style="--x:47%;--d:34s;--w:-18s">✦</b><b style="--x:79%;--d:31s;--w:-11s">✦</b>';
     if (theme === 'christmas') html += '<b style="--x:22%;--d:31s;--w:-6s">❄</b><b style="--x:58%;--d:36s;--w:-20s">❄</b><b style="--x:84%;--d:33s;--w:-12s">✦</b>';
     host.innerHTML = html;
+  }
+  // an event's decoration around the timer: a wreath with lights, vines with jack-o'-lanterns, autumn
+  // leaves, red lanterns (painted pictures, from the picture list; fetched only when its event is on)
+  function paintRing(theme) {
+    const el = $('#dial-ring');
+    if (!el) return;
+    const ring = Art.sprites.rings?.[theme];
+    el.hidden = !ring;
+    // (sized by the event, not the picture, so the dial doesn't jump when the picture list arrives)
+    el.parentElement.classList.toggle('ringed', EVENTS.some((e) => e[0] === theme));
+    if (ring && el.getAttribute('src') !== ring.src) el.setAttribute('src', ring.src);
   }
   function applyTheme() {
     const pref = S.settings?.theme || store.get(K.theme, 'ai');
     const theme = THEMES.some((t) => t[0] === pref) ? pref : 'ai';
     document.documentElement.dataset.theme = theme;
     paintDrift(theme);
+    paintRing(theme);
     store.set(K.theme, pref);
     const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
     $('meta[name="theme-color"]').setAttribute('content', bg || '#F2EDE3');
