@@ -142,6 +142,18 @@ python3 -m mori --demo
 
 Then open http://localhost:8642. For the real thing, on your own PC with your phone, see [SETUP.md](SETUP.md).
 
+## What's in here
+
+| Folder | What's in it |
+|---|---|
+| [`web/`](web) | The app you see on your phone and computer |
+| [`mori/`](mori) | The server, in plain Python (the folder still has Dakku's old name) |
+| [`art/`](art) | The duck art, the prompts that made it, and the lofi playlist |
+| [`scripts/`](scripts) | Setup scripts, and the tools that make the art |
+| [`tests/`](tests) | The tests |
+| [`systemd/`](systemd) | The background services that keep it running |
+| [`media/`](media) | The screenshots and animations on this page |
+
 ---
 
 <sub>Dakku is a personal, non-commercial project. The character outfits are fan art: those characters belong to their
