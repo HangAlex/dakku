@@ -10,3 +10,6 @@ python3 -m unittest discover -s tests
 - `test_crypto.py`: the push notification encryption and signatures
 - `test_demo.py`: the demo
 - `test_lofi.py`: matching the playlist's songs
+- `test_security.py`: what a friend at the internet door must never be able to do (take someone's session, read your
+  addresses, hold the server with slow requests, store huge push subscriptions…), and that your data is only yours
+- `test_old_name.py`: everything from before Dakku had its name (Mori) still works: sign-ins, the database, backups

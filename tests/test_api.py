@@ -10,7 +10,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from dakku import ec, logic, webpush
-from dakku.app import LIVE_PER_PERSON, MINUTE, ApiError, App, Ctx, now_ms
+from dakku.app import LIVE_PER_PERSON, MINUTE, App, Ctx, now_ms
 from dakku.web import Server, make_handler
 
 
