@@ -81,7 +81,7 @@ cat <<EOF
 To bring someone in:
   1. In Dakku, open 共 Together and make a group (say, "Us").
   2. Tap Invite, and send them the link (or let them scan the QR code).
-  3. They open it, pick a name, a colour and a little badge, and they're in: no app, no account, no Tailscale.
+  3. They open it, pick a name, a color and a little badge, and they're in: no app, no account, no Tailscale.
      On iPhone they can then Share → Add to Home Screen, and sign in there with the 6-digit code from
      Dakku in Safari (Settings → Add a device).
 

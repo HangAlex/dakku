@@ -19,7 +19,7 @@ and reload Dakku. Any you haven't made yet keep their drawn placeholders.
     icon      the app icon (square)
 
 Each sheet is cut into its separate pictures by their transparent background. A plain white
-background is removed too, and so is a fake grey checkerboard painted in where transparency should be.
+background is removed too, and so is a fake gray checkerboard painted in where transparency should be.
 A pond is kept whole, with a map of its open water so Dakku only puts ducks where they can float.
 """
 import base64
@@ -83,20 +83,20 @@ def webp(img, path, quality=90):
 
 
 def with_alpha(img):
-    """The picture with a real alpha channel; a plain background colour is made transparent."""
+    """The picture with a real alpha channel; a plain background color is made transparent."""
     img = img.convert("RGBA")
     lo, _ = img.getchannel("A").getextrema()
     if lo < 250:
-        # drop the faint glow some pictures come with, so it can't join neighbours or leave a fuzzy rim
+        # drop the faint glow some pictures come with, so it can't join neighbors or leave a fuzzy rim
         img.putalpha(img.getchannel("A").point(lambda v: 0 if v < 24 else v))
         return img
     w, h = img.size
     px = img.load()
-    # a fake transparent background: a checkerboard of two greys, painted in
+    # a fake transparent background: a checkerboard of two grays, painted in
     border = [px[x, y][:3] for x in range(0, w, 2) for y in (0, h - 1)] + [px[x, y][:3] for y in range(0, h, 2) for x in (0, w - 1)]
-    greys = sorted(sum(c) / 3 for c in border if max(c) - min(c) < 14)
-    if len(greys) > 0.9 * len(border) and greys[int(len(greys) * 0.85)] - greys[int(len(greys) * 0.15)] > 25:
-        return without_checkerboard(img, greys[int(len(greys) * 0.15)], greys[int(len(greys) * 0.85)])
+    grays = sorted(sum(c) / 3 for c in border if max(c) - min(c) < 14)
+    if len(grays) > 0.9 * len(border) and grays[int(len(grays) * 0.85)] - grays[int(len(grays) * 0.15)] > 25:
+        return without_checkerboard(img, grays[int(len(grays) * 0.15)], grays[int(len(grays) * 0.85)])
     bg = px[0, 0]
     close = lambda p: max(abs(p[0] - bg[0]), abs(p[1] - bg[1]), abs(p[2] - bg[2])) < 18  # noqa: E731
     seen = bytearray(w * h)
@@ -116,16 +116,16 @@ def with_alpha(img):
 
 
 def without_checkerboard(img, dark, light):
-    """Clears a painted-in checkerboard: every patch of flat grey made of both its greys, wherever it
+    """Clears a painted-in checkerboard: every patch of flat gray made of both its grays, wherever it
     is (also the gaps inside a drawing, like a key's teeth). The drawings are ringed by dark outlines,
-    and a silver sword is one grey, so nothing of theirs goes. Then any lone specks left over go too."""
+    and a silver sword is one gray, so nothing of theirs goes. Then any lone specks left over go too."""
     w, h = img.size
     px = img.load()
-    greyish = lambda c: max(c[:3]) - min(c[:3]) < 14 and dark - 30 <= sum(c[:3]) / 3 <= light + 25  # noqa: E731
+    grayish = lambda c: max(c[:3]) - min(c[:3]) < 14 and dark - 30 <= sum(c[:3]) / 3 <= light + 25  # noqa: E731
     seen = bytearray(w * h)
     for sy in range(h):
         for sx in range(w):
-            if seen[sy * w + sx] or not greyish(px[sx, sy]):
+            if seen[sy * w + sx] or not grayish(px[sx, sy]):
                 continue
             part, q = [], deque([(sx, sy)])
             seen[sy * w + sx] = 1
@@ -133,7 +133,7 @@ def without_checkerboard(img, dark, light):
                 x, y = q.popleft()
                 part.append((x, y))
                 for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
-                    if 0 <= nx < w and 0 <= ny < h and not seen[ny * w + nx] and greyish(px[nx, ny]):
+                    if 0 <= nx < w and 0 <= ny < h and not seen[ny * w + nx] and grayish(px[nx, ny]):
                         seen[ny * w + nx] = 1
                         q.append((nx, ny))
             levels = [sum(px[x, y][:3]) / 3 for x, y in part]
@@ -211,7 +211,7 @@ def pieces(img, count):
 
 
 def touching(img, count):
-    """pieces() for a sheet whose neighbours touch (a strand of hair across the gap): cut it into
+    """pieces() for a sheet whose neighbors touch (a strand of hair across the gap): cut it into
     `count` slabs at the emptiest column near each gap (the ducks are evenly spaced), then keep
     each slab's own duck."""
     w, h = img.size
@@ -272,7 +272,7 @@ def columns(img, count):
 
 
 def save_ripple(piece, name):
-    """A ripple ring: centred on its picture, and scaled so it's RIPPLE_UNITS wide."""
+    """A ripple ring: centered on its picture, and scaled so it's RIPPLE_UNITS wide."""
     scale = min(1.0, 600 / piece.width)
     if scale < 1:
         piece = piece.resize((round(piece.width * scale), round(piece.height * scale)), Image.LANCZOS)
@@ -324,7 +324,7 @@ def water_map(img):
     pad), and how high the picture reaches in each column. None if no open water can be found."""
     work = img.resize((400, max(1, round(img.height * 400 / img.width))), Image.LANCZOS)
     px = work.load()
-    # the water is one of the commonest bluish colours in the picture: light by day, dark at night.
+    # the water is one of the commonest bluish colors in the picture: light by day, dark at night.
     # A night pond's dark banks can be bluish too, so the few commonest are tried, and the one that
     # makes the most open water wins (a bank is a thin ring; the water is wide open).
     bins = {}
@@ -337,26 +337,26 @@ def water_map(img):
         return None
     common = sorted(bins.values(), key=len, reverse=True)
     tried = []
-    for colours in common[:4]:
-        if len(colours) * 10 < len(common[0]):
+    for colors in common[:4]:
+        if len(colors) * 10 < len(common[0]):
             break
-        ref = [sum(c[i] for c in colours) / len(colours) for i in range(3)]
+        ref = [sum(c[i] for c in colors) / len(colors) for i in range(3)]
         found, openness, inside = water_of(work, ref)
         if found:
             tried.append((inside, openness, found))
-    # water sits inside its bank: a colour reaching the picture's edge is the bank, or land around the pond
+    # water sits inside its bank: a color reaching the picture's edge is the bank, or land around the pond
     tried.sort(key=lambda t: (t[0], t[1]), reverse=True)
     return tried[0][2] if tried else None
 
 
 def water_of(work, ref):
-    """The water map for one guess at the water's colour, how much open water it makes, and whether
+    """The water map for one guess at the water's color, how much open water it makes, and whether
     the water stays inside the picture (True), as a pond's does, or reaches its edge."""
     w, h = work.size
     px = work.load()
     mask = Image.new("L", (w, h), 0)
     m = mask.load()
-    near = min(40, max(16, 0.3 * max(ref)))  # dark colours sit closer together: a night pond's banks too
+    near = min(40, max(16, 0.3 * max(ref)))  # dark colors sit closer together: a night pond's banks too
     for y in range(h):
         for x in range(w):
             r, g, b, a = px[x, y]
@@ -413,7 +413,7 @@ def water_of(work, ref):
             if d[i]:
                 d[i] = min(d[i], at(r, c + 1) + 1, at(r + 1, c) + 1, at(r + 1, c + 1) + diag, at(r + 1, c - 1) + diag)
     unit = 1000 / GRID  # pond units per cell
-    # stored in steps of 2 units, measured from the cell's centre; 0 means no water
+    # stored in steps of 2 units, measured from the cell's center; 0 means no water
     dist = bytes(0 if not v else max(1, min(255, round((v - 0.5) * unit / 2))) for v in d)
     if not any(dist):
         return None, 0, False

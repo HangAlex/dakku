@@ -2,7 +2,7 @@
 """The duck maker: every duck in Dakku, one picture each, all in the same style.
 
 The ducks live in two places, and this keeps them in step:
-    art/ducks.json        the list: each duck's name, kanji, colour, blurb, face and outfit
+    art/ducks.json        the list: each duck's name, kanji, color, blurb, face and outfit
     art/ducks/<id>.png    its picture, finished: transparent, facing left, beak in Dakku's peach
 
 Making a new duck:
@@ -12,7 +12,7 @@ Making a new duck:
        Create image, attach art/reference.png (+ → Add from library, once it's been uploaded), paste
        the prompt, and save the picture as art/incoming/goku.png
     3. python3 scripts/import_art.py   (or: python3 scripts/duck.py add goku)
-       finishes the picture (background, facing, beak colour, size), checks it (a body drawn flatter than
+       finishes the picture (background, facing, beak color, size), checks it (a body drawn flatter than
        the others' is flagged, to be redrawn), puts it in Dakku and makes art/review/goku.png to look at.
 
 Other commands:
@@ -53,7 +53,7 @@ ID_RE = re.compile(r"^[a-z][a-z0-9]{1,23}$")
 # Dakku's own first ten ducks: always there (drawn from shapes until they have pictures), never removed
 BUILT_IN = ("shiro", "sailor", "neko", "super", "ninja", "kitsune", "yukata", "samurai", "king", "astro")
 OLD_NAMES = ("matsu", "take", "sakura", "momiji", "icho", "sugi", "ume")  # the trees from before: taken
-# The look every duck shares, measured on the first ten: the beak's colour (hue, saturation, value)
+# The look every duck shares, measured on the first ten: the beak's color (hue, saturation, value)
 # and the outline's. A beak that's off is brought back to this; the outline is only checked.
 BEAK = (31.5 / 360, 0.515, 0.985)
 OUTLINE = (52, 44, 38)
@@ -215,7 +215,7 @@ def match_beak(img, beak):
         if a == 0:
             continue
         hh, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
-        if not full and not (0.03 < hh < 0.12 and s > 0.15):  # the soft edge: only where it's beak-coloured
+        if not full and not (0.03 < hh < 0.12 and s > 0.15):  # the soft edge: only where it's beak-colored
             continue
         hh, s = (hh + dh) % 1, min(1, s * ks)
         if full:
@@ -226,7 +226,7 @@ def match_beak(img, beak):
 
 
 def outline_tone(img):
-    """The usual colour of the outline around the duck: dark pixels just inside its silhouette."""
+    """The usual color of the outline around the duck: dark pixels just inside its silhouette."""
     w, h = img.size
     px = img.load()
     found = []
@@ -363,17 +363,17 @@ def prompt(duck):
 Copy these from the reference, exactly:
 - The body: the same soft, round, blob-shaped white call duck, the same size and shape, sitting low as if floating, with the same small white wing on its side and a calm rounded bottom.
 - The proportions: as round and tall as the plain white duck at the top left, with the head sitting just as high above the water. Never a lower, longer or flatter body.
-- The lines: the same slightly wobbly, soft dark charcoal crayon outline (dark grey-brown, about {hex_of(OUTLINE)}), never hard black.
+- The lines: the same slightly wobbly, soft dark charcoal crayon outline (dark gray-brown, about {hex_of(OUTLINE)}), never hard black.
 - The face: {face}
-- The beak: the same small pale peach beak, colour {beak_hex()}, not orange and not yellow.
+- The beak: the same small pale peach beak, color {beak_hex()}, not orange and not yellow.
 - The pose: facing left, in the same gentle three-quarter view.
 - No feet, legs, arms or hands at all. Anything the character carries sits on its back or rests against its wing.
 
 The outfit: {duck['look'].rstrip('.')}.
 
-Keep the outfit simple, in the same flat colours and soft crayon outline as the reference: no shading, gradients or shine. Hair and hats may stick up higher, but the duck's body stays the reference size.
+Keep the outfit simple, in the same flat colors and soft crayon outline as the reference: no shading, gradients or shine. Hair and hats may stick up higher, but the duck's body stays the reference size.
 
-The picture: one square image, 1024x1024, with only this one duck, centred, on a truly transparent background (real alpha: no white, no grey checkerboard). No water, ground, shadow, text, border or other ducks."""
+The picture: one square image, 1024x1024, with only this one duck, centered, on a truly transparent background (real alpha: no white, no gray checkerboard). No water, ground, shadow, text, border or other ducks."""
 
 
 # ── putting the ducks in Dakku ────────────────────────────────────────────────
@@ -540,7 +540,7 @@ def main(argv=None):
     n.add_argument("--name", help="its name in Dakku (default: the id, capitalised)")
     n.add_argument("--kanji", default="", help="one or two characters shown under it in the picker")
     n.add_argument("--angry", action="store_true", help="give it Dakku's angry eyebrow")
-    n.add_argument("--color", default="", help="its colour for the hatching confetti, like #F28C28")
+    n.add_argument("--color", default="", help="its color for the hatching confetti, like #F28C28")
     n.add_argument("--blurb", default="", help="a line about it, shown in the collection")
     p = sub.add_parser("prompt", help="print a duck's ChatGPT prompt again")
     p.add_argument("id")
