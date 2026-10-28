@@ -65,15 +65,25 @@
   --grow: #D9822B; --grow-strong: #F2B865; --grow-soft: #4A3018;
   --g1: #3D2A18; --g2: #6E4520; --g3: #B0682A; --g4: #E8A050;
 }
-[data-theme="christmas"] { /* 聖夜 — Christmas: holly red on deep evergreen */
-  --bg: #0E1A16; --bg-rgb: 14 26 22;
-  --surface: #13231D; --surface-2: #1A2E26; --surface-rgb: 19 35 29;
-  --ink: #EEF0E6; --ink-2: #9FB3A8; --ink-3: #62786D;
-  --line: #21382F;
-  --accent: #EC5A5E; --accent-ink: #2A0809;
-  --shadow: 0 8 4;
-  --grow: #3FA35F; --grow-strong: #7FD49A; --grow-soft: #173826;
-  --g1: #16382A; --g2: #1F6140; --g3: #2F9A5C; --g4: #6CCF8E;
+[data-theme="christmas"] { /* 聖夜 — Christmas: a light, snowy paper with holly red and evergreen */
+  --bg: #F4F1EA; --bg-rgb: 244 241 234;
+  --surface: #FBF9F4; --surface-2: #EAE5DA; --surface-rgb: 251 249 244;
+  --ink: #22342B; --ink-2: #4F6457; --ink-3: #8C9B90;
+  --line: #DCD5C6;
+  --accent: #C8343B; --accent-ink: #FFFFFF;
+  --shadow: 60 50 30;
+  --grow: #2F8A4E; --grow-strong: #1E6B3A; --grow-soft: #D6E6D7;
+  --g1: #D6E8D9; --g2: #9FCFAE; --g3: #55A873; --g4: #2A7D47;
+}
+[data-theme="lunar"] { /* 春節 — Lunar New Year: gold and lantern red on deep lacquer */
+  --bg: #2B0E11; --bg-rgb: 43 14 17;
+  --surface: #361418; --surface-2: #451A1F; --surface-rgb: 54 20 24;
+  --ink: #FBEBD6; --ink-2: #D8B39A; --ink-3: #9A7263;
+  --line: #55232A;
+  --accent: #F2C14E; --accent-ink: #3A1A06;
+  --shadow: 20 0 0;
+  --grow: #E8483C; --grow-strong: #FF8A6B; --grow-soft: #5A1F24;
+  --g1: #4A1A1E; --g2: #8A2A2C; --g3: #D8443A; --g4: #F2C14E;
 }
 
 :root {
@@ -256,7 +266,30 @@ input, select, textarea { font-size: 16px; } /* no zoom-on-focus on iPhone */
 .progress-text { font-size: 13px; color: var(--ink-2); display: flex; justify-content: space-between; }
 
 .dial-wrap { position: relative; width: min(84vw, 340px); aspect-ratio: 1; margin: 8px auto 0; }
-.dial { width: 100%; height: 100%; display: block; touch-action: manipulation; overflow: visible; -webkit-user-select: none; user-select: none; }
+/* an event's ring around the timer: its picture's empty middle has a radius of 0.34 of its width and sits
+   just outside the track (at r 141 of the dial's 300), so the picture is 141 / 0.34 / 300 = 138.2% of the dial wide */
+.dial-ring { position: absolute; left: 50%; top: 50%; width: 138.2%; height: auto; aspect-ratio: 1; transform: translate(-50%, -50%);
+  pointer-events: none; -webkit-user-select: none; user-select: none; }
+.dial-ring[hidden] { display: none; }
+/* with a ring the dial is a little smaller, so dial and ring together (a ring reaches out to about 1.34 times the
+   dial's width) take about the plain dial's room */
+.dial-wrap.ringed { --dial-w: min(70vw, 276px); width: var(--dial-w);
+  margin: calc(var(--dial-w) * var(--ring-top, .167) + 2px) auto calc(var(--dial-w) * var(--ring-bottom, .181)); }
+/* waiting to start: the egg can be tapped, so the dial glows softly and says so */
+.dial:not(.running):not(.paused) .dial-face { cursor: pointer; }
+.dial:focus:not(:focus-visible) { outline: none; } /* (a tap on the egg focuses the dial: no box around it then) */
+.tap-hint { position: absolute; left: 50%; top: 75%; transform: translate(-50%, -50%); display: none; align-items: center; gap: 5px; pointer-events: none;
+  padding: 4px 11px; border-radius: 99px; font: 600 12.5px/1.2 var(--body); color: var(--accent); white-space: nowrap;
+  background: color-mix(in srgb, var(--accent) 13%, var(--surface)); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+.tap-hint .jp { font: 700 12px/1 var(--small-jp); }
+.dial-wrap.idle .tap-hint { display: inline-flex; animation: tap-hint 2.8s ease-in-out infinite; }
+.dial-wrap.idle .dial-face { animation: egg-invite 2.8s ease-in-out infinite; }
+.dial-wrap.idle:active .dial-face { fill: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+@keyframes egg-invite { 0%, 100% { stroke: var(--line); stroke-width: 1; } 50% { stroke: color-mix(in srgb, var(--accent) 60%, var(--line)); stroke-width: 3; } }
+@keyframes tap-hint { 0%, 100% { opacity: .75; } 50% { opacity: 1; } }
+@media (hover: hover) { .dial-wrap.idle .dial-face:hover { fill: color-mix(in srgb, var(--accent) 7%, var(--surface)); } }
+@media (prefers-reduced-motion: reduce) { .dial-wrap.idle .tap-hint, .dial-wrap.idle .dial-face { animation: none; } }
+.dial { position: relative; width: 100%; height: 100%; display: block; touch-action: manipulation; overflow: visible; -webkit-user-select: none; user-select: none; }
 .dial-face { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
 .dial-track { fill: none; stroke: var(--grow-soft); stroke-width: 10; }
 .dial-arc { fill: none; stroke: var(--grow); stroke-width: 10; stroke-linecap: round; transition: stroke .3s; }
@@ -304,11 +337,10 @@ input, select, textarea { font-size: 16px; } /* no zoom-on-focus on iPhone */
 #species-row .sp { flex: 1 1 0; min-width: 0; max-width: 72px; } /* four ducks and All share the row */
 .sp.all { color: var(--ink-2); }
 .sp.all .all-n { display: grid; place-items: center; width: 40px; height: 48px; font: 600 19px/1 var(--body); }
-.plant-btn { width: min(100%, 300px); min-height: 54px; font-size: 17px; gap: 10px; box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--accent) 60%, transparent); }
-.plant-btn .jp { font-size: 19px; }
 .run-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .run-meta .chip { cursor: default; }
-.run-buttons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.run-buttons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+.run-buttons[hidden] { display: none; }
 .run-buttons .btn { min-width: 96px; }
 
 .plant-side { display: grid; gap: 14px; align-content: start; }
@@ -441,7 +473,7 @@ button.srow:hover { background: var(--surface-2); }
 /* the three ducks you've hatched most, and the way to every duck */
 .podium { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .specimen { position: relative; display: grid; justify-items: center; text-align: center; gap: 2px; padding: 10px 6px; border: 0; border-radius: 14px; background: var(--surface-2); color: var(--ink); }
-.specimen svg { width: 76px; height: 91px; }
+.specimen svg { width: min(76px, 100%); height: auto; aspect-ratio: 76 / 91; }
 .specimen .rank { position: absolute; top: 8px; left: 10px; font: 700 14px/1 var(--small-jp); color: var(--accent); }
 .specimen .n { font: 700 15px/1.2 var(--small-jp); }
 .specimen .e { font-size: 12px; color: var(--ink-2); }
@@ -453,9 +485,48 @@ button.srow:hover { background: var(--surface-2); }
 dialog.sheet.ducks-sheet { width: min(100%, 640px); }
 .ducks-sheet .sheet-body { height: min(92dvh, 720px); align-content: start; }
 .ducks-head { display: flex; align-items: baseline; gap: 10px; }
-.duck-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 8px; }
+.duck-grid { display: block; }
+.shelf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 8px; }
+.duck-shelf { display: flex; align-items: baseline; gap: 6px; margin: 16px 2px 8px; font: 600 14.5px/1.2 var(--body); color: var(--ink); }
+.duck-shelf:first-child, .shop-bar + .duck-shelf, .shelf-grid + .duck-shelf { margin-top: 16px; }
+.duck-shelf .jp { color: var(--accent); font: 700 13px/1 var(--small-jp); }
+.duck-shelf small { color: var(--ink-3); font-weight: 400; }
+.dtile.locked svg { opacity: .28; filter: grayscale(1); }
+.dtile.unhatched:not(.locked) svg { opacity: .7; } /* yours, just not hatched yet: in color, unlike one still to get */
+.dtile .c.lock { color: var(--accent); font-weight: 600; }
+/* the duck shop: a friend's grain, and what to do with it */
+.shop-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; margin: 2px 0 6px;
+  border-radius: 16px; background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line)); }
+.shop-grain { display: grid; gap: 1px; }
+.shop-grain b { font: 700 22px/1.1 var(--body); color: var(--ink); }
+.shop-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.shop-acts small { color: var(--ink-3); margin-left: 3px; }
+.shop-note { color: var(--ink-2); font-size: 13.5px; margin: 6px 0; }
+.shop-progress { height: 6px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin: 4px auto 10px; max-width: 260px; }
+.shop-progress i { display: block; height: 100%; background: var(--grow); border-radius: 99px; }
+.duck-series { margin-top: -4px; }
+.duck-new { font: 700 15px/1.3 var(--body); color: var(--accent); margin: 0 0 4px; }
+.earn-list { list-style: none; padding: 0; margin: 8px auto; max-width: 300px; display: grid; gap: 4px; }
+.earn-list li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 10px; border-radius: 10px; background: var(--surface-2); font-size: 14px; }
+.custom-form { display: grid; gap: 8px; max-width: 420px; margin: 10px auto; }
+.custom-form textarea { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: 400 16px/1.4 var(--body); resize: vertical; }
+.custom-list { list-style: none; padding: 0; margin: 12px auto 0; max-width: 420px; display: grid; gap: 6px; text-align: left; }
+.custom-list li { display: grid; gap: 2px; padding: 8px 12px; border-radius: 12px; background: var(--surface-2); }
+.custom-list small { color: var(--ink-3); }
+.grain-ico { display: inline-block; width: 1.15em; height: 1.15em; vertical-align: -0.22em; margin-right: .2em;
+  background: url("/icons/grain.webp") center / contain no-repeat; }
+.grain-amt { white-space: nowrap; }
+.item-note { display: block; margin-top: 2px; color: var(--ink-3); font-size: 11.5px; }
+.item-lock { display: block; margin-top: 2px; color: var(--accent); font-weight: 600; font-size: 11.5px; }
+.theme.locked .sw, .pond-pick.locked img, .decor-pick.locked img, .event-pick.locked img { filter: grayscale(.85); opacity: .5; }
+.grain-chip { margin-left: 6px; padding: 1px 8px; border-radius: 99px; background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); color: var(--ink); font-weight: 600; letter-spacing: 0; text-transform: none; }
+.done-stats .earned b { color: var(--accent); }
+.request { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.request p { margin: 3px 0 0; color: var(--ink-2); font-size: 14px; }
+.request-acts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.request-acts select { padding: 6px 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); max-width: 160px; }
 .dtile { display: grid; justify-items: center; align-content: start; gap: 2px; padding: 8px 4px 7px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); text-align: center; }
-.dtile svg { width: 56px; height: 67px; }
+.dtile svg { width: min(56px, 100%); height: auto; aspect-ratio: 56 / 67; }
 .dtile .n { font: 700 14px/1.2 var(--small-jp); }
 .dtile .e { font-size: 12px; line-height: 1.25; color: var(--ink-2); }
 .dtile .c { font-size: 11.5px; line-height: 1.25; color: var(--ink-3); }
@@ -563,14 +634,19 @@ dialog.sheet.ducks-sheet { width: min(100%, 640px); }
 .done-kanji { font-size: 40px; line-height: 1.1; color: var(--accent); letter-spacing: .1em; }
 .done-title { font: 600 19px/1.3 var(--body); }
 .done-sub { color: var(--ink-2); }
+.done-note { margin: 4px 0 2px; }
+.done-note .link { color: var(--ink-2); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.done-note-form { display: flex; gap: 6px; justify-content: center; margin: 2px auto 0; max-width: 300px; }
+.done-note-form input { flex: 1; min-width: 0; padding: 8px 11px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font-size: 16px; }
 .done-stats { display: flex; gap: 18px; justify-content: center; margin: 8px 0 4px; flex-wrap: wrap; }
 .done-stats div { display: grid; }
 .done-stats b { font: 700 22px/1.1 var(--body); }
 .done-stats span { font-size: 12px; color: var(--ink-2); }
 .done-actions { display: flex; gap: 10px; margin-top: 10px; }
 .done-card.withered .done-kanji { color: var(--ink-2); }
-.petals { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.petals i { position: absolute; top: -20px; width: 10px; height: 8px; border-radius: 80% 10% 80% 10%; opacity: .85; animation: fall linear forwards; }
+/* (the hatched card's own feathers: not .petals, which is the page's drift and a theme turns into bats or snow) */
+.feathers { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.feathers i { position: absolute; top: -20px; width: 10px; height: 8px; border-radius: 80% 10% 80% 10%; opacity: .85; animation: fall linear forwards; }
 @keyframes fall { to { transform: translate(var(--dx), 520px) rotate(var(--r)); opacity: 0; } }
 
 dialog.sheet { border: 0; padding: 0; background: transparent; color: var(--ink); max-width: 100vw; max-height: 100dvh; width: min(100%, 480px); margin: auto auto 0; }
@@ -791,8 +867,8 @@ html:not(.demo) .demo-only, html.demo [data-real] { display: none !important; }
 .lofi-player.tap .lofi-screen { height: 200px; border-radius: 12px; overflow: hidden; }
 
 /* 桜: light, so the browser's own bits (scrollbars, inputs) are light too, and the paper grain isn't inverted */
-html[data-theme="sakura"] { color-scheme: light; }
-[data-theme="sakura"] body::before { filter: none; opacity: .3; }
+html[data-theme="sakura"], html[data-theme="christmas"] { color-scheme: light; }
+[data-theme="sakura"] body::before, [data-theme="christmas"] body::before { filter: none; opacity: .3; }
 
 /* 桜: petals (and a few hearts and sparkles) drifting down behind everything */
 .petals { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; display: none; }
@@ -813,7 +889,7 @@ html[data-theme="sakura"] { color-scheme: light; }
 }
 
 /* the events: bats flitting past for Halloween, leaves for Thanksgiving, snow for Christmas */
-[data-theme="halloween"] .petals, [data-theme="thanksgiving"] .petals, [data-theme="christmas"] .petals { display: block; }
+[data-theme="halloween"] .petals, [data-theme="thanksgiving"] .petals, [data-theme="christmas"] .petals, [data-theme="lunar"] .petals { display: block; }
 [data-theme="halloween"] .petals i {
   top: var(--y); left: -40px; width: 30px; height: 16px; background: none; border-radius: 0; opacity: .5;
   animation: bat linear infinite; animation-duration: var(--d); animation-delay: var(--w);
@@ -839,10 +915,15 @@ html[data-theme="sakura"] { color-scheme: light; }
 [data-theme="thanksgiving"] .petals i[data-v="1"] { background: #C8452E; width: 14px; height: 14px; }
 [data-theme="thanksgiving"] .petals i[data-v="2"] { background: #E3A13B; width: 15px; height: 15px; }
 [data-theme="christmas"] .petals i {
-  width: var(--s); height: var(--s); border-radius: 50%; background: #FFFFFF; opacity: var(--o);
+  width: var(--s); height: var(--s); border-radius: 50%; background: #B7CCDB; opacity: var(--o); /* snow on a light page: a pale blue */
   animation: snow linear infinite; animation-duration: var(--d); animation-delay: var(--w);
 }
-[data-theme="christmas"] .petals b { color: #FFFFFF; opacity: .45; }
+[data-theme="christmas"] .petals b { color: #9DB8CC; opacity: .6; }
+/* Lunar New Year: plum blossom petals (red, pink, gold) and a few gold sparkles */
+[data-theme="lunar"] .petals i { background: #E8483C; border-radius: 50% 50% 50% 8%; width: 11px; height: 11px; opacity: .65; }
+[data-theme="lunar"] .petals i[data-v="1"] { background: #F59AB0; width: 9px; height: 9px; }
+[data-theme="lunar"] .petals i[data-v="2"] { background: #F2C14E; width: 7px; height: 7px; border-radius: 50%; }
+[data-theme="lunar"] .petals b { color: #F2C14E; opacity: .7; }
 @keyframes snow {
   0% { transform: translate(0, -5vh); }
   50% { transform: translate(3vw, 50vh); }

@@ -43,12 +43,12 @@
     ['#D9568F', '#D9558C', '牡丹', 'Peony'], ['#2B6CC4', '#4A8BE0', '瑠璃', 'Lapis'], ['#2E8B3A', '#3A9A45', '常磐', 'Evergreen'],
     ['#6C55C8', '#9080E6', '菫', 'Violet'], ['#C9283E', '#E25563', '紅', 'Crimson'],
   ];
-  const THEMES = [ // dark, and Sakura, the one light one
+  const THEMES = [ // dark, and the light ones: Sakura and Christmas
     ['ai', '藍', 'Ai', '#0F1727', '#57C7CF'], ['sumi', '墨', 'Sumi', '#151413', '#D9573F'], ['yozakura', '夜桜', 'Yozakura', '#1A1220', '#F29BB8'], ['sakura', '桜', 'Sakura', '#F2DCE5', '#D93D80'],
-    ['halloween', '南瓜', 'Halloween', '#16101E', '#FF8A3D'], ['thanksgiving', '感謝', 'Thanksgiving', '#1A1410', '#E3A13B'], ['christmas', '聖夜', 'Christmas', '#0E1A16', '#EC5A5E'],
+    ['halloween', '南瓜', 'Halloween', '#16101E', '#FF8A3D'], ['thanksgiving', '感謝', 'Thanksgiving', '#1A1410', '#E3A13B'], ['christmas', '聖夜', 'Christmas', '#F4F1EA', '#C8343B'], ['lunar', '春節', 'Lunar New Year', '#2B0E11', '#F2C14E'],
   ];
   // the events: each one is a theme and a pond together (and what drifts down the screen), any time of year
-  const EVENTS = [['halloween', '🎃', 'Bats and jack-o\u2019-lanterns'], ['thanksgiving', '🍂', 'Falling leaves and a harvest pond'], ['christmas', '🎄', 'Snow and a Christmas pond']];
+  const EVENTS = [['halloween', '🎃', 'Bats and jack-o\u2019-lanterns'], ['thanksgiving', '🍂', 'Falling leaves and a harvest pond'], ['christmas', '🎄', 'Snow and a Christmas pond'], ['lunar', '🧧', 'Red lanterns and plum blossoms']];
   // things to put on the pond: [id, kanji, name]
   const DECOR = [['torii', '鳥居', 'Torii gate'], ['lantern', '灯籠', 'Stone lantern'], ['koi', '鯉', 'Koi'], ['lanterns', '灯', 'Floating lanterns'], ['lotus', '蓮', 'Lotus']];
   const RANKS = [
@@ -60,9 +60,7 @@
   // the pond for each month, when it follows the seasons (summer is the classic pond)
   const SEASONS = ['winter', 'winter', 'spring', 'spring', 'spring', 'classic', 'classic', 'classic', 'autumn', 'autumn', 'autumn', 'winter'];
   const PONDS = { classic: ['夏', 'Classic'], spring: ['春', 'Spring'], autumn: ['秋', 'Autumn'], winter: ['冬', 'Winter'], night: ['夜', 'Night'], garden: ['庭', 'Garden'], sakura: ['桜', 'Sakura'],
-    halloween: ['南瓜', 'Halloween'], thanksgiving: ['感謝', 'Thanksgiving'], christmas: ['聖夜', 'Christmas'], seasonal: ['季', 'Seasonal'] };
-  // when the seasonal pond turns into an event's: [month, from day, to day, pond]
-  const EVENT_DAYS = [[10, 20, 31, 'halloween'], [11, 20, 30, 'thanksgiving'], [12, 10, 26, 'christmas']];
+    halloween: ['南瓜', 'Halloween'], thanksgiving: ['感謝', 'Thanksgiving'], christmas: ['聖夜', 'Christmas'], lunar: ['春節', 'Lunar New Year'], seasonal: ['季', 'Seasonal'] };
   const DIAL_MAX = 180;
   const POMO = { focus: 25, brk: 5, rounds: 4 }; // minutes of focus, minutes of break, rounds
   const POMO_LIMITS = { focus: [5, 120, 5], brk: [1, 60, 1], rounds: [1, 12, 1] }; // lowest, highest, step
@@ -186,7 +184,49 @@
     return { ...out, current: run, freezes };
   }
   const FREEZE_TIP = `Streak freezes: you earn one for every ${FREEZE_EVERY} days in a row (up to ${FREEZE_MAX}), and each covers one missed weekday.`;
-  const unlocked = () => SPECIES; // every duck is yours from the start
+  // The duck shop: friends earn grain (🌾) for their focus and spend it on ducks; the plain ducks come
+  // with hours studied. You have every duck. The server keeps the books (dakku/logic.py has the rates
+  // and prices): this only shows them.
+  const shopOn = () => !!S.shop?.on;
+  const owns = (k) => !shopOn() || S.shop.owned.includes(k);
+  const unlocked = () => (shopOn() ? SPECIES.filter(owns) : SPECIES);
+  // the grain a session earns (to show on the hatched screen; the server's sum is the one that counts)
+  function grainFor(s) {
+    if (!shopOn() || !s || s.status === 'withered' || s.manual || ['manual', 'import', 'genkan'].includes(s.source)) return 0;
+    const m = Math.min(s.minutes, S.shop.cap), rate = S.shop.rates.find(([least]) => m >= least)?.[1] || 0;
+    return Math.floor(m * rate * (s.room ? S.shop.together : 1));
+  }
+  // an amount of grain, with its painted icon (HTML), and the same in plain words (for a dialog or a toast)
+  const grain = (n) => `<span class="grain-amt" aria-label="${Math.round(n).toLocaleString()} grain"><i class="grain-ico" aria-hidden="true"></i>${Math.round(n).toLocaleString()}</span>`;
+  const grainText = (n) => `${Math.round(n).toLocaleString()} grain`;
+  // the themes, ponds and decorations in the shop ("theme:sumi"): Ai, the classic pond and a holiday's are free
+  const ownsItem = (item) => !shopOn() || S.shop.ownedItems?.includes(item);
+  function itemLock(item) {
+    const c = S.shop?.items?.[item];
+    if (!c || ownsItem(item)) return '';
+    return `<small class="item-lock">${c.event ? (c.month ? `${monthName(c.month, 'short')} only` : 'Lunar New Year') : grain(c.price)}</small>`;
+  }
+  // a pond that's free right now (the seasonal one, or a season's own while it lasts), said on its tile
+  function itemFree(item) {
+    const c = S.shop?.items?.[item];
+    if (!shopOn() || !c) return item === 'pond:seasonal' ? '<small class="item-note">Follows the seasons</small>' : '';
+    if (item === 'pond:seasonal') return '<small class="item-note">Free · follows the seasons</small>';
+    return c.season && c.inSeason && !c.bought ? '<small class="item-note">Free this season</small>' : '';
+  }
+  // a tap on something you don't have yet: buy it first (asking), then `then`
+  async function withItem(item, label, then) {
+    if (ownsItem(item)) { then(); return; }
+    const c = S.shop.items[item];
+    if (c.event) { toast(`${label} is free while its holiday is on${c.month ? `: back in ${monthName(c.month)}` : ''}.`); return; }
+    if (S.shop.balance < c.price) { toast(`${label} is ${grainText(c.price)}: ${grainText(c.price - S.shop.balance)} more to go.`); return; }
+    if (!(await confirmBox(`Get ${label}?`, `${grainText(c.price)} from your ${grainText(S.shop.balance)}. It's yours for good.`, 'Buy it'))) return;
+    try {
+      const res = await api('POST', '/api/shop/buy', { item });
+      S.shop = res.shop;
+      saveCache();
+      then();
+    } catch (err) { if (err.data?.shop) S.shop = err.data.shop; toast(err.message); }
+  }
   const rankFor = (minutes) => {
     let i = 0;
     while (i + 1 < RANKS.length && minutes >= RANKS[i + 1][0] * 60) i++;
@@ -198,7 +238,7 @@
     if (tag) { const hit = PALETTE.find((p) => p[0].toLowerCase() === color.toLowerCase()); if (hit) return lightTheme() ? hit[0] : hit[1]; } // the dark themes' step
     return color;
   };
-  const lightTheme = () => document.documentElement.dataset.theme === 'sakura';
+  const lightTheme = () => ['sakura', 'christmas'].includes(document.documentElement.dataset.theme);
   const speciesName = (sp) => { const k = Art.KINDS[Art.kindOf(sp)]; return `${k.kanji} ${k.name}`; };
   const myId = () => S.me?.person?.id || 'me';
   const personOf = (id) => S.together?.people?.find((p) => p.id === id) || (id === myId() ? S.me?.person : null) || { id, name: 'Someone', color: '#5F6880', mark: '?' };
@@ -206,15 +246,11 @@
   const inGroups = () => !!S.together?.groups?.length;
   const peopleMap = (list) => Object.fromEntries((list || S.together?.people || []).map((p) => [p.id, p]));
   const badgeHTML = (p, cls = '') => `<span class="pbadge ${cls}" style="--c:${esc(p.color)}" title="${esc(p.name)}">${esc(p.mark || '?')}</span>`;
-  // which pond picture to use: "seasonal" follows the month (and the events, around their days); a theme
-  // without a picture yet falls back to the classic pond
+  // which pond picture to use: "seasonal" follows the month (the holidays' ponds come on by themselves, with
+  // their themes); a theme without a picture yet falls back to the classic pond
   function themeFor(pref) {
     let t = pref || 'classic';
-    if (pref === 'seasonal') {
-      const month = +todayKey().slice(5, 7), day = +todayKey().slice(8, 10);
-      const event = EVENT_DAYS.find(([m, a, b, pond]) => m === month && day >= a && day <= b && Art.pondThemes().includes(pond));
-      t = event ? event[3] : SEASONS[month - 1];
-    }
+    if (pref === 'seasonal') t = SEASONS[+todayKey().slice(5, 7) - 1];
     return Art.pondThemes().includes(t) ? t : 'classic';
   }
   // the pond for a scene: its picture, and your decorations on it
@@ -263,14 +299,14 @@
   function saveCache() {
     if (!S.settings) return;
     store.set(K.cache, {
-      v: 1, me: S.me, settings: S.settings, server: S.server, vapidKey: S.vapidKey, anki: S.anki, cursor: S.cursor, together: S.together,
+      v: 1, me: S.me, settings: S.settings, server: S.server, vapidKey: S.vapidKey, anki: S.anki, cursor: S.cursor, together: S.together, shop: S.shop,
       timer: S.timer && !S.timer.local ? S.timer : null, offset: S.offset,
       sessions: [...S.sessions.values()].map(({ _day, ...s }) => s),
     });
     if (S.timer?.local) store.set(K.timer, S.timer); else store.del(K.timer);
   }
   function loadCache(c) {
-    S.me = c.me; S.settings = c.settings; S.server = c.server; S.vapidKey = c.vapidKey || ''; S.anki = c.anki; S.together = c.together || null;
+    S.me = c.me; S.settings = c.settings; S.server = c.server; S.vapidKey = c.vapidKey || ''; S.anki = c.anki; S.together = c.together || null; S.shop = c.shop || null;
     markDemo();
     S.cursor = c.cursor || 0; S.offset = c.offset || 0;
     S.sessions = new Map((c.sessions || []).map((s) => [s.id, s]));
@@ -287,7 +323,7 @@
   }
 
   function applyBootstrap(data) {
-    S.me = data.me; S.server = data.server; S.vapidKey = data.vapidKey; S.anki = data.anki; S.together = data.together || null;
+    S.me = data.me; S.server = data.server; S.vapidKey = data.vapidKey; S.anki = data.anki; S.together = data.together || null; S.shop = data.shop || null;
     markDemo();
     S.sessions = new Map(data.sessions.map((s) => [s.id, s]));
     S.cursor = data.cursor;
@@ -309,6 +345,7 @@
       else S.sessions.set(s.id, s);
     }
     S.cursor = Math.max(S.cursor, res.cursor || 0);
+    if (res.shop) S.shop = res.shop;
     for (const op of S.outbox) applyOp(op);
     if (res.settings) {
       const before = JSON.stringify(S.settings);
@@ -526,7 +563,7 @@
     if (S.timer || S.starting) return;
     unlockAudio();
     const avail = unlocked();
-    const species = S.settings.randomSpecies ? avail[Math.floor(Math.random() * avail.length)] : (avail.includes(S.pick.species) ? S.pick.species : 'matsu');
+    const species = S.settings.randomSpecies ? avail[Math.floor(Math.random() * avail.length)] : (avail.includes(S.pick.species) ? S.pick.species : avail[0] || 'shiro');
     const now = serverNow();
     const pomo = S.pick.mode === 'pomo' ? { ...S.pick.pomo } : null;
     const t = {
@@ -540,6 +577,7 @@
     S.timer = t;
     renderPlantControls();
     paintTimer();
+    showRunButtons();
     wakeLock(true);
     try {
       const res = await api('POST', '/api/timer', { action: 'start', id: t.id, mode: t.mode, minutes: S.pick.minutes, tag: t.tag, species, deep: t.deep, source: 'dakku', open: t.open, pomo });
@@ -564,6 +602,18 @@
       renderPlantControls();
       paintTimer();
     }
+  }
+
+  // the session's buttons in sight as it starts: on a phone too short for them under the dial, just enough
+  // scrolling for them to clear the tab bar (which sits along the bottom on a phone)
+  function showRunButtons() {
+    requestAnimationFrame(() => {
+      const b = $('#run-buttons'), bar = $('#tabbar');
+      if (!b || b.hidden) return;
+      const top = bar?.getBoundingClientRect().top ?? innerHeight;
+      const limit = (top > innerHeight / 2 ? top : innerHeight) - 12, bottom = b.getBoundingClientRect().bottom;
+      if (bottom > limit) window.scrollBy({ top: bottom - limit, behavior: 'smooth' });
+    });
   }
 
   function localAction(t, action, now) {
@@ -805,6 +855,7 @@
 
   function render() {
     if (!S.settings) return;
+    paintRing(document.documentElement.dataset.theme); // (the picture list may have just arrived)
     if (D && D.today !== todayKey()) invalidate();
     paintSync();
     paintTabs();
@@ -875,10 +926,12 @@
       <div class="progress-text"><span>${mins} of ${d.goal} min today</span><span>${right}</span></div>`;
   }
 
+  let pomoMarkup = ''; // the pomodoro boxes as last drawn
   function renderPlantControls() {
     const t = S.timer;
     $('#idle-controls').hidden = !!t;
     $('#run-controls').hidden = !t;
+    $('#run-buttons').hidden = !t;
     if (!t) {
       $$('#mode-seg button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.mode === S.pick.mode)));
       const presets = S.settings.presets;
@@ -891,12 +944,15 @@
       if (S.pick.mode === 'pomo' && !document.activeElement?.matches('#pomo-pick input')) {
         const p = S.pick.pomo;
         // the number can be typed too, for a big jump (95 minutes is a lot of taps)
-        $('#pomo-pick').innerHTML = [['focus', 'Focus', 'min'], ['brk', 'Break', 'min'], ['rounds', 'Rounds', '']].map(([k, label, unit]) => `
+        const html = [['focus', 'Focus', 'min'], ['brk', 'Break', 'min'], ['rounds', 'Rounds', '']].map(([k, label, unit]) => `
           <div class="stepper"><span class="lbl">${label}</span>
             <button type="button" data-pomo="${k}" data-step="-1" aria-label="Less ${label.toLowerCase()}"${p[k] <= POMO_LIMITS[k][0] ? ' disabled' : ''}>−</button>
             <label class="val"><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" enterkeyhint="done" data-pomo-in="${k}" value="${p[k]}"
               aria-label="${label}${unit ? ' in minutes' : ''}, ${POMO_LIMITS[k][0]} to ${POMO_LIMITS[k][1]}">${unit ? `<small>${unit}</small>` : ''}</label>
             <button type="button" data-pomo="${k}" data-step="1" aria-label="More ${label.toLowerCase()}"${p[k] >= POMO_LIMITS[k][1] ? ' disabled' : ''}>+</button></div>`).join('');
+        // only redrawn when something changed: a redraw swaps the boxes for new ones, and a finger
+        // just landing on one would lose it (on a phone: the keyboard flashing open and shut)
+        if (html !== pomoMarkup) { $('#pomo-pick').innerHTML = html; pomoMarkup = html; }
       }
       const tags = S.settings.tags;
       $('#tag-chips').innerHTML = [{ name: '' }, ...tags].map((tag) => `
@@ -904,6 +960,8 @@
           <span class="dot"></span>${tag.name ? esc(tag.name) : 'No tag'}</button>`).join('') +
         '<button type="button" class="chip add" data-tag-add>+ Tag</button>';
       const avail = unlocked();
+      $('#grain-chip').hidden = !shopOn();
+      if (shopOn()) $('#grain-chip').innerHTML = grain(S.shop.balance);
       const random = S.settings.randomSpecies;
       // four ducks: the ones you hatched lately (and one you just chose), then the way to all of them
       let row = recentDucks().slice(0, 4);
@@ -915,9 +973,8 @@
         const info = Art.KINDS[sp];
         return `<button type="button" class="sp${open ? '' : ' locked'}" data-sp="${sp}" aria-pressed="${!random && open && sp === S.pick.species}" ${open ? '' : 'disabled'}
           title="${esc(info.name)}">${open ? '' : '<span class="lock">🔒︎</span>'}
-          ${Art.duckSVG(sp)}<span class="n">${esc(info.kanji)}</span></button>`;
+          ${Art.duckSVG(sp, { fit: true })}<span class="n">${esc(info.kanji)}</span></button>`;
       }).join('') + `<button type="button" class="sp all" data-sp-all title="Every duck"><span class="all-n">${SPECIES.length}</span><span class="n">All</span></button>`;
-      $('#plant-btn').disabled = S.starting;
       $('#open-row').hidden = !inGroups();
       $('#open-sessions').checked = S.settings.openSessions !== false;
     } else {
@@ -971,6 +1028,7 @@
     const now = serverNow();
     let frac, clock, sub, growth;
     dial.classList.toggle('running', !!t && t.runFrom != null);
+    dial.parentElement.classList.toggle('idle', !t); // (the egg says it can be tapped to start)
     dial.classList.toggle('paused', !!t && t.runFrom == null);
     $('#clock').classList.toggle('paused', !!t && t.runFrom == null);
     let sleeping = false; // a pomodoro's break: the egg naps
@@ -1190,9 +1248,11 @@
       const m = pointMinutes(x, y);
       if (m !== S.pick.minutes) { S.pick.minutes = m; paintTimer(); markPresets(); }
     };
+    let dragEnded = 0;
     const end = () => {
       if (!S.dragging) return;
       S.dragging = false;
+      dragEnded = Date.now();
       dial.classList.remove('dragging');
       savePick();
     };
@@ -1216,7 +1276,15 @@
       window.addEventListener('mousemove', mm);
       window.addEventListener('mouseup', () => { window.removeEventListener('mousemove', mm); end(); }, { once: true });
     });
+    // tapping the egg in the middle starts the session (the ring around it is for dragging the time;
+    // a drag that ends over the egg isn't a tap)
+    dial.parentElement.addEventListener('click', (e) => {
+      if (S.timer || S.starting || S.dragging || Date.now() - dragEnded < 500 || e.target.closest('button')) return;
+      const r = dial.getBoundingClientRect();
+      if (Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)) / (r.width / 300) <= 70) startTimer();
+    });
     dial.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ' ') && !S.timer) { e.preventDefault(); startTimer(); return; } // the egg is the Hatch button
       if (!canDrag()) return;
       const step = { ArrowUp: 5, ArrowRight: 5, ArrowDown: -5, ArrowLeft: -5, PageUp: 15, PageDown: -15 }[e.key];
       if (!step) return;
@@ -1485,7 +1553,7 @@
   }
   function paintJoinPick() {
     const j = S.joinPick;
-    $('#join-species').innerHTML = SPECIES.map((sp) => `<button type="button" class="sp" data-jsp="${sp}" aria-pressed="${j.species === sp}" title="${esc(Art.KINDS[sp].name)}">${Art.duckSVG(sp)}<span class="n">${esc(Art.KINDS[sp].kanji)}</span></button>`).join('') +
+    $('#join-species').innerHTML = SPECIES.map((sp) => `<button type="button" class="sp" data-jsp="${sp}" aria-pressed="${j.species === sp}" title="${esc(Art.KINDS[sp].name)}">${Art.duckSVG(sp, { fit: true })}<span class="n">${esc(Art.KINDS[sp].kanji)}</span></button>`).join('') +
       `<button type="button" class="sp" data-jsp="random" aria-pressed="${j.species === 'random'}" title="A surprise duck"><svg viewBox="0 0 100 120"><text x="50" y="82" text-anchor="middle" font-size="58" fill="currentColor" opacity=".55" font-family="serif">?</text></svg><span class="n">運</span></button>`;
     $('#join-tags').innerHTML = [{ name: '' }, ...S.settings.tags].map((tag) => `<button type="button" class="chip" data-jtag="${esc(tag.name)}" style="--c:${tag.name ? tagColor(tag.name) : 'var(--ink-3)'}" aria-pressed="${tag.name === j.tag}"><span class="dot"></span>${tag.name ? esc(tag.name) : 'No tag'}</button>`).join('');
   }
@@ -1810,7 +1878,7 @@
     $('#collection').innerHTML = top.length
       ? `<div class="podium">${top.map((sp, i) => {
         const info = Art.KINDS[sp];
-        return `<button type="button" class="specimen" data-duck="${sp}" title="${esc(info.name)}"><span class="rank">${i + 1}</span>${Art.duckSVG(sp)}
+        return `<button type="button" class="specimen" data-duck="${sp}" title="${esc(info.name)}"><span class="rank">${i + 1}</span>${Art.duckSVG(sp, { fit: true })}
           <span class="n">${esc(info.kanji)}</span><span class="e">${esc(info.name)}</span>
           <span class="c">${plural(d.bySpecies.get(sp), 'duck')}</span></button>`;
       }).join('')}</div>`
@@ -1824,49 +1892,189 @@
     const seen = new Set(), list = derive().list;
     for (let i = list.length - 1; i >= 0 && seen.size < 8; i--) {
       const k = Art.kindOf(list[i].species);
-      if (SPECIES.includes(k)) seen.add(k);
+      if (SPECIES.includes(k) && owns(k)) seen.add(k);
     }
+    for (const sp of unlocked()) seen.add(sp);
     for (const sp of SPECIES) seen.add(sp);
     return [...seen];
   }
 
-  // mode 'pick': tapping a duck chooses it for the next egg. 'gallery': tapping one shows it big.
+  // The gallery's shelves: each category, with the ducks of a series side by side (and the plain ducks in
+  // the order their hours unlock them).
+  const CATEGORIES = [['dakku', '鴨', 'Dakku originals'], ['holiday', '祝', 'Holidays'], ['anime', 'アニメ', 'Anime'],
+    ['games', 'ゲーム', 'Video games'], ['screen', '映画', 'TV & movies'], ['music', '音楽', 'Music']];
+  const categoryOf = (k) => CATEGORIES.find((c) => c[0] === (Art.KINDS[k]?.category || 'dakku')) || CATEGORIES[0];
+  function shelves() {
+    const shown = SPECIES;
+    const key = (k) => [S.shop?.catalog?.[k]?.hours ?? 0, Art.KINDS[k]?.series || '', SPECIES.indexOf(k)];
+    const order = (a, b) => { const x = key(a), y = key(b); return x[0] - y[0] || x[1].localeCompare(y[1]) || x[2] - y[2]; };
+    return CATEGORIES.map(([id, jp, name]) => ({ jp, name, kinds: shown.filter((k) => categoryOf(k)[0] === id).sort(order) }))
+      .filter((shelf) => shelf.kinds.length);
+  }
+  // in the shop: what a duck you don't have takes, on its tile
+  const monthName = (m, style = 'long') => new Date(2000, m - 1, 1).toLocaleString(undefined, { month: style });
+  const priceTag = (k) => {
+    const c = S.shop?.catalog?.[k];
+    return !c ? '' : c.hours != null ? `🔒 ${c.hours} h` : c.month && !c.inSeason ? `${monthName(c.month, 'short')} only` : grain(c.price);
+  };
+
+  // mode 'pick': tapping a duck chooses it for the next egg (one you don't have yet opens its page, to buy
+  // it). 'gallery': tapping one shows it big.
   function openDucks(mode, sp) {
     const d = derive(), random = S.settings.randomSpecies, pick = mode === 'pick';
     $('#ducks-title').textContent = pick ? 'Choose a duck' : 'Duck gallery';
     $('#ducks-note').textContent = pick ? '' : `${SPECIES.filter((k) => d.bySpecies.get(k)).length} of ${SPECIES.length} hatched`;
-    $('#duck-grid').innerHTML = (pick ? `<button type="button" class="dtile" data-pick="random" aria-pressed="${random}">${SURPRISE_SVG}<span class="n">運</span><span class="e">Surprise</span><span class="c">a new one each time</span></button>` : '') +
-      SPECIES.map((k) => {
-        const info = Art.KINDS[k], n = d.bySpecies.get(k) || 0;
-        return `<button type="button" class="dtile${!pick && !n ? ' unhatched' : ''}" data-${pick ? 'pick' : 'duck'}="${k}" aria-pressed="${pick && !random && k === S.pick.species}">${Art.duckSVG(k)}
-          <span class="n">${esc(info.kanji)}</span><span class="e">${esc(info.name)}</span>${pick ? '' : `<span class="c">${n ? plural(n, 'duck') : 'not yet'}</span>`}</button>`;
-      }).join('');
+    const tile = (k) => {
+      const info = Art.KINDS[k], n = d.bySpecies.get(k) || 0, have = owns(k);
+      const line = !have ? `<span class="c lock">${priceTag(k)}</span>` : pick ? '' : `<span class="c">${n ? plural(n, 'duck') : 'not yet'}</span>`;
+      return `<button type="button" class="dtile${!pick && !n ? ' unhatched' : ''}${have ? '' : ' locked'}" data-${pick && have ? 'pick' : 'duck'}="${k}" aria-pressed="${pick && !random && k === S.pick.species}"${info.series ? ` title="${esc(info.series)}"` : ''}>${Art.duckSVG(k, { fit: true })}
+          <span class="n">${esc(info.kanji)}</span><span class="e">${esc(info.name)}</span>${line}</button>`;
+    };
+    $('#duck-grid').innerHTML = shopBar() +
+      (pick ? `<div class="shelf-grid"><button type="button" class="dtile" data-pick="random" aria-pressed="${random}">${SURPRISE_SVG}<span class="n">運</span><span class="e">Surprise</span><span class="c">a new one each time</span></button></div>` : '') +
+      shelves().map((shelf) => `<h3 class="duck-shelf"><span class="jp">${shelf.jp}</span> ${esc(shelf.name)} <small>${shelf.kinds.length}</small></h3>
+        <div class="shelf-grid">${shelf.kinds.map(tile).join('')}</div>`).join('');
     $('#duck-grid').hidden = false;
     $('#duck-detail').hidden = true;
     const dlg = $('#ducks-dialog');
     if (!dlg.open) dlg.showModal();
     if (sp) showDuck(sp);
     else $('#ducks-dialog .sheet-body').scrollTop = 0;
+    // the full pictures come in while you look at the grid, so an enlarged duck is sharp at once
+    // (each is small, and kept for good once fetched): the ones you've hatched first
+    if (!pick) warmDucks([...SPECIES].sort((a, b) => (d.bySpecies.get(b) ? 1 : 0) - (d.bySpecies.get(a) ? 1 : 0)));
+  }
+  // the top of the gallery, for a friend: their grain, a mystery egg, a custom duck, and how to earn
+  function shopBar() {
+    if (!shopOn()) return '';
+    const s = S.shop;
+    return `<div class="shop-bar">
+        <div class="shop-grain"><b>${grain(s.balance)}</b><span class="muted small">grain to spend · ${fmtHM(Math.round(s.hours * 60))} studied</span></div>
+        <div class="shop-acts">
+          <button class="btn small" type="button" data-mystery${s.mystery.left && s.balance >= s.mystery.price ? '' : ' disabled'}>🥚 Mystery egg <small>${grain(s.mystery.price)}</small></button>
+          ${S.me?.role === 'owner' ? '' : `<button class="btn small" type="button" data-custom>✎ Ask for a duck <small>${grain(s.custom.price)}</small></button>`}
+          <button class="link small" type="button" data-earn>How to earn</button>
+        </div>
+      </div>`;
+  }
+  let warming = false;
+  function warmDucks(kinds) {
+    if (warming) return;
+    warming = true;
+    const queue = [...kinds];
+    const later = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn) : setTimeout(fn, 50));
+    const next = () => { const k = queue.shift(); if (!k) { warming = false; return; } Art.sharpen([k]).finally(() => later(next)); };
+    next();
   }
 
   // one duck, big, with what it's about; ‹ › go through them all
-  function showDuck(sp) {
+  function showDuck(sp, fresh = '') {
     const info = Art.KINDS[sp], n = derive().bySpecies.get(sp) || 0, i = SPECIES.indexOf(sp);
     const before = SPECIES[(i - 1 + SPECIES.length) % SPECIES.length], after = SPECIES[(i + 1) % SPECIES.length];
+    Art.sharpen([before, after]); // the next ones ‹ › show are sharp at once
     $('#duck-detail').innerHTML = `
       <button class="link" type="button" data-back>← All ducks</button>
       <div class="duck-big">${Art.duckSVG(sp, { big: true })}</div>
+      ${fresh ? `<p class="duck-new">${fresh}</p>` : ''}
       <h3 class="duck-name"><span class="jp">${esc(info.kanji)}</span> ${esc(info.name)}</h3>
+      <p class="duck-series muted small">${info.series ? `${esc(info.series)} · ` : ''}${esc(categoryOf(sp)[2])}</p>
       <p class="duck-blurb">${esc(info.blurb || '')}</p>
       <p class="muted small">${n ? `You've hatched ${plural(n, 'duck')} like this.` : 'Not hatched yet.'}</p>
+      ${owns(sp) ? '' : howToGet(sp)}
       <div class="duck-nav">
         <button class="icon-btn" type="button" data-duck="${before}" aria-label="The duck before">‹</button>
-        <button class="btn primary" type="button" data-hatch-with="${sp}">Hatch with this duck</button>
+        ${owns(sp) ? `<button class="btn primary" type="button" data-hatch-with="${sp}">Hatch with this duck</button>` : buyButton(sp)}
         <button class="icon-btn" type="button" data-duck="${after}" aria-label="The next duck">›</button>
       </div>`;
     $('#duck-grid').hidden = true;
     $('#duck-detail').hidden = false;
     $('#ducks-dialog .sheet-body').scrollTop = 0;
+  }
+
+  function howToGet(sp) {
+    const c = S.shop.catalog[sp];
+    if (c.hours != null) {
+      const pct = Math.min(100, Math.round((S.shop.hours / c.hours) * 100));
+      return `<p class="shop-note">Comes with ${c.hours} hours of focus: you're at ${fmtHM(Math.round(S.shop.hours * 60))}.</p><div class="shop-progress"><i style="width:${pct}%"></i></div>`;
+    }
+    if (c.month) return `<p class="shop-note">A holiday duck: free for everyone in ${monthName(c.month)}, and only then.</p>`;
+    const short = c.price - S.shop.balance;
+    return `<p class="shop-note">${short > 0 ? `${grain(short)} more to go: about ${fmtMin(Math.ceil(short / 1.25))} of focus.` : `You have ${grain(S.shop.balance)}.`}</p>`;
+  }
+  function buyButton(sp) {
+    const c = S.shop.catalog[sp];
+    if (c.hours != null) return `<button class="btn" type="button" disabled>🔒 ${c.hours} hours</button>`;
+    if (c.month) return `<button class="btn" type="button" disabled>Back in ${monthName(c.month)}</button>`;
+    return `<button class="btn primary" type="button" data-buy="${sp}"${S.shop.balance >= c.price ? '' : ' disabled'}>Buy for ${grain(c.price)}</button>`;
+  }
+  async function buyDuck(sp) {
+    try {
+      const res = await api('POST', '/api/shop/buy', { duck: sp });
+      S.shop = res.shop;
+      saveCache();
+      showDuck(sp, `${grain(S.shop.catalog[sp].price)} well spent: it's yours!`);
+      renderPlantControls();
+    } catch (err) { if (err.data?.shop) S.shop = err.data.shop; toast(err.message); }
+  }
+  async function mysteryEgg() {
+    const s = S.shop;
+    if (!(await confirmBox('Hatch a mystery egg?', `${grainText(s.mystery.price)} for a duck you don't have yet, picked at random from the shop.`, 'Hatch it'))) return;
+    try {
+      const res = await api('POST', '/api/shop/mystery');
+      S.shop = res.shop;
+      saveCache();
+      await Art.loadSprites(); // (the reveal waits for its picture, not the drawn stand-in)
+      await Art.sharpen([res.duck]).catch(() => {});
+      openDucks('gallery');
+      showDuck(res.duck, `🥚 It hatched: ${esc(Art.KINDS[res.duck].name)}!`);
+      renderPlantControls();
+    } catch (err) { if (err.data?.shop) S.shop = err.data.shop; toast(err.message); }
+  }
+  // a custom duck: they describe it, you paint it (see Settings → Duck shop)
+  function showCustom() {
+    const s = S.shop, owner = esc(personOf('me').name || 'Dakku\'s owner');
+    const status = (r) => r.status === 'open' ? `Waiting for ${owner} to make it` : r.status === 'done' ? `Ready: ${esc(Art.KINDS[r.duck]?.name || r.duck)}` : 'Refunded';
+    $('#duck-detail').innerHTML = `
+      <button class="link" type="button" data-back>← All ducks</button>
+      <h3 class="duck-name"><span class="jp">注文</span> Ask for a new duck</h3>
+      <p class="duck-blurb">Which duck would you like to see in Dakku? A character, an outfit, anything. ${owner} makes it and adds it,
+        and you get it as soon as it's in (then it's in the shop for everyone else too). It's ${grain(s.custom.price)}, all back if it can't be made.</p>
+      <form class="custom-form" id="custom-form">
+        <textarea id="custom-text" maxlength="300" rows="3" placeholder="A duck dressed as…" required></textarea>
+        <button class="btn primary" type="submit"${s.balance >= s.custom.price ? '' : ' disabled'}>Ask for it · ${grain(s.custom.price)}</button>
+        ${s.balance >= s.custom.price ? '' : `<p class="shop-note">${grain(s.custom.price - s.balance)} more to go.</p>`}
+      </form>
+      ${s.requests.length ? `<ul class="custom-list">${s.requests.slice().reverse().map((r) => `<li><span>${esc(r.text)}</span><small>${status(r)}</small></li>`).join('')}</ul>` : ''}`;
+    $('#duck-grid').hidden = true;
+    $('#duck-detail').hidden = false;
+  }
+  async function sendCustom(text) {
+    try {
+      const res = await api('POST', '/api/shop/requests', { text });
+      S.shop = res.shop;
+      saveCache();
+      showCustom();
+      toast('Sent! You\'ll get a notification when your duck is in.');
+    } catch (err) { if (err.data?.shop) S.shop = err.data.shop; toast(err.message); }
+  }
+  function showEarn() {
+    const s = S.shop, at = (m) => grain(grainFor({ minutes: m, status: 'done', source: 'dakku' }));
+    const rates = [...s.rates].reverse().map(([least, rate], i, all) => `<li><b>${least ? `${least}${all[i + 1] ? `–${all[i + 1][0] - 1}` : '+'} min` : `under ${all[1][0]} min`}</b><span>${rate} <i class="grain-ico" aria-hidden="true"></i> a minute</span></li>`).join('');
+    $('#duck-detail').innerHTML = `
+      <button class="link" type="button" data-back>← All ducks</button>
+      <h3 class="duck-name"><span class="jp">稼ぐ</span> How to earn grain</h3>
+      <p class="duck-blurb">Every duck you hatch with the timer earns grain, and a minute is worth more the longer you keep going:</p>
+      <ul class="earn-list">${rates}</ul>
+      <p class="shop-note">So 25 minutes earns ${at(25)}, an hour ${at(60)} and two hours ${at(120)} (a session counts up to ${s.cap / 60} hours).
+        Studying together earns a tenth more, and each day you reach your goal adds ${grain(s.goalBonus)}.
+        A cold egg, or time logged by hand, doesn't earn any.</p>
+      <p class="shop-note">The plain ducks come with hours of focus; every other duck is ${grain(s.price)} in the shop. The holiday ducks are free
+        for everyone in their holiday's month, and only then. A mystery egg is a duck you don't have yet for ${grain(s.mystery.price)}.</p>
+      <p class="shop-note">Grain buys themes, ponds and things for your pond too (in Settings): a theme or a pond is ${grain(s.items['theme:sumi'].price)},
+        and each decoration ${grain(s.items['decor:koi'].price)}. The seasonal pond is free and follows the seasons; a season's own pond is free while it lasts,
+        and bought to keep it all year. A holiday's theme and pond are free while it's on.</p>`;
+    $('#duck-grid').hidden = true;
+    $('#duck-detail').hidden = false;
   }
 
   function chooseDuck(sp) {
@@ -2128,19 +2336,19 @@
     $('#set-ponds').innerHTML = [...ponds.sort((a, b) => Object.keys(PONDS).indexOf(a) - Object.keys(PONDS).indexOf(b)), ...(seasonal ? ['seasonal'] : [])].map((t) => {
       const pic = Art.sprites.ponds[t]?.wide || Art.sprites.ponds[t]?.tall || Art.sprites.ponds[themeFor('seasonal')]?.wide;
       const [kanji, name] = PONDS[t] || ['池', t];
-      return `<button type="button" class="pond-pick" data-pond-pick="${t}" aria-pressed="${(s.pondTheme || 'classic') === t}">
-        ${pic ? `<img src="${esc(pic.thumb || pic.src)}" alt="" loading="lazy">` : ''}<span class="nm"><span class="jp">${kanji}</span>${name}</span></button>`;
+      return `<button type="button" class="pond-pick${ownsItem(`pond:${t}`) ? '' : ' locked'}" data-pond-pick="${t}" aria-pressed="${(s.pondTheme || 'classic') === t}">
+        ${pic ? `<img src="${esc(pic.thumb || pic.src)}" alt="" loading="lazy">` : ''}<span class="nm"><span class="jp">${kanji}</span>${name}</span>${itemLock(`pond:${t}`) || itemFree(`pond:${t}`)}</button>`;
     }).join('');
     $('#set-decor').innerHTML = DECOR.map(([id, kanji, name]) => {
       const pic = Art.sprites.decor[id];
-      return `<button type="button" class="decor-pick" data-decor="${id}" aria-pressed="${(s.decor || []).includes(id)}"${pic ? '' : ' disabled title="Not painted yet"'}>
-        ${pic ? `<img src="${esc(pic.src)}" alt="" loading="lazy">` : ''}<span class="nm"><span class="jp">${kanji}</span>${name}</span></button>`;
+      return `<button type="button" class="decor-pick${ownsItem(`decor:${id}`) ? '' : ' locked'}" data-decor="${id}" aria-pressed="${(s.decor || []).includes(id)}"${pic ? '' : ' disabled title="Not painted yet"'}>
+        ${pic ? `<img src="${esc(pic.src)}" alt="" loading="lazy">` : ''}<span class="nm"><span class="jp">${kanji}</span>${name}</span>${itemLock(`decor:${id}`)}</button>`;
     }).join('');
     $('#set-events').innerHTML = EVENTS.map(([id, icon, about]) => {
       const pic = Art.sprites.ponds[id]?.wide || Art.sprites.ponds[id]?.tall, [kanji, name] = PONDS[id];
-      return `<button type="button" class="event-pick" data-event="${id}" data-theme="${id}" aria-pressed="${s.theme === id && s.pondTheme === id}">
+      return `<button type="button" class="event-pick${ownsItem(`theme:${id}`) ? '' : ' locked'}" data-event="${id}" data-theme="${id}" aria-pressed="${s.theme === id && s.pondTheme === id}">
         ${pic ? `<img src="${esc(pic.thumb || pic.src)}" alt="" loading="lazy">` : `<span class="ev-icon" aria-hidden="true">${icon}</span>`}
-        <span class="nm"><span class="jp">${kanji}</span>${name}</span><small>${about}</small></button>`;
+        <span class="nm"><span class="jp">${kanji}</span>${name}</span><small>${about}</small>${itemLock(`theme:${id}`)}</button>`;
     }).join('');
     const unpainted = ['spring', 'autumn', 'winter', 'night', 'garden', 'sakura'].filter((t) => !ponds.includes(t)).map((t) => (t === 'garden' ? 'a garden' : t));
     const list = unpainted.length > 1 ? `${unpainted.slice(0, -1).join(', ')} and ${unpainted.at(-1)}` : unpainted[0];
@@ -2151,11 +2359,12 @@
     $('#set-friend-alerts').checked = s.friendAlerts !== false;
     $('#set-cheer-alerts').checked = s.cheerAlerts !== false;
     $('#set-weekly-recap').checked = s.weeklyRecap !== false;
-    if (S.me?.role === 'owner') renderPeopleAdmin();
+    if (S.me?.role === 'owner') { renderPeopleAdmin(); renderShopAdmin(); }
     $('#set-themes').innerHTML = THEMES.map(([id, kanji, name, bg, accent]) => `
-      <button type="button" class="theme" data-theme-pick="${id}" aria-pressed="${s.theme === id}">
+      <button type="button" class="theme${ownsItem(`theme:${id}`) ? '' : ' locked'}" data-theme-pick="${id}" aria-pressed="${s.theme === id}">
         <span class="sw" style="--b:${bg};--a:${accent}"><i></i><i></i></span>
-        <span class="nm"><span class="jp">${kanji}</span>${name}</span></button>`).join('');
+        <span class="nm"><span class="jp">${kanji}</span>${name}</span>${itemLock(`theme:${id}`)}</button>`).join('');
+    $('#set-holiday-auto').checked = s.holidayAuto !== false;
     renderPushSettings();
     $('#set-remind').checked = !!s.reminder?.enabled;
     $('#set-remind-time').value = s.reminder?.time || '20:00';
@@ -2349,6 +2558,35 @@
     setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 320); }, ms);
   }
 
+  // Settings → Duck shop (yours): whether friends earn their ducks, and the custom ducks they've asked for
+  function renderShopAdmin() {
+    $('#set-shop-friends').checked = S.settings.shopForFriends !== false;
+    $('#set-shop-me').checked = !!S.settings.shopForMe;
+    const reqs = (S.shop?.requests || []).slice().reverse();
+    const open = reqs.filter((r) => r.status === 'open');
+    // the painted ducks (a request's duck is a new one you've added; the plain ones come with hours)
+    const choices = '<option value="" disabled selected>Pick the duck you made…</option>' +
+      SPECIES.filter((k) => !BUILT_IN_PLAIN.includes(k)).map((k) => `<option value="${k}">${esc(Art.KINDS[k].name)}</option>`).reverse().join('');
+    $('#set-requests').innerHTML = !reqs.length ? '<p class="note">When a friend asks for a new duck, it shows up here. Make it with scripts/duck.py, then hand it over: they get it, and it joins the shop for everyone.</p>'
+      : reqs.map((r) => `<div class="request${r.status === 'open' ? ' open' : ''}" data-request="${esc(r.id)}">
+          <div><b>${esc(r.name)}</b> <span class="muted small">${esc(new Date(r.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))}</span><p>${esc(r.text)}</p></div>
+          ${r.status === 'open' ? `<div class="request-acts"><select aria-label="The duck you made">${choices}</select>
+            <button class="btn small primary" type="button" data-give>Hand over</button><button class="btn small ghost" type="button" data-refund>Refund</button></div>`
+            : `<small class="muted">${r.status === 'done' ? `Given: ${esc(Art.KINDS[r.duck]?.name || r.duck)}` : 'Refunded'}</small>`}</div>`).join('');
+    $('#shop-requests-note').textContent = open.length ? `${plural(open.length, 'request')} waiting` : '';
+  }
+  const BUILT_IN_PLAIN = ['shiro', 'sailor', 'neko', 'ninja', 'kitsune', 'yukata', 'samurai', 'nurse', 'astro', 'king'];
+  async function answerRequest(id, body) {
+    if (body.duck === '') { toast('Pick the duck you made for it first.'); return; }
+    try {
+      const res = await api('POST', `/api/shop/requests/${encodeURIComponent(id)}`, body);
+      S.shop = res.shop;
+      saveCache();
+      renderShopAdmin();
+      toast(body.refund ? 'Refunded.' : 'Handed over: it\'s theirs, and in the shop for everyone else.');
+    } catch (err) { toast(err.message); }
+  }
+
   function confirmBox(title, text, yes = 'OK', alertOnly = false) {
     const dlg = $('#confirm-dialog');
     $('#confirm-title').textContent = title;
@@ -2404,11 +2642,23 @@
     const todayMin = byDay.get(d.today) || 0;
     const streak = pending ? streaks(byDay, d.goal, d.today).current : d.streak;
     $('#done-stats').innerHTML = `<div><b>${todayMin}<small style="font-size:14px;font-weight:500">/${d.goal}</small></b><span>min today</span></div><div><b>${streak}</b><span>day streak</span></div><div><b>${d.trees + (pending ? 1 : 0)}</b><span>ducks in all</span></div>`;
+    // in the shop: what this one earned (and the goal day's bonus, if it just got there)
+    const earned = grainFor(s) + (shopOn() && todayMin >= d.goal && todayMin - s.minutes < d.goal ? S.shop.goalBonus : 0);
+    if (earned) $('#done-stats').insertAdjacentHTML('beforeend', `<div class="earned"><b>+${earned}</b><span><i class="grain-ico" aria-hidden="true"></i> grain</span></div>`);
     $('#done-share').hidden = false;
     $('#done-again').textContent = 'Hatch another';
+    noteBox(s);
     feathers(info.color);
     $('#done').hidden = false;
     render();
+  }
+  // a note on the duck that just hatched (what it was for), kept with its session and shown in the log
+  function noteBox(s) {
+    $('#done-note').hidden = false;
+    $('#done-note-form').hidden = true;
+    $('#done-note-btn').hidden = false;
+    $('#done-note-btn').textContent = s.note ? `Note: ${s.note}` : 'Add a note';
+    $('#done-note-in').value = s.note || '';
   }
   function showWithered(s) {
     if (!s) return;
@@ -2419,13 +2669,14 @@
     $('#done-title').textContent = 'This egg went cold';
     $('#done-sub').textContent = `${fmtMin(s.minutes)}${s.tag ? ` of ${s.tag}` : ''}${s.note ? ` · ${s.note}` : ''}. It stays in your pond, but doesn't count.`;
     $('#done-stats').innerHTML = '';
-    $('#petals').innerHTML = '';
+    $('#done-note').hidden = true;
+    $('#feathers').innerHTML = '';
     $('#done-share').hidden = true;
     $('#done-again').textContent = 'Try again';
     $('#done').hidden = false;
   }
   function feathers(color) {
-    const host = $('#petals');
+    const host = $('#feathers');
     host.innerHTML = '';
     const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#57C7CF';
     const colors = lightTheme() ? ['#FFB3D1', '#E9C6FF', color, accent] : ['#FFFFFF', '#FFFFFF', color, accent]; // white doesn't show on a light page
@@ -2774,22 +3025,42 @@
     host.dataset.sakura ||= host.innerHTML;
     if (host.dataset.for === theme) return;
     host.dataset.for = theme;
-    const r = Art.rng('drift' + theme), n = { halloween: 9, thanksgiving: 16, christmas: 34 }[theme], r1 = (v) => Math.round(v * 10) / 10;
+    const r = Art.rng('drift' + theme), n = { halloween: 9, thanksgiving: 16, christmas: 34, lunar: 18 }[theme], r1 = (v) => Math.round(v * 10) / 10;
     if (!n) { host.innerHTML = theme === 'sakura' ? host.dataset.sakura : ''; return; }
     let html = '';
     for (let i = 0; i < n; i++) {
       const x = r1(r() * 100), d = r1((theme === 'christmas' ? 14 : theme === 'halloween' ? 22 : 16) + r() * 14), w = r1(-r() * 30);
-      const v = theme === 'thanksgiving' ? ` data-v="${i % 3}"` : theme === 'christmas' ? ` style="--x:${x}%;--d:${d}s;--w:${w}s;--s:${r1(4 + r() * 6)}px;--o:${r1(0.35 + r() * 0.5)}"` : '';
+      const v = theme === 'thanksgiving' || theme === 'lunar' ? ` data-v="${i % 3}"` : theme === 'christmas' ? ` style="--x:${x}%;--d:${d}s;--w:${w}s;--s:${r1(4 + r() * 6)}px;--o:${r1(0.35 + r() * 0.5)}"` : '';
       html += theme === 'christmas' ? `<i${v}></i>` : `<i style="--x:${x}%;--y:${r1(8 + r() * 60)}vh;--d:${d}s;--w:${w}s"${v}></i>`;
     }
+    if (theme === 'lunar') html += '<b style="--x:18%;--d:29s;--w:-4s">✦</b><b style="--x:47%;--d:34s;--w:-18s">✦</b><b style="--x:79%;--d:31s;--w:-11s">✦</b>';
     if (theme === 'christmas') html += '<b style="--x:22%;--d:31s;--w:-6s">❄</b><b style="--x:58%;--d:36s;--w:-20s">❄</b><b style="--x:84%;--d:33s;--w:-12s">✦</b>';
     host.innerHTML = html;
+  }
+  // an event's decoration around the timer: a wreath with lights, vines with jack-o'-lanterns, autumn
+  // leaves, red lanterns (painted pictures, from the picture list; fetched only when its event is on)
+  function paintRing(theme) {
+    const el = $('#dial-ring');
+    if (!el) return;
+    const ring = Art.sprites.rings?.[theme];
+    el.hidden = !ring;
+    // (sized by the event, not the picture, so the dial doesn't jump when the picture list arrives)
+    el.parentElement.classList.toggle('ringed', EVENTS.some((e) => e[0] === theme));
+    if (ring && el.getAttribute('src') !== ring.src) el.setAttribute('src', ring.src);
+    // how far the ring's painting reaches above and below the dial, as a share of the dial's width: the
+    // picture is 1.382 dials wide (see .dial-ring), less the empty band at its top or bottom
+    for (const [side, i] of [['top', 0], ['bottom', 1]]) {
+      const pad = ring?.pad?.[i];
+      if (pad == null) el.parentElement.style.removeProperty(`--ring-${side}`);
+      else el.parentElement.style.setProperty(`--ring-${side}`, Math.max(0, 0.191 - pad * 1.382).toFixed(3));
+    }
   }
   function applyTheme() {
     const pref = S.settings?.theme || store.get(K.theme, 'ai');
     const theme = THEMES.some((t) => t[0] === pref) ? pref : 'ai';
     document.documentElement.dataset.theme = theme;
     paintDrift(theme);
+    paintRing(theme);
     store.set(K.theme, pref);
     const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
     $('meta[name="theme-color"]').setAttribute('content', bg || '#F2EDE3');
@@ -2942,15 +3213,15 @@
       const input = e.target.closest('[data-pomo-in]');
       if (!input) return;
       input.dataset.was = S.pick.pomo[input.dataset.pomoIn];
-      input.dataset.fresh = '1';
-      setTimeout(() => input.select(), 0);
+      input.dataset.fresh = '1'; // the first digit typed replaces the number
+      // shown selected on a computer; not on a phone, where selecting makes the screen jump about
+      if (matchMedia('(hover: hover)').matches) setTimeout(() => input.select(), 0);
     });
-    // all of it selected, so typing replaces it: on a tap, once it's over (letting go places the cursor)
-    $('#pomo-pick').addEventListener('click', (e) => {
+    $('#pomo-pick').addEventListener('beforeinput', (e) => {
       const input = e.target.closest('[data-pomo-in]');
       if (!input?.dataset.fresh) return;
       delete input.dataset.fresh;
-      input.setSelectionRange(0, input.value.length);
+      if (e.inputType.startsWith('insert') || e.inputType.startsWith('delete')) input.value = '';
     });
     const typed = (input, settle) => {
       const k = input.dataset.pomoIn, [low, high] = POMO_LIMITS[k], n = parseInt(input.value, 10);
@@ -2972,7 +3243,6 @@
     $('#pomo-pick').addEventListener('keydown', (e) => {
       const input = e.target.closest('[data-pomo-in]');
       if (!input) return;
-      delete input.dataset.fresh;
       if (e.key === 'Escape') input.value = input.dataset.was;
       if (e.key === 'Enter' || e.key === 'Escape') input.blur();
     });
@@ -3030,9 +3300,19 @@
       if (hatchWith) { chooseDuck(hatchWith.dataset.hatchWith); location.hash = '#hatch'; return; }
       const duck = e.target.closest('[data-duck]');
       if (duck) { showDuck(duck.dataset.duck); return; }
-      if (e.target.closest('[data-back]')) { $('#duck-detail').hidden = true; $('#duck-grid').hidden = false; }
+      const buy = e.target.closest('[data-buy]');
+      if (buy) { buy.disabled = true; buyDuck(buy.dataset.buy); return; }
+      if (e.target.closest('[data-mystery]')) { mysteryEgg(); return; }
+      if (e.target.closest('[data-custom]')) { showCustom(); return; }
+      if (e.target.closest('[data-earn]')) { showEarn(); return; }
+      if (e.target.closest('[data-back]')) { openDucks($('#ducks-title').textContent === 'Choose a duck' ? 'pick' : 'gallery'); }
     });
-    $('#plant-btn').addEventListener('click', startTimer);
+    $('#ducks-dialog').addEventListener('submit', (e) => {
+      if (e.target.id !== 'custom-form') return;
+      e.preventDefault();
+      const text = $('#custom-text').value.trim();
+      if (text) { e.target.querySelector('button').disabled = true; sendCustom(text); }
+    });
     $('#open-sessions').addEventListener('change', (e) => { saveSettings({ openSessions: e.target.checked }, { quiet: true }); });
     document.addEventListener('click', (e) => { const j = e.target.closest('[data-join]'); if (j && !j.disabled) openJoin(j.dataset.join); });
     document.addEventListener('click', (e) => { const c = e.target.closest('[data-cheer]'); if (c) openCheer(c.dataset.cheer); });
@@ -3064,6 +3344,24 @@
         return;
       }
       if (await confirmBox('Give up this egg?', 'It goes cold. Cold eggs stay in your pond but don\'t count toward your goal.', 'Give up')) timerAction('cancel');
+    });
+    $('#done-note-btn').addEventListener('click', () => {
+      $('#done-note-btn').hidden = true;
+      $('#done-note-form').hidden = false;
+      $('#done-note-in').focus();
+    });
+    $('#done-note-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const s = lastDone;
+      if (!s) return;
+      const note = $('#done-note-in').value.trim().slice(0, 300), now = serverNow();
+      s.note = note;
+      const have = S.sessions.get(s.id);
+      if (have) S.sessions.set(s.id, { ...have, note, updated: now });
+      // the whole session goes along, in case the PC hasn't confirmed this duck yet
+      enqueue({ op: 'upsert', session: { id: s.id, start: s.start, minutes: s.minutes, tag: s.tag, species: s.species, status: s.status, rounds: s.rounds || 0, note, updated: now } });
+      noteBox(s);
+      render();
     });
     $('#done-close').addEventListener('click', () => { $('#done').hidden = true; });
     $('#done').addEventListener('click', (e) => { if (e.target.id === 'done') $('#done').hidden = true; });
@@ -3188,18 +3486,29 @@
         return;
       }
       const th = e.target.closest('[data-theme-pick]');
-      if (th) { saveSettings({ theme: th.dataset.themePick }); return; }
+      if (th) {
+        const id = th.dataset.themePick, t = THEMES.find((x) => x[0] === id);
+        withItem(`theme:${id}`, `the ${t[2]} theme`, () => saveSettings({ theme: id }));
+        return;
+      }
       const pond = e.target.closest('[data-pond-pick]');
-      if (pond) { saveSettings({ pondTheme: pond.dataset.pondPick }); return; }
+      if (pond) {
+        const id = pond.dataset.pondPick;
+        withItem(`pond:${id}`, `the ${PONDS[id]?.[1] || id} pond`, () => saveSettings({ pondTheme: id }));
+        return;
+      }
       const deco = e.target.closest('[data-decor]');
       if (deco) {
-        const on = new Set(S.settings.decor || []);
-        if (on.has(deco.dataset.decor)) on.delete(deco.dataset.decor); else on.add(deco.dataset.decor);
-        saveSettings({ decor: DECOR.map(([id]) => id).filter((id) => on.has(id)) });
+        const id = deco.dataset.decor, on = new Set(S.settings.decor || []);
+        const toggle = () => {
+          if (on.has(id)) on.delete(id); else on.add(id);
+          saveSettings({ decor: DECOR.map(([d]) => d).filter((d) => on.has(d)) });
+        };
+        if (on.has(id)) toggle(); else withItem(`decor:${id}`, `the ${DECOR.find((d) => d[0] === id)[2].toLowerCase()}`, toggle);
         return;
       }
       const ev = e.target.closest('[data-event]');
-      if (ev) { pickEvent(ev.dataset.event); return; }
+      if (ev) { withItem(`theme:${ev.dataset.event}`, PONDS[ev.dataset.event][1], () => pickEvent(ev.dataset.event)); return; }
       const pc = e.target.closest('[data-pcolor]');
       if (pc) { updateMe({ color: pc.dataset.pcolor }); return; }
       if (await peopleAdminClick(e)) return;
@@ -3221,11 +3530,20 @@
         }
       }
     });
+    $('#set-requests').addEventListener('click', (e) => {
+      const row = e.target.closest('[data-request]');
+      if (!row) return;
+      if (e.target.closest('[data-give]')) answerRequest(row.dataset.request, { duck: row.querySelector('select').value });
+      else if (e.target.closest('[data-refund]')) answerRequest(row.dataset.request, { refund: true });
+    });
     $('#view-settings').addEventListener('change', async (e) => {
       if (e.target.id === 'set-mark') { updateMe({ mark: e.target.value }); return; }
       if (e.target.id === 'set-friend-alerts') { saveSettings({ friendAlerts: e.target.checked }, { quiet: true }); return; }
       if (e.target.id === 'set-cheer-alerts') { saveSettings({ cheerAlerts: e.target.checked }, { quiet: true }); return; }
       if (e.target.id === 'set-weekly-recap') { saveSettings({ weeklyRecap: e.target.checked }, { quiet: true }); return; }
+      if (e.target.id === 'set-shop-friends') { saveSettings({ shopForFriends: e.target.checked }, { quiet: true }); return; }
+      if (e.target.id === 'set-shop-me') { saveSettings({ shopForMe: e.target.checked }, { quiet: true }); toast(e.target.checked ? 'The shop is on for you: earn your ducks!' : 'Every duck, theme and pond is yours again.'); return; }
+      if (e.target.id === 'set-holiday-auto') { saveSettings({ holidayAuto: e.target.checked }, { quiet: true }); return; }
       const gt = e.target.closest('[data-group-theme]');
       if (gt) {
         try { await api('PATCH', `/api/groups/${gt.dataset.groupTheme}`, { theme: gt.value }); S.groupData = {}; await refreshTogetherNow(); toast('Pond changed.'); } catch (err) { toast(err.message); }
