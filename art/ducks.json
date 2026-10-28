@@ -7,7 +7,8 @@
    "blurb": "A plain little call duck. Perfect as it is.",
    "face": "calm",
    "look": "no outfit at all: just the plain white duck",
-   "body": 338
+   "body": 338,
+   "category": "dakku"
   },
   "sailor": {
    "kanji": "水兵",
@@ -16,7 +17,8 @@
    "blurb": "Ready for the open sea, or at least the pond.",
    "face": "calm",
    "look": "a small navy sailor collar with white stripes and a red bow, and a tiny white sailor cap",
-   "body": 331
+   "body": 331,
+   "category": "dakku"
   },
   "neko": {
    "kanji": "猫",
@@ -25,16 +27,19 @@
    "blurb": "A cat-ear hoodie. Duck or cat? Yes.",
    "face": "calm",
    "look": "a soft gray cat-ear hoodie with the hood up around its face",
-   "body": 339
+   "body": 339,
+   "category": "dakku"
   },
   "super": {
-   "kanji": "金",
-   "name": "Super",
+   "kanji": "悟",
+   "name": "Goku",
    "color": "#F2B83A",
-   "blurb": "Golden hair, orange gi, power level rising.",
+   "blurb": "Charges up for three episodes before every session.",
    "face": "angry",
    "look": "spiky golden hair standing straight up like flames, and an orange martial-arts top with a dark-blue belt",
-   "body": 328
+   "body": 328,
+   "category": "anime",
+   "series": "Dragon Ball"
   },
   "ninja": {
    "kanji": "忍",
@@ -43,25 +48,28 @@
    "blurb": "Silent, focused, nearly invisible.",
    "face": "calm",
    "look": "a charcoal ninja hood with a long red headband tied at the back",
-   "body": 441
+   "body": 441,
+   "category": "dakku"
   },
   "kitsune": {
    "kanji": "狐",
    "name": "Kitsune",
    "color": "#D9463B",
-   "blurb": "A fox mask from the shrine festival.",
+   "blurb": "Keeps its secrets. Also its flashcards.",
    "face": "calm",
    "look": "a white fox mask with red markings worn tilted on the side of its head, small orange fox ears, and a red scarf",
-   "body": 441
+   "body": 441,
+   "category": "dakku"
   },
   "yukata": {
    "kanji": "祭",
    "name": "Matsuri",
    "color": "#4566B8",
-   "blurb": "Dressed up for the summer festival.",
+   "blurb": "Fireworks later. Focus first.",
    "face": "calm",
    "look": "an indigo summer yukata with a simple white wave pattern, a red obi sash, and a pink flower on its head",
-   "body": 439
+   "body": 439,
+   "category": "dakku"
   },
   "samurai": {
    "kanji": "侍",
@@ -70,7 +78,8 @@
    "blurb": "A tiny warrior in a very big helmet.",
    "face": "calm",
    "look": "a little red samurai helmet with a golden crescent crest, and a dark-blue jacket",
-   "body": 458
+   "body": 458,
+   "category": "dakku"
   },
   "king": {
    "kanji": "王",
@@ -79,7 +88,8 @@
    "blurb": "Rules the pond. Earned every minute.",
    "face": "calm",
    "look": "a small golden crown and a red cape with a white fur collar",
-   "body": 455
+   "body": 455,
+   "category": "dakku"
   },
   "astro": {
    "kanji": "宙",
@@ -88,16 +98,19 @@
    "blurb": "Studied so much it reached space.",
    "face": "calm",
    "look": "a white space suit and a round clear glass helmet bubble around its head",
-   "body": 441
+   "body": 441,
+   "category": "dakku"
   },
   "shizuku": {
    "kanji": "雫",
    "name": "Shizuku",
    "color": "#8EC5EE",
-   "blurb": "A school idol. Every session is a stage.",
+   "blurb": "Every session is a stage. No encore needed.",
    "face": "calm",
    "look": "Shizuku Osaka from Love Live! Nijigasaki: long straight dark-brown hair with neat bangs flowing down behind its back, tied in a half-up ponytail with her big red ribbon bow at the back of the head, and a light-blue idol outfit with white frills",
-   "body": 352
+   "body": 352,
+   "category": "anime",
+   "series": "Love Live!"
   },
   "nurse": {
    "kanji": "看護",
@@ -106,7 +119,8 @@
    "blurb": "Takes care of everyone, starting with your focus.",
    "face": "calm",
    "look": "a small white nurse cap with a red cross, a pale pink nurse collar, and a stethoscope around its neck",
-   "body": 348
+   "body": 348,
+   "category": "dakku"
   },
   "senku": {
    "kanji": "千空",
@@ -115,34 +129,42 @@
    "blurb": "Ten billion percent focused. Science!",
    "face": "calm",
    "look": "Senku from Dr. Stone: tall spiky upswept white hair with pale green tips, the thin stone-crack marks on one side of his face, a simple light-green caveman tunic, and a small glass flask of bubbling green liquid",
-   "body": 352
+   "body": 352,
+   "category": "anime",
+   "series": "Dr. Stone"
   },
   "naruto": {
    "kanji": "鳴門",
    "name": "Naruto",
    "color": "#F28C28",
-   "blurb": "Never gives up on a session.",
+   "blurb": "Believe it: one more session, dattebayo.",
    "face": "calm",
    "look": "Naruto: spiky bright-yellow hair, a blue Leaf Village headband with a metal plate, three whisker marks on each cheek, and an orange-and-black jacket",
-   "body": 352
+   "body": 352,
+   "category": "anime",
+   "series": "Naruto"
   },
   "loid": {
    "kanji": "黄昏",
    "name": "Loid",
    "color": "#3E6B4F",
-   "blurb": "A spy on a mission: study hard and blend in.",
+   "blurb": "Mission: study hard, blend in. Mostly the first one.",
    "face": "calm",
    "look": "Loid Forger from Spy x Family: short neat blond hair swept to the side, a dark-green suit jacket over a black vest, a white shirt and a red tie",
-   "body": 705
+   "body": 705,
+   "category": "anime",
+   "series": "Spy x Family"
   },
   "yor": {
    "kanji": "茨",
    "name": "Yor",
    "color": "#B3243A",
-   "blurb": "The Thorn Princess. Deadly focused.",
+   "blurb": "Assassinates distractions. Cooking is another matter.",
    "face": "calm",
    "look": "Yor Forger as the Thorn Princess from Spy x Family: long straight black hair with bangs and two long locks in front, a golden rose headband, a black off-the-shoulder dress with red roses, and a small gold stiletto",
-   "body": 719
+   "body": 719,
+   "category": "anime",
+   "series": "Spy x Family"
   },
   "anya": {
    "kanji": "心",
@@ -151,7 +173,9 @@
    "blurb": "Studying? Waku waku!",
    "face": "calm",
    "look": "Anya Forger from Spy x Family: shoulder-length pink hair with her two little black cone-shaped hair ornaments on top, and her black Eden Academy school dress with gold trim",
-   "body": 633
+   "body": 633,
+   "category": "anime",
+   "series": "Spy x Family"
   },
   "kirby": {
    "kanji": "星",
@@ -160,25 +184,31 @@
    "blurb": "Inhales whole chapters in one go.",
    "face": "calm",
    "look": "Kirby: a cute round pink Kirby kigurumi hood framing the duck's own face and beak, with Kirby's face on top of the hood (two tall dark-blue oval eyes with a white shine, pink blush and a tiny smile), and a small star scarf",
-   "body": 689
+   "body": 689,
+   "category": "games",
+   "series": "Kirby"
   },
   "vegeta": {
    "kanji": "王子",
    "name": "Vegeta",
    "color": "#2F4FA8",
-   "blurb": "A Saiyan prince never skips a study day.",
+   "blurb": "It's over 9,000 minutes! Still not satisfied.",
    "face": "angry",
    "look": "Vegeta from Dragon Ball Z: tall black spiky flame-shaped hair with a sharp widow's peak, a blue bodysuit with white Saiyan armour and yellow shoulder pads",
-   "body": 744
+   "body": 744,
+   "category": "anime",
+   "series": "Dragon Ball"
   },
   "clive": {
    "kanji": "炎",
    "name": "Clive",
    "color": "#E0632A",
-   "blurb": "A Dominant of fire, with a study plan.",
+   "blurb": "Burns through the reading list. Literally.",
    "face": "calm",
    "look": "Clive Rosfield from Final Fantasy XVI: short dark-brown hair, a short dark beard, a plain dark cape over his shoulders (no fur) on his dark leather outfit, and a big sword hilt over his shoulder",
-   "body": 734
+   "body": 734,
+   "category": "games",
+   "series": "Final Fantasy"
   },
   "sonic": {
    "kanji": "速",
@@ -187,16 +217,20 @@
    "blurb": "Gotta study fast.",
    "face": "calm",
    "look": "Sonic the Hedgehog: a blue Sonic hood with his big swept-back blue quills and little blue ears framing the duck's face, and a small gold ring floating beside it",
-   "body": 757
+   "body": 757,
+   "category": "games",
+   "series": "Sonic the Hedgehog"
   },
   "cloud": {
    "kanji": "雲",
    "name": "Cloud",
    "color": "#4C5A7A",
-   "blurb": "Ex-SOLDIER. Carries a sword as big as the syllabus.",
+   "blurb": "Carries a sword as big as the syllabus.",
    "face": "calm",
    "look": "Cloud Strife from Final Fantasy VII: tall spiky blond hair, a dark navy sleeveless SOLDIER top with a silver shoulder pauldron, and his huge Buster Sword strapped upright on his back",
-   "body": 638
+   "body": 638,
+   "category": "games",
+   "series": "Final Fantasy"
   },
   "sora": {
    "kanji": "空",
@@ -205,16 +239,20 @@
    "blurb": "Unlocks every chapter with a Keyblade.",
    "face": "calm",
    "look": "Sora from Kingdom Hearts 2: big spiky brown hair, an all-black short-sleeved hooded jacket with white lining and silver patches on the shoulders, a navy undershirt with a red patch in the middle, his silver crown pendant necklace, and the Kingdom Key Keyblade resting upright behind him",
-   "body": 657
+   "body": 657,
+   "category": "games",
+   "series": "Kingdom Hearts"
   },
   "venus": {
    "kanji": "金星",
    "name": "Venus",
    "color": "#F29A2E",
-   "blurb": "A guardian of love and good study habits.",
+   "blurb": "In the name of the moon, you will finish this chapter.",
    "face": "calm",
    "look": "Sailor Venus: long golden-blonde hair with a big red bow, a gold tiara with an orange gem, an orange choker, and her white sailor uniform with an orange collar and a blue front bow",
-   "body": 780
+   "body": 780,
+   "category": "anime",
+   "series": "Sailor Moon"
   },
   "yu": {
    "kanji": "鳴上",
@@ -223,7 +261,9 @@
    "blurb": "Maxed out his Knowledge. Naturally.",
    "face": "calm",
    "look": "Yu Narukami from Persona 4 Revival: neat straight silver-gray hair with a bob and bangs (only medium-gray lines inside the hair, never black), and the black Yasogami High school jacket with a high collar, worn open over a white shirt",
-   "body": 719
+   "body": 719,
+   "category": "games",
+   "series": "Persona"
   },
   "makoto": {
    "kanji": "結城",
@@ -232,7 +272,9 @@
    "blurb": "Headphones on. Memento mori.",
    "face": "calm",
    "look": "Makoto Yuki from Persona 3 Reload: dark blue hair with long bangs swept over one side of the face (the duck's own eye stays visible), the black Gekkoukan High blazer with a white shirt and red ribbon, a red S.E.E.S. armband, small gray clip-on earphones resting at his collar (not on the ear) with a black cable down to a small gray cylindrical MP3 player hanging on his chest",
-   "body": 688
+   "body": 688,
+   "category": "games",
+   "series": "Persona"
   },
   "joker": {
    "kanji": "怪盗",
@@ -241,34 +283,42 @@
    "blurb": "Steals your distractions.",
    "face": "calm",
    "look": "Joker from Persona 5: messy black curly hair, his white domino mask (the duck's eye shows through it), and his black Phantom Thief long coat with a high collar",
-   "body": 766
+   "body": 766,
+   "category": "games",
+   "series": "Persona"
   },
   "kiryu": {
    "kanji": "龍",
    "name": "Kiryu",
    "color": "#8A2433",
-   "blurb": "The Dragon of Dojima never skips a session.",
+   "blurb": "Never skips a session. Or a karaoke night.",
    "face": "angry",
    "look": "Kazuma Kiryu from Yakuza: short slicked-back dark hair, a light gray suit over an open-collared dark red shirt",
-   "body": 771
+   "body": 771,
+   "category": "games",
+   "series": "Like a Dragon"
   },
   "link": {
    "name": "Link",
    "kanji": "勇",
    "color": "#4F7A3A",
-   "blurb": "Hero of Twilight. Every session is another dungeon cleared.",
+   "blurb": "Hey! Listen! Every session is another dungeon cleared.",
    "face": "calm",
    "look": "Link from The Legend of Zelda: Twilight Princess: his long floppy olive-green cap with the tip hanging down behind the head, light golden-brown hair with long side bangs, an olive-green tunic with a brown leather belt over a light chainmail collar, and on his back the Hylian Shield (blue with a silver rim, a silver Triforce and the red bird crest) with the Master Sword's blue-violet hilt sticking up over the shoulder",
-   "body": 692
+   "body": 692,
+   "category": "games",
+   "series": "The Legend of Zelda"
   },
   "zelda": {
    "name": "Zelda",
    "kanji": "姫",
    "color": "#8E6BB8",
-   "blurb": "Princess of Hyrule. Wisdom, one session at a time.",
+   "blurb": "Wisdom, one session at a time. Courage is your problem.",
    "face": "calm",
    "look": "Princess Zelda from The Legend of Zelda: Twilight Princess: long straight brown hair with bangs and two long front locks wrapped in white bands, a gold tiara with a blue gem on the forehead, ornate gold shoulder pieces, and a white royal gown with lilac panels and a tabard down the front showing a gold Triforce above a red crest",
-   "body": 773
+   "body": 773,
+   "category": "games",
+   "series": "The Legend of Zelda"
   },
   "miku": {
    "name": "Miku",
@@ -277,7 +327,9 @@
    "blurb": "Hums along to every session. The first sound of a focused future.",
    "face": "calm",
    "look": "Hatsune Miku: very long turquoise twin tails tied high on the head with black-and-red hair ties, turquoise bangs, a black headset with turquoise lights and a small microphone, and her gray sleeveless top's collar with a turquoise necktie",
-   "body": 649
+   "body": 649,
+   "category": "music",
+   "series": "Hatsune Miku"
   },
   "bocchi": {
    "name": "Bocchi",
@@ -286,7 +338,9 @@
    "blurb": "Practices for hours and talks to no one. The perfect study buddy.",
    "face": "calm",
    "look": "Hitori 'Bocchi' Gotoh from Bocchi the Rock!: long straight pink hair with bangs down to just above the eye, her two little square hair clips on top of the head, one blue and one yellow, a pink tracksuit jacket zipped up to the collar, and a black electric guitar on her back",
-   "body": 638
+   "body": 638,
+   "category": "anime",
+   "series": "Bocchi the Rock!"
   },
   "monika": {
    "name": "Monika",
@@ -295,7 +349,9 @@
    "blurb": "Just Monika. Just studying.",
    "face": "calm",
    "look": "Monika from Doki Doki Literature Club!: long coral-brown hair in a high ponytail tied with a big white bow at the back, neat bangs with two long strands framing the face, and her school uniform: a warm gray blazer over a white shirt with a red ribbon at the collar",
-   "body": 727
+   "body": 727,
+   "category": "games",
+   "series": "Doki Doki Literature Club"
   },
   "trunks": {
    "name": "Trunks",
@@ -304,7 +360,9 @@
    "blurb": "Came back from the future to make sure you study.",
    "face": "calm",
    "look": "Future Trunks from Dragon Ball Z: straight lavender hair down to the chin with a middle part, a steel-blue jacket with a small Capsule Corp logo patch on the shoulder over a black shirt, and his sword's hilt sticking up over the shoulder from a brown strap across the chest",
-   "body": 680
+   "body": 680,
+   "category": "anime",
+   "series": "Dragon Ball"
   },
   "godzilla": {
    "name": "Godzilla",
@@ -313,7 +371,9 @@
    "blurb": "King of the Monsters, and of the pond.",
    "face": "angry",
    "look": "Godzilla: a charcoal gray-green Godzilla kigurumi hood framing the duck's own face and beak, with Godzilla's snout and a row of small white teeth along the top of the hood, and pale jagged dorsal plates running from the hood down the duck's back",
-   "body": 641
+   "body": 641,
+   "category": "screen",
+   "series": "Godzilla"
   },
   "snoopy": {
    "name": "Snoopy",
@@ -322,16 +382,20 @@
    "blurb": "The World Famous Study Duck.",
    "face": "calm",
    "look": "Snoopy from Peanuts: two long black floppy dog ears hanging down from the top of the head on both sides, a red collar, and a tiny yellow Woodstock bird sitting on top of its head",
-   "body": 596
+   "body": 596,
+   "category": "screen",
+   "series": "Peanuts"
   },
   "ike": {
    "name": "Ike",
    "kanji": "蒼炎",
    "color": "#2F4C9C",
-   "blurb": "Leader of the Greil Mercenaries. He fights for his focus!",
+   "blurb": "Fights for his friends. Studies for himself.",
    "face": "calm",
    "look": "young Ike from Super Smash Bros. Ultimate (his Path of Radiance costume): spiky dark-blue hair, a dark brown headband with long tails trailing behind, a red cape wrapped around his shoulders like a scarf, a brown leather guard on his shoulder, a navy-blue tunic with a high collar, and his sword Ragnell strapped upright on his back: a broad golden-yellow blade with a dark gray crossguard and grip",
-   "body": 751
+   "body": 751,
+   "category": "games",
+   "series": "Fire Emblem"
   },
   "witch": {
    "name": "Witch",
@@ -339,8 +403,9 @@
    "color": "#7B4FA8",
    "blurb": "Out trick-or-treating. The bucket is mostly flashcards.",
    "face": "calm",
-   "look": "a Halloween witch: a tall floppy black pointed witch hat with a purple band and a small buckle, a short black cape with a purple lining, and a little orange jack-o'-lantern treat bucket resting against its wing",
-   "body": 684
+   "look": "a Halloween witch: a tall floppy black pointed witch hat with a purple band and a small buckle, a short black cape with a purple lining, and a little orange jack-o'-lantern treat pail resting against its wing, with a thin black wire handle that arches neatly over the top of the pail, both ends fixed to the pail's rim, the handle standing straight up from the pail and touching nothing else",
+   "body": 627,
+   "category": "holiday"
   },
   "harvest": {
    "name": "Harvest",
@@ -349,7 +414,8 @@
    "blurb": "Thankful for every hour on the clock.",
    "face": "calm",
    "look": "a cozy Thanksgiving harvest look: a knitted mustard-yellow scarf, a little brown pilgrim hat with a gold buckle, and a small round pumpkin pie resting against its wing",
-   "body": 730
+   "body": 730,
+   "category": "holiday"
   },
   "santa": {
    "name": "Santa",
@@ -358,7 +424,8 @@
    "blurb": "Making a list of chapters, checking it twice.",
    "face": "calm",
    "look": "Santa Claus: a red Santa hat with white fur trim and a white pompom, a red coat with white fur trim and a black belt with a gold buckle, and a small brown sack of presents on its back",
-   "body": 700
+   "body": 700,
+   "category": "holiday"
   },
   "shulk": {
    "name": "Shulk",
@@ -366,17 +433,21 @@
    "color": "#C8352E",
    "blurb": "Sees the future: it's you, finishing this session.",
    "face": "calm",
-   "look": "Shulk from Xenoblade Chronicles: short, wavy pale-blond hair, a short wine-red jacket over a black sweater with a small pink-and-purple pattern, and the Monado on its back: a big red sword with a round hole near its tip, its two red halves slightly open around a glowing light-blue energy blade",
-   "body": 614
+   "look": "Shulk from Xenoblade Chronicles: short, wavy pale-blond hair, a short wine-red jacket over a black sweater with a small pink-and-purple pattern, and the Monado slung on its back the way the other ducks carry their swords: point down, with only its thin handle and the big round ring at the base of the blade sticking up over the shoulder, and the long flat red blade (with a few thin light-blue glowing lines) hanging down behind the back. Drawn like the real Monado: the ring with a hole through it sits at the bottom of the blade next to the handle, and the handle is a long, very thin red rod coming straight down from the middle of the ring (centered under it, not off to one side), much thinner than the blade, with a tiny ring at its end",
+   "body": 628,
+   "category": "games",
+   "series": "Xenoblade Chronicles"
   },
   "yagami": {
    "name": "Yagami",
    "kanji": "探偵",
    "color": "#3A3A42",
-   "blurb": "Private detective. Case closed: one more session.",
+   "blurb": "Case closed: one more session.",
    "face": "calm",
    "look": "Takayuki Yagami from Judgment: medium-length, slightly messy black hair parted in the middle, a black leather moto jacket over a plain white T-shirt, and a small wireless earpiece",
-   "body": 618
+   "body": 618,
+   "category": "games",
+   "series": "Like a Dragon"
   },
   "eve": {
    "name": "EVE",
@@ -384,8 +455,10 @@
    "color": "#3E8E7E",
    "blurb": "Takes back the Earth, one session at a time.",
    "face": "calm",
-   "look": "EVE from Stellar Blade: long dark-brown hair tied in a high ponytail, with long bangs framing the face, her black Planet Diving suit with white panels, small mint-green accents and a high collar, and her slim silver sword resting on its back",
-   "body": 698
+   "look": "EVE from Stellar Blade: long dark-brown hair tied in a high ponytail, with long bangs framing the face, her black Planet Diving suit with white panels, small mint-green accents and a high collar, and her glowing hair band at the base of the ponytail",
+   "body": 698,
+   "category": "games",
+   "series": "Stellar Blade"
   },
   "nagisa": {
    "name": "Nagisa",
@@ -393,8 +466,10 @@
    "color": "#E8A0B4",
    "blurb": "Dango, dango… a big dango family of finished sessions.",
    "face": "calm",
-   "look": "Nagisa Furukawa from Clannad: short, wavy brown hair a little past the shoulders, with two thin strands sticking up from the top of the head like antennae and two small red hair clips at the sides, her pale-yellow school jacket with a white sailor collar, and the Big Dango Family sitting on its back like little plush toys: three soft, round, squishy dango characters (one pink, one white, one pale green), plain rounded blobs with no stick, skewer or plate, each with only two tiny dot eyes and no mouth at all, huddled together",
-   "body": 712
+   "look": "Nagisa Furukawa from Clannad: short, wavy brown hair a little past the shoulders, with two thin strands sticking up from the top of the head like antennae and two small red hair clips at the sides, her pale-yellow school jacket with a white sailor collar and a red ribbon, worn plainly over the round body with no sleeves or arms showing, and the Big Dango Family sitting on its back like little plush toys: three soft, squishy dango characters in Clannad's pastel colors (one pastel pink, one pastel sky blue, one pastel mint green, all different), each a flattened, wider-than-tall oval like a squished mochi dumpling with a slightly flat bottom, never a perfect circle, no stick, skewer or plate, each with only two tiny eyes drawn as short vertical lines (like two little slits, not dots) and no mouth at all, huddled together",
+   "body": 674,
+   "category": "anime",
+   "series": "Clannad"
   },
   "monokuma": {
    "name": "Monokuma",
@@ -402,8 +477,10 @@
    "color": "#D43A3A",
    "blurb": "Puhuhu! Nothing despair-inducing about a finished session.",
    "face": "calm",
-   "look": "Monokuma from Danganronpa: a bear hood split straight down the middle, white on the face side and black on the back side, with two round bear ears on top (the front one white, the back one black). The hood carries Monokuma's own face marks and nothing else: a small black dot eye on the white half, his red jagged lightning-shaped eye on the black half, and his wide grin running along the bottom edge of the hood's face: a thin curved black line on the white half that becomes a jagged grin of white zigzag teeth on the black half. No bear muzzle, snout or nose. The duck's own calm face and beak show below the hood",
-   "body": 686
+   "look": "Monokuma from Danganronpa: a bear hood split straight down the middle, white on the face side (left) and black on the back side (right), with two round bear ears on top (the front one white, the back one black). The hood carries Monokuma's exact face, placed like the character's: on the white half only a small round solid black dot eye and nothing else (no mouth line, no teeth on the white half); on the black half his red eye, a jagged horizontal lightning-bolt streak with sharp pointed ends; at the bottom center of the hood's face a white muzzle that straddles the middle line, with a small black nose at its top; and his grin on the black half only: a long wide grin that starts right under the nose at the middle line and sweeps up toward the back ear, lined with a row of pointed white zigzag teeth. The duck's own calm face and beak show below the hood",
+   "body": 773,
+   "category": "games",
+   "series": "Danganronpa"
   },
   "yuta": {
    "name": "Yuta",
@@ -412,7 +489,9 @@
    "blurb": "Rika wants you to keep studying. Rika is very convincing.",
    "face": "calm",
    "look": "Yuta Okkotsu from Jujutsu Kaisen 0: messy black hair falling over the forehead, the white Jujutsu High uniform jacket with a high collar and gold buttons, and his katana inside a long black cloth sword bag slung across its back, the bag's drawstring top sticking up above the shoulder",
-   "body": 614
+   "body": 614,
+   "category": "anime",
+   "series": "Jujutsu Kaisen"
   },
   "kazuma": {
    "name": "Kazuma",
@@ -420,17 +499,10 @@
    "color": "#3D7A3D",
    "blurb": "Luck stat maxed out: this session will go perfectly.",
    "face": "calm",
-   "look": "Kazuma Satou from KonoSuba: short, messy brown hair, a green cape with a golden edge fastened at the neck over a plain gray shirt, and his katana Chunchunmaru in a dark sheath on its back",
-   "body": 563
-  },
-  "talon": {
-   "name": "Talon",
-   "kanji": "刃",
-   "color": "#2F6FD6",
-   "blurb": "In, out, done: an assassin of to-do lists.",
-   "face": "angry",
-   "look": "SSW Talon from League of Legends (the Samsung White skin): a white hood with blue edging pulled up over the head (the duck's eye and beak still show), a white coat with blue edging, a long white cape with blue edges flowing out behind, and his armblade, a sleek curved white-and-silver blade with blue trim, strapped against its wing and pointing back",
-   "body": 633
+   "look": "Kazuma Satou from KonoSuba: short, messy brown hair, a green cape with a golden edge fastened at the neck over a plain gray shirt. Nothing on its back: no sword, no weapon",
+   "body": 656,
+   "category": "anime",
+   "series": "KonoSuba"
   },
   "denji": {
    "name": "Denji",
@@ -438,9 +510,11 @@
    "color": "#E8742A",
    "blurb": "Dreams of jam on toast. Rips through the syllabus.",
    "face": "angry",
-   "look": "Chainsaw Man (Denji in his chainsaw-devil form): the chainsaw devil's head as a helmet over the duck's head, rounded and orange, with a long gray chainsaw bar sticking straight up out of the forehead, its chain lined with small silver teeth, and a row of sharp teeth across the front; the duck's beak still sticks out below it, and it's fine if the helmet hides the eye; a white shirt with a loose black necktie, and the small pull-cord handle of the chainsaw hanging from its chest",
-   "body": 657,
-   "eye": "hidden"
+   "look": "Chainsaw Man (Denji in his chainsaw-devil form): the chainsaw devil's head as a helmet over the duck's head, rounded and orange like a chainsaw's engine casing, and it faces the same way as the duck: the long gray chainsaw bar sticks out of the FRONT of the helmet, from the forehead, pointing forward to the left and a little up (the way the duck faces), its chain lined with small silver teeth; the dark gray rear grip handle of the chainsaw sits at the BACK of the head, on the right side; a row of sharp white teeth across the helmet's jaw, with the duck's beak sticking out below; it's fine if the helmet hides the eye; a white shirt with a loose black necktie, and the small pull-cord handle of the chainsaw hanging from its chest",
+   "body": 622,
+   "eye": "hidden",
+   "category": "anime",
+   "series": "Chainsaw Man"
   },
   "kid": {
    "name": "Kid",
@@ -448,8 +522,21 @@
    "color": "#D9B44A",
    "blurb": "Perfectly symmetrical study habits. Eight sessions, exactly.",
    "face": "calm",
-   "look": "Death the Kid from Soul Eater: short black hair with three white stripes running across the left side only, a black suit with small white rectangle trims placed perfectly symmetrically down the front and along the sleeves, a white shirt with a small silver skull at the collar, and his two ornate pistols Liz and Patti crossed on its back",
-   "body": 685
+   "look": "Death the Kid from Soul Eater: short black hair with three thin white stripes on the BACK half of the hair only, the right side of the picture, away from the beak: they start at the back edge of the hair and run forward to the exact center of the head, where they stop with squared-off ends; the front half of the hair, toward the beak, is plain black with no stripes, a black suit with small white rectangle trims placed perfectly symmetrically down the front and along the sleeves, a white shirt, and at the collar his small silver-white Shinigami skull brooch: a cartoon skull with two round black eyes and exactly three long, skinny, needle-thin points hanging down from its bottom edge, the middle one longest. Nothing on its back: no guns, no weapons",
+   "body": 697,
+   "category": "anime",
+   "series": "Soul Eater"
+  },
+  "randy": {
+   "name": "Randy",
+   "kanji": "父",
+   "color": "#5B8FD6",
+   "blurb": "Just gonna get a little bit of study time, Stan.",
+   "face": "calm",
+   "look": "Randy Marsh from South Park: short black hair combed flat, his thick black mustache sitting right on top of the beak where the beak meets the face, directly below the eye, like a mustache under a nose (not beside or under the beak), and his light blue button-up shirt, buttoned all the way up with a plain collar (no T-shirt showing)",
+   "body": 662,
+   "category": "screen",
+   "series": "South Park"
   }
  }
 }
