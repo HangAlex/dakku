@@ -2670,13 +2670,13 @@
     $('#done-sub').textContent = `${fmtMin(s.minutes)}${s.tag ? ` of ${s.tag}` : ''}${s.note ? ` · ${s.note}` : ''}. It stays in your pond, but doesn't count.`;
     $('#done-stats').innerHTML = '';
     $('#done-note').hidden = true;
-    $('#petals').innerHTML = '';
+    $('#feathers').innerHTML = '';
     $('#done-share').hidden = true;
     $('#done-again').textContent = 'Try again';
     $('#done').hidden = false;
   }
   function feathers(color) {
-    const host = $('#petals');
+    const host = $('#feathers');
     host.innerHTML = '';
     const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#57C7CF';
     const colors = lightTheme() ? ['#FFB3D1', '#E9C6FF', color, accent] : ['#FFFFFF', '#FFFFFF', color, accent]; // white doesn't show on a light page
