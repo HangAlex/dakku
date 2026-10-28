@@ -3,9 +3,9 @@
 <p align="center"><a href="https://hangalex.github.io/dakku/"><b>▶ Try the demo</b></a> · runs in your browser, nothing to install</p>
 
 <p align="center">
-  <img src="media/hatch.webp" width="290" alt="An egg cracking open and hatching into a witch duck as the timer runs out">
+  <img src="media/hatch.webp" width="290" alt="The last three seconds of a session on Halloween: the egg hatches into a witch duck, with jack-o'-lanterns and bats around the timer">
   &nbsp;
-  <img src="media/pond-phone.png" width="290" alt="A month of ducks floating on the pond">
+  <img src="media/pond-phone.png" width="290" alt="A month of ducks floating on the Lunar New Year pond">
 </p>
 
 I study a lot (networking certs, Japanese, whatever else I'm into that month), and every focus app I tried was either
@@ -21,7 +21,8 @@ My goal is to build long term study habits one duck at a time!
 
 **[hangalex.github.io/dakku](https://hangalex.github.io/dakku/)**: a playable demo, full of made-up ducks, that runs
 right in your browser, on your phone or your computer. Start a timer and hatch a duck, join Mina while she studies,
-switch on Halloween. Nothing you do leaves your device. On a computer, just open the link; on a phone, scan the code
+switch on Halloween. Everything is unlocked there: every duck, theme, pond and event, any day of the year. Nothing
+you do leaves your device. On a computer, just open the link; on a phone, scan the code
 below.
 
 **On a phone, for the best experience:** open the link in **Safari** (iPhone) or **Chrome** (Android), not inside another app like Instagram or Discord, then add it to your Home Screen: on iPhone tap Share → **Add to Home Screen**, on Android tap ⋮ → **Add to Home screen**. It then opens full-screen from its own icon, like an app.
@@ -35,12 +36,12 @@ below.
 
 ## On a computer
 
-<p align="center"><img src="media/desk-pond.png" alt="Dakku in a browser on a computer: a month of ducks on the pond"></p>
+<p align="center"><img src="media/desk-pond.png" alt="Dakku in a browser on a computer: a month of ducks on the sakura pond, in the Yozakura theme"></p>
 
 It's the same app on my laptop, in the browser or installed as an app, and it stays in sync with my phone: start a
 session on one and it's running on the other. The big screen is where the pond really shines.
 
-<p align="center"><img src="media/desk-together.png" alt="Together on a computer: Mina studying now, with Cheer and Join, and the study club's pond with everyone's ducks"></p>
+<p align="center"><img src="media/desk-together.png" alt="Together on a computer, in the Sumi theme: Mina studying now, with Cheer and Join, and the study club's pond with everyone's ducks"></p>
 
 ## The pond
 
@@ -50,15 +51,15 @@ Every session is a duck. The pond shows a day, week, month or year of them, spre
 gently bobbing, with ripples that swell as they dip. The more ducks there are, the smaller they get, so a whole year
 still fits. Tap any duck to see the session it came from.
 
-### Ten ponds to choose from
+### Eleven ponds to choose from
 
 <p align="center"><img src="media/ponds.webp" width="760" alt="The same ducks on each pond in turn"></p>
 
-Classic, spring, sakura, autumn, winter, night, a Japanese garden, and three holiday ponds: Halloween, Thanksgiving and
-Christmas. There's also a seasonal option that changes with the month and turns into the holiday ponds around the
-holidays.
+Classic, spring, sakura, autumn, winter, night, a Japanese garden, and four holiday ponds: Halloween, Thanksgiving,
+Christmas and Lunar New Year. There's also a seasonal option that changes with the seasons by itself, and more ponds
+are on the way.
 
-<p align="center"><img src="media/ponds.png" alt="All ten ponds side by side"></p>
+<p align="center"><img src="media/ponds.png" alt="All eleven ponds side by side"></p>
 
 ### Decorations
 
@@ -67,10 +68,10 @@ holidays.
 A torii gate standing in the water, a stone lantern, koi swimming under the surface, floating paper lanterns and lotus.
 Turn on as many as you like. Each one finds its own spot on the water and the ducks float around it.
 
-## Forty ducks
+## Fifty ducks
 
 <p align="center">
-  <img src="media/gallery.png" width="290" alt="The duck gallery">
+  <img src="media/gallery.png" width="290" alt="The duck gallery, scrolled down to the newest ducks">
   &nbsp;
   <img src="media/godzilla.png" width="290" alt="The Godzilla duck enlarged in the gallery: King of the Monsters, and of the pond.">
 </p>
@@ -83,13 +84,18 @@ about every one.
 ## Holiday events
 
 <p align="center">
-  <img src="media/event-halloween.webp" width="260" alt="Halloween: bats flying past the Halloween pond">
-  <img src="media/event-thanksgiving.webp" width="260" alt="Thanksgiving: leaves falling over the harvest pond">
-  <img src="media/event-christmas.webp" width="260" alt="Christmas: snow falling over the timer">
+  <img src="media/event-halloween.webp" width="200" alt="Halloween: thorny vines, jack-o'-lanterns and bats around the timer, then bats flying past the Halloween pond">
+  <img src="media/event-thanksgiving.webp" width="200" alt="Thanksgiving: a harvest wreath around the timer, then leaves falling over the harvest pond">
+  <img src="media/event-christmas.webp" width="200" alt="Christmas: a wreath with lights around the timer on a snowy light theme, then the Christmas pond">
+  <img src="media/event-lunar.webp" width="200" alt="Lunar New Year: red lanterns and plum blossoms around the timer, then the Lunar New Year pond">
 </p>
 
-Halloween, Thanksgiving and Christmas each change the colors and the pond together, with bats, falling leaves or snow
-drifting past. You can turn one on any time of year, and tap it again to go back.
+Halloween, Thanksgiving, Christmas and Lunar New Year each change the colors, the pond and the timer together. A
+painted ring goes around the timer (thorny vines with jack-o'-lanterns, a harvest wreath, a wreath strung with
+Christmas lights, red lanterns and plum blossoms), and bats, falling leaves, snow or plum petals drift past. Christmas
+is a light, snowy theme. Each one comes on by itself when its holiday starts (Lunar New Year from a week before it
+until the Lantern Festival) and goes when it ends, and you can turn one on any time of year and tap it again to go
+back.
 
 ## Themes
 
@@ -112,6 +118,17 @@ for the time they put in. You can also send a **cheer** that pops up over their 
 its own pond of the ducks we hatched together, with a little badge on each saying whose it is, plus a weekly
 leaderboard.
 
+## The duck shop
+
+My friends earn their ducks, so their collection grows with the hours they put in. Every session they finish with the
+timer earns grain 🌾: more a minute the longer the session, a little extra for studying together, and a bonus for each
+day they reach their goal. The plain ducks come with hours studied, and the rest are in the gallery's shop with a
+mystery egg, the themes, the ponds and the pond decorations. Holiday ducks are free in their month, and a season's
+pond is free while that season lasts. For a big pile of grain a friend can ask me for a brand-new duck: I paint it,
+they get it, and it joins the shop for everyone. It's a switch in Settings (on for friends, and for me too if I want
+to earn mine), and the demo has none of it: everything's unlocked there. The rates and prices are in
+[SETUP.md](SETUP.md).
+
 ## Stats
 
 <p align="center">
@@ -130,7 +147,7 @@ leaderboard.
 
 ## Little things
 
-- **Timer, pomodoro or stopwatch.** Drag the ring to pick a time, or use a quick pick.
+- **Timer, pomodoro or stopwatch.** Drag the ring to pick a time, or use a quick pick, then tap the egg to start.
 - **♪ Lofi.** One tap shuffles my lofi playlist while I study: just the music and the song's name, with play/pause,
   skip and volume.
 - **Notifications** when a duck hatches, a nudge if I haven't hit my goal yet, friends starting to study, and a
