@@ -13,8 +13,7 @@ phone, the Mac or the Genkan homepage lands in one place, on this PC.
 - **池 Pond**: your ducks floating on a pond, by day, week, month or year. They spread out across the water and bob
   gently; the more there are, the smaller they're drawn. Tap a duck to see its session. Pick the pond in Settings:
   the classic one, spring, autumn, winter, night, a Japanese garden, sakura, Halloween, Thanksgiving, Christmas, Lunar
-  New Year, or one
-  that follows the seasons (with the holiday ponds around their days). Add decorations if you like: a torii gate, a
+  New Year, or one that follows the seasons (more ponds and themes are on the way). Add decorations if you like: a torii gate, a
   stone lantern, koi, floating lanterns and lotus. The ducks float around them.
 - **共 Together**: study with friends, with nothing for them to install. Join someone's session halfway through with any
   duck, leave whenever you like, and everyone keeps a duck for the time they put in. Each group has its own pond of the
@@ -26,9 +25,26 @@ phone, the Mac or the Genkan homepage lands in one place, on this PC.
 - **履歴 Log**: every session by day. Log time you studied without the timer, edit or delete anything.
 - **設定 Settings**: your name, color and badge, daily goal, quick picks, tags and colors, the theme, the pond and its
   decorations, events, notifications, devices, people & groups, passcode, export and import.
+- **店 Duck shop** (for friends): your friends earn their ducks, a long-term collection. Every duck they hatch with the
+  timer earns grain (🌾), more a minute the longer the session (half a minute under 10 minutes, then 1, 1.25 from 25,
+  1.5 from 50, 1.75 from 90, counted up to 3 hours), a tenth more studying together, and 20 for each day they reach
+  their goal; cold eggs and time logged by hand earn nothing. Shiro is everyone's from the start, and the other plain
+  ducks come with hours studied (Sailor at 2 hours up to King at 150). Every other duck is 1,000 in the gallery's shop
+  (about ten days at an hour a day). The holiday ducks are free for everyone in their month and can't be picked
+  outside it (the Witch in October, the Harvest duck in November, Santa in December). A mystery egg is a random duck
+  they don't have yet for 700. For 4,000 they can ask you for a new duck: you get a notification and see it in
+  Settings → Duck shop, make it with `scripts/duck.py`, and hand it over (they get it, and it joins the shop for
+  everyone), or refund it. Grain buys the rest of the look too, in Settings: Sumi, Yozakura and Sakura are 1,200 each
+  (Ai is everyone's), each pond 1,200, and each pond decoration 500. The classic pond and the seasonal one (it changes
+  with the seasons by itself) are everyone's, and a season's own pond is free while that season lasts: spring is
+  March to May, summer (the classic pond) June to August, autumn September to November, winter December to February.
+  To keep one all year, it's bought. A pond that's no longer free goes back to the seasonal one. A holiday's theme
+  and pond are free while it's on. You have everything, and the same card turns the shop off.
+  The rates and prices are at the end of `dakku/logic.py`; the grain icon is `art/icons/grain.png`.
 - **行事 Events**: Halloween, Thanksgiving, Christmas and Lunar New Year, any time of year. Each one sets the colors, the
   pond and a painted ring around the timer together, with bats, falling leaves, snow or plum petals drifting past
-  (Christmas is a light theme). Tap it again to go back to your own theme and pond.
+  (Christmas is a light theme). Tap it again to go back to your own theme and pond. When a holiday starts, its theme
+  and pond come on by themselves, and yours come back when it ends (Settings → Events → Switch on by themselves).
 - **Sunday recap**: on Sunday evening, a notification with your week: time studied, ducks and your best day. Turn it off
   in Settings → Notifications.
 

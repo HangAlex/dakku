@@ -301,10 +301,14 @@ const Art = (() => {
   // headroom the pond needs, so it shows bigger. 84 × 100 keeps the 5:6 shape of those spots. Every
   // duck is drawn the same size in it: hair, a ponytail or a sword that reaches further shows past
   // the frame instead of being cut off (so leave a little room around it). `big`: shown big (its own page,
-  // a hatching), so its full picture is fetched in place of the small copy.
-  function duckSVG(kind, { cold = false, cls = '', big = false } = {}) {
+  // a hatching), so its full picture is fetched in place of the small copy. `fit`: in a tile, where
+  // there's no room around it, the frame widens to take in all of a duck that reaches past it (Sonic's
+  // quills, Denji's chainsaw), so the duck stays inside its tile, drawn a little smaller.
+  function duckSVG(kind, { cold = false, cls = '', big = false, fit = false } = {}) {
     if (big && !cold) sharpen([kind]);
-    return `<svg class="${cls}" viewBox="8 14 84 100" style="overflow:visible" aria-hidden="true">${duckInner(kind, cold)}</svg>`;
+    const [l, r] = (fit && spriteFor(kind, cold)?.reach) || [8, 92];
+    const x0 = Math.min(8, l - 1), x1 = Math.max(92, r + 1);
+    return `<svg class="${cls}" viewBox="${r1(x0)} 14 ${r1(x1 - x0)} 100" preserveAspectRatio="xMidYMax meet" style="overflow:visible" aria-hidden="true">${duckInner(kind, cold)}</svg>`;
   }
   /** The egg in its nest at `progress` (0 to 1): whole, then a crack, then a peek. */
   function eggInner(progress) {

@@ -8,7 +8,11 @@
    "baseY": 338,
    "unit": 0.18343,
    "small": "/ducks/shiro.small.webp?v=d813431c01",
-   "name": "Shiro"
+   "name": "Shiro",
+   "reach": [
+    19.9,
+    82.7
+   ]
   },
   "sailor": {
    "src": "/ducks/sailor.webp?v=a5d12574b2",
@@ -18,7 +22,11 @@
    "baseY": 392,
    "unit": 0.18731,
    "small": "/ducks/sailor.small.webp?v=4a903c851a",
-   "name": "Sailor"
+   "name": "Sailor",
+   "reach": [
+    20.0,
+    82.9
+   ]
   },
   "neko": {
    "src": "/ducks/neko.webp?v=ea0834c6aa",
@@ -28,7 +36,11 @@
    "baseY": 400,
    "unit": 0.18289,
    "small": "/ducks/neko.small.webp?v=143ba9ae74",
-   "name": "Neko"
+   "name": "Neko",
+   "reach": [
+    19.8,
+    82.5
+   ]
   },
   "super": {
    "src": "/ducks/super.webp?v=8656a2632e",
@@ -38,7 +50,11 @@
    "baseY": 500,
    "unit": 0.18902,
    "small": "/ducks/super.small.webp?v=7425bc9ae0",
-   "name": "Goku"
+   "name": "Goku",
+   "reach": [
+    18.7,
+    83.9
+   ]
   },
   "ninja": {
    "src": "/ducks/ninja.webp?v=02ac2e5a60",
@@ -48,7 +64,11 @@
    "baseY": 471,
    "unit": 0.14059,
    "small": "/ducks/ninja.small.webp?v=6c214ebb74",
-   "name": "Ninja"
+   "name": "Ninja",
+   "reach": [
+    20.6,
+    88.9
+   ]
   },
   "kitsune": {
    "src": "/ducks/kitsune.webp?v=4bf5d9cfda",
@@ -58,7 +78,11 @@
    "baseY": 510.0,
    "unit": 0.14361,
    "small": "/ducks/kitsune.small.webp?v=ecf595495c",
-   "name": "Kitsune"
+   "name": "Kitsune",
+   "reach": [
+    20.3,
+    83.1
+   ]
   },
   "yukata": {
    "src": "/ducks/yukata.webp?v=db42096ed6",
@@ -68,7 +92,11 @@
    "baseY": 464,
    "unit": 0.14123,
    "small": "/ducks/yukata.small.webp?v=c635d03d42",
-   "name": "Matsuri"
+   "name": "Matsuri",
+   "reach": [
+    21.0,
+    83.8
+   ]
   },
   "samurai": {
    "src": "/ducks/samurai.webp?v=536f647125",
@@ -78,7 +106,11 @@
    "baseY": 510.1,
    "unit": 0.14463,
    "small": "/ducks/samurai.small.webp?v=cbb1e349c1",
-   "name": "Samurai"
+   "name": "Samurai",
+   "reach": [
+    20.5,
+    83.0
+   ]
   },
   "king": {
    "src": "/ducks/king.webp?v=a34e163603",
@@ -88,7 +120,11 @@
    "baseY": 510.1,
    "unit": 0.14478,
    "small": "/ducks/king.small.webp?v=d3a0495c78",
-   "name": "King"
+   "name": "King",
+   "reach": [
+    20.3,
+    83.2
+   ]
   },
   "astro": {
    "src": "/ducks/astro.webp?v=9bf3833582",
@@ -98,7 +134,11 @@
    "baseY": 511,
    "unit": 0.14059,
    "small": "/ducks/astro.small.webp?v=c6fc5c72be",
-   "name": "Astro"
+   "name": "Astro",
+   "reach": [
+    19.7,
+    84.6
+   ]
   },
   "shizuku": {
    "src": "/ducks/shizuku.webp?v=4d129a6ba3",
@@ -108,7 +148,11 @@
    "baseY": 435,
    "unit": 0.17614,
    "small": "/ducks/shizuku.small.webp?v=9e2af69073",
-   "name": "Shizuku"
+   "name": "Shizuku",
+   "reach": [
+    16.6,
+    87.7
+   ]
   },
   "nurse": {
    "src": "/ducks/nurse.webp?v=eec997e4ff",
@@ -118,7 +162,11 @@
    "baseY": 456,
    "unit": 0.17816,
    "small": "/ducks/nurse.small.webp?v=ca9dde980d",
-   "name": "Nurse"
+   "name": "Nurse",
+   "reach": [
+    20.7,
+    83.1
+   ]
   },
   "senku": {
    "src": "/ducks/senku.webp?v=719ff122c0",
@@ -128,7 +176,11 @@
    "baseY": 511.0,
    "unit": 0.18439,
    "small": "/ducks/senku.small.webp?v=ed0f13971a",
-   "name": "Senku"
+   "name": "Senku",
+   "reach": [
+    18.8,
+    83.0
+   ]
   },
   "naruto": {
    "src": "/ducks/naruto.webp?v=7329fc0b7e",
@@ -138,7 +190,11 @@
    "baseY": 461,
    "unit": 0.17614,
    "small": "/ducks/naruto.small.webp?v=590c27f7fc",
-   "name": "Naruto"
+   "name": "Naruto",
+   "reach": [
+    17.7,
+    83.5
+   ]
   },
   "loid": {
    "src": "/ducks/loid.webp?v=351fd913b3",
@@ -148,7 +204,11 @@
    "baseY": 510.7,
    "unit": 0.13793,
    "small": "/ducks/loid.small.webp?v=8b19e0bb1c",
-   "name": "Loid"
+   "name": "Loid",
+   "reach": [
+    20.0,
+    82.5
+   ]
   },
   "yor": {
    "src": "/ducks/yor.webp?v=d86d18c08b",
@@ -158,7 +218,11 @@
    "baseY": 510.7,
    "unit": 0.13625,
    "small": "/ducks/yor.small.webp?v=4e30305556",
-   "name": "Yor"
+   "name": "Yor",
+   "reach": [
+    18.5,
+    82.7
+   ]
   },
   "anya": {
    "src": "/ducks/anya.webp?v=36dc4cca1e",
@@ -168,7 +232,11 @@
    "baseY": 510.7,
    "unit": 0.14845,
    "small": "/ducks/anya.small.webp?v=77a7a515a3",
-   "name": "Anya"
+   "name": "Anya",
+   "reach": [
+    16.6,
+    82.8
+   ]
   },
   "kirby": {
    "src": "/ducks/kirby.webp?v=022cd3bf4a",
@@ -178,7 +246,11 @@
    "baseY": 510.8,
    "unit": 0.15589,
    "small": "/ducks/kirby.small.webp?v=7c7f997e09",
-   "name": "Kirby"
+   "name": "Kirby",
+   "reach": [
+    21.0,
+    85.0
+   ]
   },
   "vegeta": {
    "src": "/ducks/vegeta.webp?v=906d9e464e",
@@ -188,7 +260,11 @@
    "baseY": 511.1,
    "unit": 0.1779,
    "small": "/ducks/vegeta.small.webp?v=f80417dba8",
-   "name": "Vegeta"
+   "name": "Vegeta",
+   "reach": [
+    16.4,
+    82.4
+   ]
   },
   "clive": {
    "src": "/ducks/clive.webp?v=b0f2394edf",
@@ -198,7 +274,11 @@
    "baseY": 510.9,
    "unit": 0.15095,
    "small": "/ducks/clive.small.webp?v=df6106113b",
-   "name": "Clive"
+   "name": "Clive",
+   "reach": [
+    18.4,
+    89.5
+   ]
   },
   "sonic": {
    "src": "/ducks/sonic.webp?v=ad866a5489",
@@ -208,7 +288,11 @@
    "baseY": 510.9,
    "unit": 0.14493,
    "small": "/ducks/sonic.small.webp?v=6ec6a88648",
-   "name": "Sonic"
+   "name": "Sonic",
+   "reach": [
+    20.1,
+    96.3
+   ]
   },
   "cloud": {
    "src": "/ducks/cloud.webp?v=1343baf3f9",
@@ -218,7 +302,11 @@
    "baseY": 511.4,
    "unit": 0.15905,
    "small": "/ducks/cloud.small.webp?v=f93a4b2bda",
-   "name": "Cloud"
+   "name": "Cloud",
+   "reach": [
+    13.6,
+    87.0
+   ]
   },
   "sora": {
    "src": "/ducks/sora.webp?v=626e63d2ec",
@@ -228,7 +316,11 @@
    "baseY": 510.8,
    "unit": 0.16275,
    "small": "/ducks/sora.small.webp?v=3f54690ab6",
-   "name": "Sora"
+   "name": "Sora",
+   "reach": [
+    11.3,
+    99.8
+   ]
   },
   "venus": {
    "src": "/ducks/venus.webp?v=26f5534d2b",
@@ -238,7 +330,11 @@
    "baseY": 510.9,
    "unit": 0.14236,
    "small": "/ducks/venus.small.webp?v=c835fc703d",
-   "name": "Venus"
+   "name": "Venus",
+   "reach": [
+    20.1,
+    92.0
+   ]
   },
   "yu": {
    "src": "/ducks/yu.webp?v=1b7e0dff95",
@@ -248,7 +344,11 @@
    "baseY": 510.8,
    "unit": 0.14956,
    "small": "/ducks/yu.small.webp?v=2ecbd14d56",
-   "name": "Yu"
+   "name": "Yu",
+   "reach": [
+    19.6,
+    82.6
+   ]
   },
   "makoto": {
    "src": "/ducks/makoto.webp?v=511dab85b1",
@@ -258,7 +358,11 @@
    "baseY": 510.8,
    "unit": 0.14978,
    "small": "/ducks/makoto.small.webp?v=da30ac4235",
-   "name": "Makoto"
+   "name": "Makoto",
+   "reach": [
+    15.2,
+    84.1
+   ]
   },
   "joker": {
    "src": "/ducks/joker.webp?v=43fd16ecc7",
@@ -268,7 +372,11 @@
    "baseY": 510.9,
    "unit": 0.15113,
    "small": "/ducks/joker.small.webp?v=49ce8e1e08",
-   "name": "Joker"
+   "name": "Joker",
+   "reach": [
+    17.5,
+    83.1
+   ]
   },
   "kiryu": {
    "src": "/ducks/kiryu.webp?v=490acad6a1",
@@ -278,7 +386,11 @@
    "baseY": 510.9,
    "unit": 0.14355,
    "small": "/ducks/kiryu.small.webp?v=ac5c3dbe7e",
-   "name": "Kiryu"
+   "name": "Kiryu",
+   "reach": [
+    20.7,
+    83.2
+   ]
   },
   "link": {
    "src": "/ducks/link.webp?v=866d94ab93",
@@ -288,7 +400,11 @@
    "baseY": 511.4,
    "unit": 0.14577,
    "small": "/ducks/link.small.webp?v=be8264e5cc",
-   "name": "Link"
+   "name": "Link",
+   "reach": [
+    20.4,
+    97.1
+   ]
   },
   "zelda": {
    "src": "/ducks/zelda.webp?v=6108968a07",
@@ -298,7 +414,11 @@
    "baseY": 510.8,
    "unit": 0.13457,
    "small": "/ducks/zelda.small.webp?v=f5df160892",
-   "name": "Zelda"
+   "name": "Zelda",
+   "reach": [
+    19.3,
+    87.1
+   ]
   },
   "miku": {
    "src": "/ducks/miku.webp?v=f5b7a26192",
@@ -308,7 +428,11 @@
    "baseY": 510.6,
    "unit": 0.14031,
    "small": "/ducks/miku.small.webp?v=d2ddfb21e2",
-   "name": "Miku"
+   "name": "Miku",
+   "reach": [
+    -2.5,
+    97.8
+   ]
   },
   "bocchi": {
    "src": "/ducks/bocchi.webp?v=cc867bc8e3",
@@ -318,7 +442,11 @@
    "baseY": 510.7,
    "unit": 0.14899,
    "small": "/ducks/bocchi.small.webp?v=629563e2d5",
-   "name": "Bocchi"
+   "name": "Bocchi",
+   "reach": [
+    17.5,
+    88.0
+   ]
   },
   "monika": {
    "src": "/ducks/monika.webp?v=0de0c666bc",
@@ -328,7 +456,11 @@
    "baseY": 510.8,
    "unit": 0.14641,
    "small": "/ducks/monika.small.webp?v=5b193ac6f5",
-   "name": "Monika"
+   "name": "Monika",
+   "reach": [
+    18.5,
+    96.5
+   ]
   },
   "trunks": {
    "src": "/ducks/trunks.webp?v=3c2348f88c",
@@ -338,7 +470,11 @@
    "baseY": 510.7,
    "unit": 0.13855,
    "small": "/ducks/trunks.small.webp?v=95d2351bbb",
-   "name": "Trunks"
+   "name": "Trunks",
+   "reach": [
+    16.7,
+    83.5
+   ]
   },
   "godzilla": {
    "src": "/ducks/godzilla.webp?v=800727017b",
@@ -348,7 +484,11 @@
    "baseY": 510.7,
    "unit": 0.1517,
    "small": "/ducks/godzilla.small.webp?v=d45407aa66",
-   "name": "Godzilla"
+   "name": "Godzilla",
+   "reach": [
+    17.2,
+    92.3
+   ]
   },
   "snoopy": {
    "src": "/ducks/snoopy.webp?v=d1bf520bb3",
@@ -358,7 +498,11 @@
    "baseY": 510.8,
    "unit": 0.17067,
    "small": "/ducks/snoopy.small.webp?v=a085f8b48c",
-   "name": "Snoopy"
+   "name": "Snoopy",
+   "reach": [
+    15.5,
+    82.3
+   ]
   },
   "ike": {
    "src": "/ducks/ike.webp?v=09861102c1",
@@ -368,7 +512,11 @@
    "baseY": 510.8,
    "unit": 0.14173,
    "small": "/ducks/ike.small.webp?v=970cb8c8a2",
-   "name": "Ike"
+   "name": "Ike",
+   "reach": [
+    19.9,
+    95.2
+   ]
   },
   "witch": {
    "src": "/ducks/witch.webp?v=7bfa92f705",
@@ -378,7 +526,11 @@
    "baseY": 510.7,
    "unit": 0.15644,
    "small": "/ducks/witch.small.webp?v=6dd9dd328e",
-   "name": "Witch"
+   "name": "Witch",
+   "reach": [
+    14.7,
+    85.9
+   ]
   },
   "harvest": {
    "src": "/ducks/harvest.webp?v=bc78bbb3a9",
@@ -388,7 +540,11 @@
    "baseY": 510.8,
    "unit": 0.14564,
    "small": "/ducks/harvest.small.webp?v=d878898731",
-   "name": "Harvest"
+   "name": "Harvest",
+   "reach": [
+    20.6,
+    83.1
+   ]
   },
   "santa": {
    "src": "/ducks/santa.webp?v=4d23f638c2",
@@ -398,7 +554,11 @@
    "baseY": 510.7,
    "unit": 0.14168,
    "small": "/ducks/santa.small.webp?v=6ece94c713",
-   "name": "Santa"
+   "name": "Santa",
+   "reach": [
+    19.3,
+    90.7
+   ]
   },
   "shulk": {
    "src": "/ducks/shulk.webp?v=53ea9ba152",
@@ -408,7 +568,11 @@
    "baseY": 511.4,
    "unit": 0.15426,
    "small": "/ducks/shulk.small.webp?v=6f0c9ffcd3",
-   "name": "Shulk"
+   "name": "Shulk",
+   "reach": [
+    16.5,
+    95.0
+   ]
   },
   "yagami": {
    "src": "/ducks/yagami.webp?v=34f356f297",
@@ -418,7 +582,11 @@
    "baseY": 510.6,
    "unit": 0.14519,
    "small": "/ducks/yagami.small.webp?v=5ee6d00271",
-   "name": "Yagami"
+   "name": "Yagami",
+   "reach": [
+    15.8,
+    83.4
+   ]
   },
   "eve": {
    "src": "/ducks/eve.webp?v=53e4fc740f",
@@ -428,7 +596,11 @@
    "baseY": 511.4,
    "unit": 0.14868,
    "small": "/ducks/eve.small.webp?v=1f4e1da9b2",
-   "name": "EVE"
+   "name": "EVE",
+   "reach": [
+    20.1,
+    96.6
+   ]
   },
   "nagisa": {
    "src": "/ducks/nagisa.webp?v=2fbfdb18d6",
@@ -438,7 +610,11 @@
    "baseY": 510.9,
    "unit": 0.16942,
    "small": "/ducks/nagisa.small.webp?v=5b2f294c85",
-   "name": "Nagisa"
+   "name": "Nagisa",
+   "reach": [
+    14.2,
+    90.9
+   ]
   },
   "monokuma": {
    "src": "/ducks/monokuma.webp?v=255a331ece",
@@ -448,7 +624,11 @@
    "baseY": 511.0,
    "unit": 0.15979,
    "small": "/ducks/monokuma.small.webp?v=bafbbff35a",
-   "name": "Monokuma"
+   "name": "Monokuma",
+   "reach": [
+    17.8,
+    82.1
+   ]
   },
   "yuta": {
    "src": "/ducks/yuta.webp?v=f541dacc8f",
@@ -458,7 +638,11 @@
    "baseY": 510.6,
    "unit": 0.14594,
    "small": "/ducks/yuta.small.webp?v=13e879862c",
-   "name": "Yuta"
+   "name": "Yuta",
+   "reach": [
+    16.5,
+    93.7
+   ]
   },
   "kazuma": {
    "src": "/ducks/kazuma.webp?v=aede007d63",
@@ -468,7 +652,11 @@
    "baseY": 510.7,
    "unit": 0.15063,
    "small": "/ducks/kazuma.small.webp?v=473c4f4670",
-   "name": "Kazuma"
+   "name": "Kazuma",
+   "reach": [
+    16.0,
+    82.6
+   ]
   },
   "denji": {
    "src": "/ducks/denji.webp?v=8672f1ed9c",
@@ -478,7 +666,11 @@
    "baseY": 510.8,
    "unit": 0.16782,
    "small": "/ducks/denji.small.webp?v=81eef3c6bb",
-   "name": "Denji"
+   "name": "Denji",
+   "reach": [
+    -17.3,
+    84.6
+   ]
   },
   "kid": {
    "src": "/ducks/kid.webp?v=17b72d4478",
@@ -488,7 +680,11 @@
    "baseY": 510.8,
    "unit": 0.14646,
    "small": "/ducks/kid.small.webp?v=983d27bc71",
-   "name": "Kid"
+   "name": "Kid",
+   "reach": [
+    18.1,
+    83.0
+   ]
   },
   "randy": {
    "src": "/ducks/randy.webp?v=b36568625a",
@@ -498,7 +694,11 @@
    "baseY": 510.7,
    "unit": 0.14542,
    "small": "/ducks/randy.small.webp?v=3878262a95",
-   "name": "Randy"
+   "name": "Randy",
+   "reach": [
+    17.9,
+    85.4
+   ]
   }
  },
  "eggs": [
@@ -3061,16 +3261,32 @@
  },
  "rings": {
   "christmas": {
-   "src": "/ducks/ring-christmas.webp?v=4fc07b4460"
+   "src": "/ducks/ring-christmas.webp?v=4fc07b4460",
+   "pad": [
+    0.018,
+    0.007
+   ]
   },
   "halloween": {
-   "src": "/ducks/ring-halloween.webp?v=858fdce55c"
+   "src": "/ducks/ring-halloween.webp?v=858fdce55c",
+   "pad": [
+    0.058,
+    0.063
+   ]
   },
   "thanksgiving": {
-   "src": "/ducks/ring-thanksgiving.webp?v=f15c4b0696"
+   "src": "/ducks/ring-thanksgiving.webp?v=f15c4b0696",
+   "pad": [
+    0.029,
+    0.002
+   ]
   },
   "lunar": {
-   "src": "/ducks/ring-lunar.webp?v=10ed8ccf55"
+   "src": "/ducks/ring-lunar.webp?v=10ed8ccf55",
+   "pad": [
+    0.05,
+    0.006
+   ]
   }
  }
 }

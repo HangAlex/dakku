@@ -116,7 +116,7 @@
             <div class="today" id="today"></div>
             <div class="dial-wrap" id="dial-wrap">
               <img class="dial-ring" id="dial-ring" alt="" aria-hidden="true" decoding="async" hidden>
-              <svg class="dial" id="dial" viewBox="0 0 300 300" role="slider" aria-label="Minutes" aria-valuemin="5" aria-valuemax="180" tabindex="0">
+              <svg class="dial" id="dial" viewBox="0 0 300 300" role="slider" aria-label="Minutes (Enter starts the session)" aria-valuemin="5" aria-valuemax="180" tabindex="0">
                 <circle class="dial-face" cx="150" cy="150" r="118"/>
                 <g id="dial-ticks"></g>
                 <circle class="dial-track" cx="150" cy="150" r="134"/>
@@ -124,11 +124,18 @@
                 <circle class="dial-knob" id="dial-knob" cx="150" cy="16" r="12"/>
               </svg>
               <div class="grow" id="grow"></div>
+              <span class="tap-hint" aria-hidden="true"><span class="jp">孵す</span> Tap to hatch</span>
               <div class="cheer-pops" id="cheer-pops" aria-live="polite"></div>
               <button class="icon-btn lofi-btn" type="button" id="lofi-btn" aria-label="Lofi" aria-pressed="false" title="Play lofi"><span aria-hidden="true">♪</span></button>
             </div>
             <div class="clock" id="clock">25:00</div>
             <div class="clock-sub" id="clock-sub">&nbsp;</div>
+            <div class="run-buttons" id="run-buttons" hidden>
+              <button class="btn" type="button" id="pause-btn">Pause</button>
+              <button class="btn undo" type="button" id="undo-btn" hidden>Cancel · 10</button>
+              <button class="btn" type="button" id="finish-btn">Finish</button>
+              <button class="btn ghost danger" type="button" id="giveup-btn">Give up</button>
+            </div>
             <div class="lofi-now" id="lofi" hidden>
               <span class="lofi-song"><b id="lofi-title"></b> <span id="lofi-by"></span></span>
               <span class="lofi-ctls">
@@ -152,22 +159,15 @@
                 <div class="chips scroll" id="tag-chips"></div>
               </div>
               <div class="pick">
-                <div class="pick-label">Duck</div>
+                <div class="pick-label">Duck <span class="grain-chip" id="grain-chip" hidden></span></div>
                 <div class="species-row scroll" id="species-row"></div>
               </div>
               <label class="open-toggle" id="open-row" hidden><input type="checkbox" id="open-sessions"> <span>Friends can join this session</span></label>
-              <button class="btn primary plant-btn" type="button" id="plant-btn"><span class="jp">孵す</span><span>Hatch</span></button>
             </div>
 
             <div class="controls" id="run-controls" hidden>
               <div class="run-meta" id="run-meta"></div>
               <div class="party" id="party" hidden></div>
-              <div class="run-buttons">
-                <button class="btn" type="button" id="pause-btn">Pause</button>
-                <button class="btn undo" type="button" id="undo-btn" hidden>Cancel · 10</button>
-                <button class="btn" type="button" id="finish-btn">Finish</button>
-                <button class="btn ghost danger" type="button" id="giveup-btn">Give up</button>
-              </div>
             </div>
           </div>
 
@@ -394,11 +394,13 @@
         <div class="card set">
           <h2><span class="jp">色</span> Theme</h2>
           <div class="themes" id="set-themes"></div>
+          <p class="note">More themes are on the way.</p>
         </div>
 
         <div class="card set">
           <h2><span class="jp">池</span> Pond</h2>
           <div class="pond-themes" id="set-ponds"></div>
+          <p class="note">More ponds are on the way.</p>
           <p class="note" id="set-ponds-note"></p>
           <h3 class="set-sub"><span class="jp">飾り</span> Decorations</h3>
           <p class="note">On your pond, as many as you like. The ducks float around them.</p>
@@ -407,8 +409,9 @@
 
         <div class="card set">
           <h2><span class="jp">行事</span> Events</h2>
-          <p class="note">Each one sets your colors and pond together, any time of year. Tap it again to go back to your own.</p>
+          <p class="note">Each one sets your colors and pond together. Tap it again to go back to your own.</p>
           <div class="event-picks" id="set-events"></div>
+          <label class="row toggle" data-real><span class="row-label">Switch on by themselves<small>When a holiday starts, its colors and pond come on; when it ends, yours come back</small></span><input type="checkbox" id="set-holiday-auto"><i></i></label>
         </div>
 
         <div class="card set" data-real>
@@ -437,6 +440,15 @@
           <h2><span class="jp">端末</span> Devices</h2>
           <div id="set-devices"></div>
           <div class="row" id="pair-row"><span class="row-label">Add your phone or Mac<small>Shows a code to type on the new device</small></span><button class="btn small primary" type="button" id="pair-btn">Add a device</button></div>
+        </div>
+
+        <div class="card set" data-real data-owner>
+          <h2><span class="jp">店</span> Duck shop <small class="muted" id="shop-requests-note"></small></h2>
+          <p class="note">Friends earn grain for their focus and spend it on ducks: the plain ones come with hours studied, the rest are in the shop. You have every duck either way.</p>
+          <label class="row toggle"><span class="row-label">Friends earn their ducks<small>Off: every friend has every duck, as before</small></span><input type="checkbox" id="set-shop-friends"><i></i></label>
+          <label class="row toggle"><span class="row-label">Use the shop myself too<small>Earn your ducks, themes and ponds like everyone else. Off: you have them all again</small></span><input type="checkbox" id="set-shop-me"><i></i></label>
+          <h3 class="set-sub"><span class="jp">注文</span> Duck requests</h3>
+          <div id="set-requests"></div>
         </div>
 
         <div class="card set" data-real data-owner>
@@ -471,7 +483,7 @@
   <!-- ───────────── Overlays ───────────── -->
   <div class="overlay" id="done" hidden>
     <div class="done-card" role="dialog" aria-modal="true" aria-labelledby="done-title">
-      <div class="petals" id="petals" aria-hidden="true"></div>
+      <div class="feathers" id="feathers" aria-hidden="true"></div>
       <div class="done-tree" id="done-tree"></div>
       <p class="done-kanji jp" id="done-kanji">誕生</p>
       <h2 class="done-title" id="done-title">A duck hatched!</h2>

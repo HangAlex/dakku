@@ -97,6 +97,11 @@ ROUTES = [
     ("POST", r"/api/import", "import_post", "owner", False),
     ("GET", r"/api/together", "together", "member", True),
     ("POST", r"/api/cheer", "cheer", "member", True),
+    ("GET", r"/api/shop", "shop_get", "member", True),
+    ("POST", r"/api/shop/buy", "shop_buy", "member", True),
+    ("POST", r"/api/shop/mystery", "shop_mystery", "member", True),
+    ("POST", r"/api/shop/requests", "shop_request", "member", True),
+    ("POST", rf"/api/shop/requests/{ID}", "shop_answer", "owner", False),  # yours: hand over a custom duck, or refund it
     ("GET", rf"/api/groups/{ID}", "group_get", "member", True),
     ("PATCH", rf"/api/groups/{ID}", "group_patch", "member", True),
     ("DELETE", rf"/api/groups/{ID}/members/{PID}", "member_delete", "member", True),  # you, or someone leaving
@@ -439,6 +444,21 @@ def make_handler(app, public=False):
 
         def api_cheer(self, ctx, q):
             self._json(200, app.cheer(ctx, self._body()))
+
+        def api_shop_get(self, ctx, q):
+            self._json(200, app.shop(ctx.person))
+
+        def api_shop_buy(self, ctx, q):
+            self._json(200, app.buy(ctx, self._body()))
+
+        def api_shop_mystery(self, ctx, q):
+            self._json(200, app.mystery(ctx))
+
+        def api_shop_request(self, ctx, q):
+            self._json(200, app.request_duck(ctx, self._body()))
+
+        def api_shop_answer(self, ctx, q, rid):
+            self._json(200, app.answer_request(ctx, rid, self._body()))
 
         def api_group_get(self, ctx, q, gid):
             self._json(200, app.group_view(ctx, gid))

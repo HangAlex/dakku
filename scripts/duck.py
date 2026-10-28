@@ -3,7 +3,9 @@
 
 The ducks live in two places, and this keeps them in step:
     art/ducks.json        the list: each duck's name, kanji, color, blurb, face and outfit (and "eye": "hidden"
-                          for one whose outfit covers the eye on purpose, so the checks don't look for it)
+                          for one whose outfit covers the eye on purpose, so the checks don't look for it), and
+                          where the gallery shelves it: its "category" (dakku, holiday, anime, games, screen or
+                          music) and "series" (ducks of the same series sit together)
     art/ducks/<id>.png    its picture, finished: transparent, facing left, beak in Dakku's peach
 
 Making a new duck:
@@ -413,7 +415,8 @@ def publish(say=print):
         entry = ia.save_small(img, did, entry)
         entry["name"] = d["name"]
         kinds[did] = entry
-        listed[did] = {"kanji": d["kanji"], "name": d["name"], "color": d.get("color", "#F4F1EA"), "blurb": d.get("blurb", "")}
+        listed[did] = {"kanji": d["kanji"], "name": d["name"], "color": d.get("color", "#F4F1EA"), "blurb": d.get("blurb", ""),
+                       "category": d.get("category", "dakku"), **({"series": d["series"]} if d.get("series") else {})}
     for gone in set(manifest.get("kinds", {})) - set(kinds):
         (ia.OUT / f"{gone}.webp").unlink(missing_ok=True)
         (ia.OUT / f"{gone}.small.webp").unlink(missing_ok=True)

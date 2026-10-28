@@ -54,6 +54,19 @@ class DemoTest(unittest.TestCase):
                                    ("DELETE", "/api/devices/abcdef", None)):
             self.assertEqual(self.phone.call(method, path, body)[0], 403, path)
 
+    def test_no_shop_and_no_calendar(self):
+        """Every duck, theme, pond and decoration, whatever the date, and no holiday turns itself on."""
+        self.app.put_settings({"shopForMe": True})
+        body = self.phone.call("GET", "/api/bootstrap")[1]
+        self.assertEqual(body["shop"], {"on": False})
+        self.assertEqual(self.app.owned("me"), logic.species())
+        self.assertEqual(set(self.app.owned_items("me")), set(self.app._items()))
+        self.assertEqual((body["settings"]["theme"], body["settings"]["pondTheme"]), ("ai", "classic"))
+        self.assertEqual(self.phone.call("POST", "/api/shop/buy", {"duck": "sonic"})[0], 400)
+        self.assertEqual(self.phone.call("PUT", "/api/settings", {"theme": "christmas", "pondTheme": "lunar", "species": "ninja"})[0], 200)
+        s = self.phone.call("GET", "/api/bootstrap")[1]["settings"]
+        self.assertEqual((s["theme"], s["pondTheme"], s["species"]), ("christmas", "lunar", "ninja"))
+
     def test_it_still_works_like_dakku(self):
         status, body, _ = self.phone.call("POST", "/api/timer", {"action": "start", "id": "trying-it", "minutes": 25})
         self.assertEqual(status, 200, body)

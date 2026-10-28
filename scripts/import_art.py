@@ -106,8 +106,40 @@ def stamped(manifest):
     return walk(manifest)
 
 
+def reach(entry):
+    """How far a duck's picture really goes, left to right, in the 100-wide box it's drawn in (its base at
+    x 50): [left, right]. Hair, a sword or a chainsaw can go past the frame a duck is shown in, so a tile
+    widens its frame to fit the whole duck (see duckSVG's `fit` in web/art.js)."""
+    file = OUT / entry["src"].split("?")[0].removeprefix("/ducks/")
+    if not file.is_file():
+        return None
+    with Image.open(file) as img:
+        box = img.convert("RGBA").getchannel("A").point(lambda a: 255 if a > 40 else 0).getbbox()
+    if not box:
+        return None
+    x0 = 50 - entry["baseX"] * entry["unit"]
+    return [round(x0 + box[0] * entry["unit"], 1), round(x0 + box[2] * entry["unit"], 1)]
+
+
+def ring_pad(entry):
+    """The empty bands at the top and bottom of a ring's picture, as shares of its height: [top, bottom].
+    The dial leaves room for only as much ring as is painted (see paintRing in web/app.js)."""
+    file = OUT / entry["src"].split("?")[0].removeprefix("/ducks/")
+    if not file.is_file():
+        return None
+    with Image.open(file) as img:
+        h = img.height
+        box = img.convert("RGBA").getchannel("A").point(lambda a: 255 if a > 40 else 0).getbbox()
+    return [round(box[1] / h, 3), round((h - box[3]) / h, 3)] if box else None
+
+
 def write_manifest(manifest):
     path = OUT / "ducks.json"
+    for entry in manifest.get("kinds", {}).values():
+        if isinstance(entry, dict) and "src" in entry and "unit" in entry:
+            entry["reach"] = reach(entry) or entry.get("reach")
+    for entry in (manifest.get("rings") or {}).values():
+        entry["pad"] = ring_pad(entry) or entry.get("pad")
     text = json.dumps(stamped(manifest), ensure_ascii=False, indent=1)
     write(path, lambda part: part.write_text(text, encoding="utf-8"))
 

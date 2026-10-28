@@ -21,7 +21,8 @@ My goal is to build long term study habits one duck at a time!
 
 **[hangalex.github.io/dakku](https://hangalex.github.io/dakku/)**: a playable demo, full of made-up ducks, that runs
 right in your browser, on your phone or your computer. Start a timer and hatch a duck, join Mina while she studies,
-switch on Halloween. Nothing you do leaves your device. On a computer, just open the link; on a phone, scan the code
+switch on Halloween. Everything is unlocked there: every duck, theme, pond and event, any day of the year. Nothing
+you do leaves your device. On a computer, just open the link; on a phone, scan the code
 below.
 
 **On a phone, for the best experience:** open the link in **Safari** (iPhone) or **Chrome** (Android), not inside another app like Instagram or Discord, then add it to your Home Screen: on iPhone tap Share → **Add to Home Screen**, on Android tap ⋮ → **Add to Home screen**. It then opens full-screen from its own icon, like an app.
@@ -55,8 +56,8 @@ still fits. Tap any duck to see the session it came from.
 <p align="center"><img src="media/ponds.webp" width="760" alt="The same ducks on each pond in turn"></p>
 
 Classic, spring, sakura, autumn, winter, night, a Japanese garden, and four holiday ponds: Halloween, Thanksgiving,
-Christmas and Lunar New Year. There's also a seasonal option that changes with the month and turns into the holiday
-ponds around the holidays.
+Christmas and Lunar New Year. There's also a seasonal option that changes with the seasons by itself, and more ponds
+are on the way.
 
 <p align="center"><img src="media/ponds.png" alt="All eleven ponds side by side"></p>
 
@@ -92,8 +93,9 @@ about every one.
 Halloween, Thanksgiving, Christmas and Lunar New Year each change the colors, the pond and the timer together. A
 painted ring goes around the timer (thorny vines with jack-o'-lanterns, a harvest wreath, a wreath strung with
 Christmas lights, red lanterns and plum blossoms), and bats, falling leaves, snow or plum petals drift past. Christmas
-is a light, snowy theme. You can turn one on any time of year, and tap it again to go back; the seasonal pond turns into
-Lunar New Year from a week before it until the Lantern Festival.
+is a light, snowy theme. Each one comes on by itself when its holiday starts (Lunar New Year from a week before it
+until the Lantern Festival) and goes when it ends, and you can turn one on any time of year and tap it again to go
+back.
 
 ## Themes
 
@@ -116,6 +118,17 @@ for the time they put in. You can also send a **cheer** that pops up over their 
 its own pond of the ducks we hatched together, with a little badge on each saying whose it is, plus a weekly
 leaderboard.
 
+## The duck shop
+
+My friends earn their ducks, so their collection grows with the hours they put in. Every session they finish with the
+timer earns grain 🌾: more a minute the longer the session, a little extra for studying together, and a bonus for each
+day they reach their goal. The plain ducks come with hours studied, and the rest are in the gallery's shop with a
+mystery egg, the themes, the ponds and the pond decorations. Holiday ducks are free in their month, and a season's
+pond is free while that season lasts. For a big pile of grain a friend can ask me for a brand-new duck: I paint it,
+they get it, and it joins the shop for everyone. It's a switch in Settings (on for friends, and for me too if I want
+to earn mine), and the demo has none of it: everything's unlocked there. The rates and prices are in
+[SETUP.md](SETUP.md).
+
 ## Stats
 
 <p align="center">
@@ -134,7 +147,7 @@ leaderboard.
 
 ## Little things
 
-- **Timer, pomodoro or stopwatch.** Drag the ring to pick a time, or use a quick pick.
+- **Timer, pomodoro or stopwatch.** Drag the ring to pick a time, or use a quick pick, then tap the egg to start.
 - **♪ Lofi.** One tap shuffles my lofi playlist while I study: just the music and the song's name, with play/pause,
   skip and volume.
 - **Notifications** when a duck hatches, a nudge if I haven't hit my goal yet, friends starting to study, and a

@@ -248,6 +248,10 @@ class Privacy(TogetherTest):
 
 
 class StudyingTogether(TogetherTest):
+    def setUp(self):
+        super().setUp()
+        self.me.call("PUT", "/api/settings", {"shopForFriends": False})  # friends pick any duck here (the shop is tests/test_shop.py)
+
     def test_join_in_the_middle_and_both_hatch(self):
         group = self.group()
         mina = self.friend(group)

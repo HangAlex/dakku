@@ -129,6 +129,9 @@ def default_settings(tz, friend=False):
         "reminder": {"enabled": False, "time": "20:00", "weekdaysOnly": True},
         "openSessions": True, "friendAlerts": True, "cheerAlerts": True, "weeklyRecap": True, "pondTheme": "classic", "decor": [],
         "pomo": {"focus": 25, "brk": 5, "rounds": 4},
+        "shopForFriends": True,  # (yours only: whether friends earn their ducks in the shop)
+        "shopForMe": False,  # (yours only: whether you earn yours too)
+        "holidayAuto": True,  # a holiday's theme and pond come on by themselves when it starts, and go when it ends
     }
 
 
@@ -221,7 +224,7 @@ def clean_settings(incoming, current):
             s[key] = bool(g[key])
     if g.get("theme") in THEMES:
         s["theme"] = g["theme"]
-    for key in ("openSessions", "friendAlerts", "cheerAlerts", "weeklyRecap"):
+    for key in ("openSessions", "friendAlerts", "cheerAlerts", "weeklyRecap", "shopForFriends", "shopForMe", "holidayAuto"):
         if key in g:
             s[key] = bool(g[key])
     if g.get("pondTheme") in POND_THEMES:
@@ -557,7 +560,7 @@ class App:
 
     def put_settings(self, patch, pid="me"):
         with self.lock:
-            merged = clean_settings(patch, self.settings(pid))
+            merged = self._own_settings(clean_settings(patch, self.settings(pid)), pid)
             self.store.set(self._key("settings", pid), merged)
         if isinstance(patch, dict) and merged["name"] and "name" in patch:
             self._rename(pid, merged["name"])
@@ -588,13 +591,13 @@ class App:
                 self.store.set(self._key("settings", pid), s)
 
     def species_for(self, sid, requested=None, pid="me"):
-        kinds = logic.species()
+        kinds = self.owned(pid)  # (everyone's are every duck, except friends earning theirs in the shop)
         if requested in kinds:
             return requested
         if requested is None:  # from the homepage or a hand log: give the pond some variety
             return kinds[int(hashlib.sha256(sid.encode()).hexdigest(), 16) % len(kinds)]
         s = self.settings(pid)
-        return s["species"] if s["species"] in kinds else "shiro"
+        return s["species"] if s["species"] in kinds else kinds[0] if kinds else "shiro"
 
     # ── the shared timer, and studying together ──────────────────────────────
     # Each person has one timer at a time. A guest's timer joins someone else's session (its
@@ -886,12 +889,38 @@ class App:
             self._notify_phase(pid, t, rnd, phase, timers)
 
     # ── sync ─────────────────────────────────────────────────────────────────
+    def _holiday_turn(self, pid):
+        """When a holiday starts, its theme and pond come on by themselves (once: turned off, they stay
+        off); when it ends, the theme and pond from before come back, unless they were changed since."""
+        s = self.settings(pid)
+        if not s.get("holidayAuto", True) or self.demo:  # (the demo keeps no calendar: every event is a tap away)
+            return
+        today = self._today(pid)
+        event = next((e for e in logic.EVENTS if logic.event_on(e, today)), None)
+        was = s.get("holiday") or {}
+        key = f"{event}-{today.year}" if event else ""
+        if was.get("on", "") == key:
+            return
+        with self.lock:
+            s = self.settings(pid)
+            before = was.get("before") or ({"theme": "ai", "pondTheme": "classic"} if s["theme"] in logic.EVENTS
+                                           else {"theme": s["theme"], "pondTheme": s.get("pondTheme") or "classic"})
+            if event:
+                s.update(theme=event, pondTheme=event, holiday={"on": key, "before": before})
+            else:
+                if s["theme"] in logic.EVENTS and s.get("pondTheme") in logic.EVENTS:
+                    s.update(theme=before["theme"], pondTheme=before["pondTheme"])
+                s["holiday"] = {}
+            self.store.set(self._key("settings", pid), self._own_settings(s, pid))
+        log("holiday:", key or "over", "for", pid)
+
     def pull(self, since, pid="me"):
+        self._holiday_turn(pid)
         now = now_ms()
         with self.store.lock:
             rows, cursor = self.store.since(since, pid), self.store.rev()
-        return {"cursor": cursor, "sessions": [public(r) for r in rows], "settings": self.settings(pid),
-                "timer": self.timer(pid, now), "now": now}
+        return {"cursor": cursor, "sessions": [public(r) for r in rows], "settings": self._own_settings(dict(self.settings(pid)), pid),
+                "timer": self.timer(pid, now), "now": now, "shop": self.shop(pid)}
 
     def push(self, body, pid="me"):
         ops = body.get("ops") or []
@@ -900,6 +929,7 @@ class App:
         now, clean, tags = now_ms(), [], []
         # whose sessions are still running: their ids are seen in Together, and only their timers log them
         running = {t["id"]: who for who, t in self.store.timers().items()}
+        owned = set(self.owned(pid))
         for op in ops:
             if not isinstance(op, dict):
                 continue
@@ -916,6 +946,8 @@ class App:
                     s["person"] = pid
                 elif existing["person"] != pid:
                     continue  # someone else's session
+                if s.get("species") and s["species"] not in owned and (existing is None or s["species"] != existing["species"]):
+                    s["species"] = existing["species"] if existing else self.species_for(s["id"], pid=pid)  # a duck they don't have yet
                 s["person"] = pid  # (and the store won't let it change hands, whatever happens in between)
                 clean.append({"op": "upsert", "session": s})
                 tags.append(s.get("tag", ""))
@@ -928,7 +960,7 @@ class App:
         self._note_tags(tags, pid)
         if isinstance(body.get("settings"), dict):
             with self.lock:
-                self.store.set(self._key("settings", pid), clean_settings(body["settings"], self.settings(pid)))
+                self.store.set(self._key("settings", pid), self._own_settings(clean_settings(body["settings"], self.settings(pid)), pid))
             if body["settings"].get("name"):
                 self._rename(pid, self.settings(pid)["name"])
             changed += 1
@@ -962,11 +994,12 @@ class App:
 
     def bootstrap(self, ctx):
         now, pid = now_ms(), ctx.person
+        self._holiday_turn(pid)
         with self.store.lock:
             rows, cursor = self.store.sessions(person=pid), self.store.rev()
-        return {"me": self.whoami(ctx), "settings": self.settings(pid), "timer": self.timer(pid, now), "cursor": cursor,
+        return {"me": self.whoami(ctx), "settings": self._own_settings(dict(self.settings(pid)), pid), "timer": self.timer(pid, now), "cursor": cursor,
                 "sessions": [public(r) for r in rows], "now": now, "vapidKey": self.vapid.public_b64,
-                "anki": self.anki_view() if pid == "me" else None, "together": self.together(pid),
+                "anki": self.anki_view() if pid == "me" else None, "together": self.together(pid), "shop": self.shop(pid),
                 "server": {"version": __version__, "timeZone": self.system_tz, "since": int(self.started * 1000),
                            # your PC's addresses are yours: a friend only needs the door they came in by
                            "addresses": self.addresses() if ctx.owner else {"friends": self.addresses().get("friends")}}}
@@ -1104,6 +1137,224 @@ class App:
             if self.settings(mate).get("friendAlerts", True) and self.store.pushes(person=mate):
                 self.notify({"title": "鴨 · 一緒にどう？", "body": f"{self._name(host)} started {length}{what}. Join in?",
                              "tag": f"dakku-friend-{host}", "url": "/#together"}, topic="dakku-friend", person=mate)
+
+    # ── the duck shop ────────────────────────────────────────────────────────
+    # Friends earn grain (🌾) for their focus and spend it on ducks: see logic.py for the rates and the
+    # prices. What they've earned is worked out from their sessions each time, so it can never drift;
+    # what they've spent and bought is kept per person ("shop:<id>"). Requests for new ducks are kept in
+    # "duckRequests", for you to make: the one who asked gets it, and it joins the shop for everyone.
+    def shop_on(self, pid):
+        """Whether `pid` earns their ducks: your friends (unless you've turned that off), and you if you've
+        turned it on for yourself."""
+        if self.demo:  # the demo has every duck, theme, pond and decoration, any day of the year
+            return False
+        mine = self.settings("me")
+        return bool(mine.get("shopForMe")) if pid == "me" else bool(mine.get("shopForFriends", True))
+
+    def _today(self, pid):
+        """Today where `pid` lives: the holidays' ducks, themes and ponds are theirs while it's on."""
+        return datetime.now(logic.zone(self.settings(pid)["timeZone"])).date()
+
+    @staticmethod
+    def _items():
+        """Everything besides ducks in the shop: the themes, ponds and pond decorations."""
+        return tuple(f"theme:{t}" for t in THEMES) + tuple(f"pond:{p}" for p in POND_THEMES) + tuple(f"decor:{d}" for d in DECOR)
+
+    def owned_items(self, pid):
+        if not self.shop_on(pid):
+            return self._items()
+        return logic.owned_items(self._items(), set(self._wallet(pid)["bought"]), self._today(pid))
+
+    def _wallet(self, pid):
+        return self.store.get(self._key("shop", pid)) or {"bought": [], "spent": 0, "log": []}
+
+    def _requests(self):
+        return self.store.get("duckRequests") or []
+
+    def owned(self, pid):
+        """The ducks `pid` can hatch: all of them, unless they're earning theirs in the shop."""
+        if not self.shop_on(pid):
+            return logic.species()
+        return logic.owned_ducks(self.store.focused_minutes(pid) / 60, set(self._wallet(pid)["bought"]), self._today(pid))
+
+    def _own_settings(self, s, pid):
+        """Settings someone may keep: in the shop, only a duck, theme, pond and decorations they have (a
+        holiday's go when it ends); and the shop's switches only for you."""
+        if pid != "me":
+            s.pop("shopForFriends", None)
+            s.pop("shopForMe", None)
+        if self.shop_on(pid):
+            items = set(self.owned_items(pid))
+            if s.get("species") not in self.owned(pid):
+                s["species"] = "shiro"
+            if f"theme:{s.get('theme')}" not in items:
+                s["theme"] = "ai"
+            if f"pond:{s.get('pondTheme') or 'classic'}" not in items:
+                s["pondTheme"] = "seasonal"  # (one's own season over, or never bought: the free one that follows them)
+            s["decor"] = [d for d in s.get("decor") or [] if f"decor:{d}" in items]
+        return s
+
+    def _mystery_pool(self, pid, owned):  # (ducks only)
+        return [k for k in logic.species() if logic.price(k) is not None and k not in owned]
+
+    def shop(self, pid):
+        if self.demo:
+            return {"on": False}
+        if pid == "me":  # yours: the requests to answer, and the shop itself if you use it too
+            names = {p["id"]: p["name"] for p in self.store.people()}
+            mine = self.settings("me")
+            admin = {"owner": True, "forFriends": bool(mine.get("shopForFriends", True)), "forMe": bool(mine.get("shopForMe")),
+                     "requests": [dict(r, name=names.get(r["person"], "Someone")) for r in self._requests()][-30:]}
+            return {**self._shop_view(pid), **admin} if admin["forMe"] else admin
+        if not self.shop_on(pid):
+            return {"on": False}
+        return self._shop_view(pid)
+
+    def _shop_view(self, pid):
+        """Someone's grain, and everything in the shop for them."""
+        s = self.settings(pid)
+        earned = logic.grain_earned(self.store.sessions(person=pid), s["goal"], logic.zone(s["timeZone"]))
+        wallet, owned, today = self._wallet(pid), set(self.owned(pid)), self._today(pid)
+        holiday = lambda ev: {"event": ev, "month": logic.EVENT_MONTHS.get(ev), "inSeason": logic.event_on(ev, today)}  # noqa: E731
+        catalog = {}
+        for k in logic.species():
+            if k in logic.HOUR_DUCKS:
+                catalog[k] = {"hours": logic.HOUR_DUCKS[k]}
+            elif k in logic.HOLIDAY:  # free, and only in its holiday
+                catalog[k] = holiday(logic.HOLIDAY[k])
+            else:
+                catalog[k] = {"price": logic.price(k)}
+        items = {}
+        for i in self._items():
+            name = i.partition(":")[2]
+            items[i] = ({"free": True} if i in logic.FREE_ITEMS else holiday(name) if name in logic.EVENTS
+                        else {"price": logic.item_price(i), "season": True, "inSeason": logic.SEASON_OF[today.month] == name,
+                              "bought": i in wallet["bought"]}
+                        if i.startswith("pond:") and name in logic.SEASON_OF.values() else {"price": logic.item_price(i)})
+        return {"on": True, "balance": earned - wallet["spent"], "earned": earned, "spent": wallet["spent"],
+                "items": items, "ownedItems": list(self.owned_items(pid)),
+                "hours": round(self.store.focused_minutes(pid) / 60, 1), "owned": [k for k in logic.species() if k in owned],
+                "catalog": catalog, "rates": [list(r) for r in logic.GRAIN_RATES], "cap": logic.GRAIN_CAP,
+                "together": logic.GRAIN_TOGETHER, "goalBonus": logic.GRAIN_GOAL_DAY,
+                "mystery": {"price": logic.MYSTERY_PRICE, "left": len(self._mystery_pool(pid, owned))},
+                "custom": {"price": logic.CUSTOM_PRICE}, "price": logic.PRICE,
+                "requests": [r for r in self._requests() if r["person"] == pid][-10:]}
+
+    def _spend(self, pid, cost, kind, how, now):
+        """Takes `cost` grain for `kind` (or a request), or says how much more is needed."""
+        view = self.shop(pid)
+        if view["balance"] < cost:
+            raise ApiError(402, f"That's {cost:,} grain: {cost - view['balance']:,} more to go.", shop=view)
+        wallet = self._wallet(pid)
+        if kind:
+            wallet["bought"] = wallet["bought"] + [kind]
+        wallet["spent"] += cost
+        wallet["log"] = (wallet["log"] + [{"at": now, "kind": kind, "price": cost, "how": how}])[-200:]
+        self.store.set(self._key("shop", pid), wallet)
+
+    def _shopper(self, ctx):
+        pid = ctx.person
+        if not self.shop_on(pid):
+            raise ApiError(400, "Every duck is yours already.")
+        return pid
+
+    def buy(self, ctx, body):
+        """Buys one duck, or a theme, pond or decoration ({"item": "theme:sumi"})."""
+        if body.get("item"):
+            return self._buy_item(ctx, str(body["item"]))
+        with self.lock:
+            pid = self._shopper(ctx)
+            kind = logic.kind(body.get("duck"))
+            if not kind:
+                raise ApiError(404, "There's no such duck.")
+            if kind in self.owned(pid):
+                raise ApiError(409, "You have that duck already.")
+            if kind in logic.HOLIDAY:
+                raise ApiError(400, "That one is free for everyone while its holiday is on.")
+            if logic.price(kind) is None:
+                raise ApiError(400, f"That one comes with time: {logic.HOUR_DUCKS[kind]} hours studied.")
+            self._spend(pid, logic.price(kind), kind, "bought", now_ms())
+        log("shop:", pid, "bought", kind)
+        self._changed({pid})
+        return {"duck": kind, "shop": self.shop(pid)}
+
+    def _buy_item(self, ctx, item):
+        with self.lock:
+            pid = self._shopper(ctx)
+            if item not in self._items():
+                raise ApiError(404, "There's no such thing in the shop.")
+            if item in self.owned_items(pid):
+                raise ApiError(409, "You have that already.")
+            if logic.item_price(item) is None:
+                raise ApiError(400, "That one is free for everyone while its holiday is on.")
+            self._spend(pid, logic.item_price(item), item, "bought", now_ms())
+        log("shop:", pid, "bought", item)
+        self._changed({pid})
+        return {"item": item, "shop": self.shop(pid)}
+
+    def mystery(self, ctx):
+        """A mystery egg: a duck you don't have yet, picked at random."""
+        with self.lock:
+            pid = self._shopper(ctx)
+            pool = self._mystery_pool(pid, set(self.owned(pid)))
+            if not pool:
+                raise ApiError(409, "You have every duck the shop sells.")
+            kind = secrets.choice(pool)
+            self._spend(pid, logic.MYSTERY_PRICE, kind, "mystery", now_ms())
+        log("shop:", pid, "hatched a mystery egg:", kind)
+        self._changed({pid})
+        return {"duck": kind, "shop": self.shop(pid)}
+
+    def request_duck(self, ctx, body):
+        """Asks you for a custom duck, for CUSTOM_PRICE grain: you'll see it in Settings (and get a notification)."""
+        text = re.sub(r"\s+", " ", str(body.get("text") or "")).strip()[:300]
+        if len(text) < 3:
+            raise ApiError(400, "Say which duck you'd like.")
+        with self.lock:
+            pid = self._shopper(ctx)
+            if sum(1 for r in self._requests() if r["person"] == pid and r["status"] == "open") >= 3:
+                raise ApiError(409, "You have three requests waiting already.")
+            now = now_ms()
+            self._spend(pid, logic.CUSTOM_PRICE, None, "request", now)
+            req = {"id": new_id(), "person": pid, "text": text, "price": logic.CUSTOM_PRICE, "at": now, "status": "open", "duck": ""}
+            self.store.set("duckRequests", (self._requests() + [req])[-200:])
+        log("shop:", pid, "asked for a custom duck")
+        if self.store.pushes(person="me"):
+            self.notify({"title": "鴨 · 注文", "body": f"{self._name(pid)} would like a custom duck: {text}", "tag": "dakku-request",
+                         "url": "/#settings"}, topic="dakku-request", person="me")
+        self._changed({pid, "me"})
+        return {"request": req, "shop": self.shop(pid)}
+
+    def answer_request(self, ctx, rid, body):
+        """Yours: hand over the duck you made for a request (they get it, and it's in the shop for everyone
+        else), or refund it."""
+        with self.lock:
+            reqs = self._requests()
+            req = next((r for r in reqs if r["id"] == rid), None)
+            if not req:
+                raise ApiError(404, "There's no such request.")
+            if req["status"] != "open":
+                raise ApiError(409, "That request has been answered already.")
+            wallet = self._wallet(req["person"])
+            if body.get("refund"):
+                req.update(status="refunded", answered=now_ms())
+                wallet["spent"] = max(0, wallet["spent"] - req["price"])
+                wallet["log"] = (wallet["log"] + [{"at": now_ms(), "kind": None, "price": -req["price"], "how": "refund"}])[-200:]
+            else:
+                kind = logic.kind(body.get("duck"))
+                if not kind:
+                    raise ApiError(400, "Pick the duck you made (add it with scripts/duck.py first).")
+                if logic.price(kind) is None:
+                    raise ApiError(409, "Pick the new duck you made: that one isn't in the shop.")
+                req.update(status="done", duck=kind, answered=now_ms())
+                wallet["bought"] = wallet["bought"] + [kind]
+            self.store.set(self._key("shop", req["person"]), wallet)
+            self.store.set("duckRequests", reqs)
+        if not body.get("refund") and self.store.pushes(person=req["person"]):
+            self.notify({"title": "鴨 · 完成!", "body": f"Your custom duck is here: the {logic.noun(req['duck'])}.", "tag": "dakku-request",
+                         "url": "/"}, topic="dakku-request", person=req["person"])
+        self._changed({req["person"], "me"})
+        return {"request": req, "shop": self.shop("me")}
 
     # ── cheers ───────────────────────────────────────────────────────────────
     def cheer(self, ctx, body):
