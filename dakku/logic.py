@@ -8,7 +8,7 @@ Days are counted in your home time zone, so traveling doesn't scramble them.
 """
 import json
 import re
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -153,3 +153,97 @@ def week(sessions, tz, now_ms):
 
 def fmt_minutes(m):
     return f"{m} min" if m < 60 else f"{m // 60}h" + (f" {m % 60}m" if m % 60 else "")
+
+
+# ── the duck shop: grain for focus, and ducks to spend it on ─────────────────
+# Everyone but you earns their ducks (you can turn that off in Settings). The plain ducks come with
+# hours studied; the rest are bought with grain (🌾), earned for every duck hatched with the timer.
+# A minute of focus is worth more the longer the session: a warm-up pays half, and a long, unbroken
+# stretch pays up to 1.75 a minute. Studying together pays a tenth more, and each day the daily goal
+# is reached pays a bonus. Cold eggs, and time logged by hand or imported, pay nothing.
+GRAIN_RATES = ((90, 1.75), (50, 1.5), (25, 1.25), (10, 1.0), (0, 0.5))  # (from this many minutes, grain a minute)
+GRAIN_CAP = 180         # minutes a session can earn for (a 4-hour stopwatch earns like 3 hours)
+GRAIN_TOGETHER = 1.1    # a session studied together
+GRAIN_GOAL_DAY = 20     # each day the daily goal is reached
+UNEARNED = ("manual", "import", "genkan")  # sources that don't earn (a session logged by hand is `manual` too)
+# A long-term collection: at about an hour a day (some 110 grain with the goal bonus) a duck from the shop
+# takes nine or ten days, so the whole shop takes about a year, and the plain ducks keep coming over months.
+HOUR_DUCKS = {"shiro": 0, "sailor": 2, "neko": 5, "ninja": 10, "kitsune": 20, "yukata": 35, "samurai": 50,
+              "nurse": 75, "astro": 100, "king": 150}  # the plain ducks: hours studied to unlock each (Shiro is everyone's)
+PRICE = 1000            # a duck in the shop: every one the same
+HOLIDAY = {"witch": "halloween", "harvest": "thanksgiving", "santa": "christmas"}  # the holiday ducks: free in their holiday, and only then
+# The themes, ponds and pond decorations are in the shop too ("theme:sumi", "pond:night", "decor:koi"):
+# Ai and the classic pond are everyone's, and the holidays' themes and ponds are free while they're on.
+EVENTS = ("halloween", "thanksgiving", "christmas", "lunar")
+EVENT_MONTHS = {"halloween": 10, "thanksgiving": 11, "christmas": 12}
+LUNAR_NEW_YEAR = {2026: (2, 17), 2027: (2, 6), 2028: (1, 26), 2029: (2, 13), 2030: (2, 3), 2031: (1, 23), 2032: (2, 11),
+                  2033: (1, 31), 2034: (2, 19), 2035: (2, 8), 2036: (1, 28), 2037: (2, 15), 2038: (2, 4), 2039: (1, 24), 2040: (2, 12)}
+FREE_ITEMS = ("theme:ai", "pond:classic", "pond:seasonal")  # (the seasonal pond follows the seasons, free)
+# the season each month is in, as the seasonal pond follows them: a season's own pond is free to pick
+# while it lasts, and bought to have it the rest of the year (the classic pond is summer's)
+SEASON_OF = {12: "winter", 1: "winter", 2: "winter", 3: "spring", 4: "spring", 5: "spring",
+             6: "classic", 7: "classic", 8: "classic", 9: "autumn", 10: "autumn", 11: "autumn"}
+THEME_PRICE = 1200      # Sumi, Yozakura, Sakura
+POND_PRICE = 1200       # each pond (a season's is free while it lasts)
+DECOR_PRICE = 500       # each thing on the pond
+MYSTERY_PRICE = 700     # a mystery egg: a duck you don't have yet, picked at random (cheaper than choosing)
+CUSTOM_PRICE = 4000     # asking for a new duck: you make it, they get it, and it joins the shop for everyone
+
+
+def grain_for(session):
+    """The grain one session earns."""
+    if session.get("deleted") or session.get("status") == "withered" or session.get("manual") \
+            or session.get("source") in UNEARNED:
+        return 0
+    minutes = min(int(session.get("minutes") or 0), GRAIN_CAP)
+    rate = next(r for least, r in GRAIN_RATES if minutes >= least)
+    earned = minutes * rate * (GRAIN_TOGETHER if session.get("room") else 1)
+    return int(earned)
+
+
+def grain_earned(sessions, goal, tz):
+    """Everything a person has earned: their sessions, and a bonus for each day they reached the goal."""
+    total = sum(grain_for(s) for s in sessions)
+    counted = [s for s in sessions if grain_for(s)]
+    days = sum(1 for m in minutes_by_day(counted, tz).values() if goal and m >= goal)
+    return total + days * GRAIN_GOAL_DAY
+
+
+def price(kind):
+    """What a duck costs in the shop, or None for one that comes with hours."""
+    return None if kind in HOUR_DUCKS or kind in HOLIDAY else PRICE
+
+
+def event_on(event, day):
+    """Whether a holiday is on: its month (Lunar New Year: from a week before it to the Lantern Festival)."""
+    if event == "lunar":
+        at = LUNAR_NEW_YEAR.get(day.year)
+        return bool(at) and -7 <= (day - date(day.year, *at)).days <= 15
+    return EVENT_MONTHS.get(event) == day.month
+
+
+def in_season(kind, day):
+    """Whether a duck can be hatched today: a holiday duck only in its holiday."""
+    return kind not in HOLIDAY or event_on(HOLIDAY[kind], day)
+
+
+def item_price(item):
+    """What a theme, pond or decoration costs ("theme:sumi"), or None for a free one (and a holiday's)."""
+    kind, _, name = item.partition(":")
+    if item in FREE_ITEMS or (kind in ("theme", "pond") and name in EVENTS):
+        return None
+    return {"theme": THEME_PRICE, "decor": DECOR_PRICE}.get(kind) or POND_PRICE
+
+
+def owned_ducks(hours, bought, day):
+    """The ducks someone can hatch: the plain ones their hours have unlocked, the ones they bought, and the
+    holiday's duck while it's on."""
+    return tuple(k for k in species() if (k in HOUR_DUCKS and hours >= HOUR_DUCKS[k]) or k in bought
+                 or (k in HOLIDAY and in_season(k, day)))
+
+
+def owned_items(items, bought, day):
+    """The themes, ponds and decorations someone can use: the free ones, the ones they bought, and the
+    holiday's theme and pond while it's on."""
+    return tuple(i for i in items if i in FREE_ITEMS or i in bought or i == f"pond:{SEASON_OF[day.month]}"
+                 or (i.partition(":")[2] in EVENTS and i.partition(":")[0] in ("theme", "pond") and event_on(i.partition(":")[2], day)))
