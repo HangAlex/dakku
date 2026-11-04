@@ -58,7 +58,7 @@
   <section class="gate" id="join-gate" hidden>
     <div class="gate-card">
       <span class="seal big" aria-hidden="true">共</span>
-      <h1 class="gate-title" id="join-title">Study together</h1>
+      <h1 class="gate-title" id="join-title">Focus together</h1>
       <p class="gate-lede" id="join-lede">You've been invited to Dakku: a focus timer where every session hatches a little duck.</p>
       <form id="join-form" class="gate-form">
         <label for="join-name">Your name</label>
@@ -74,6 +74,7 @@
         <button class="btn primary wide" type="submit" id="join-btn">Join</button>
         <p class="form-msg" id="join-msg" role="alert"></p>
       </form>
+      <p class="gate-alt" id="join-alt"><button class="link" type="button" id="join-have">Joined already, here or on another device? Sign in with a code</button></p>
     </div>
   </section>
 
@@ -115,14 +116,15 @@
           <div class="plant-main">
             <div class="today" id="today"></div>
             <div class="dial-wrap" id="dial-wrap">
-              <img class="dial-ring" id="dial-ring" alt="" aria-hidden="true" decoding="async" hidden>
               <svg class="dial" id="dial" viewBox="0 0 300 300" role="slider" aria-label="Minutes (Enter starts the session)" aria-valuemin="5" aria-valuemax="180" tabindex="0">
                 <circle class="dial-face" cx="150" cy="150" r="118"/>
                 <g id="dial-ticks"></g>
                 <circle class="dial-track" cx="150" cy="150" r="134"/>
                 <path class="dial-arc" id="dial-arc" d=""/>
-                <circle class="dial-knob" id="dial-knob" cx="150" cy="16" r="12"/>
               </svg>
+              <!-- an event's ring lies over the dial's line, and the knob over the ring (so it's always there to grab) -->
+              <img class="dial-ring" id="dial-ring" alt="" aria-hidden="true" decoding="async" hidden>
+              <svg class="dial-top" viewBox="0 0 300 300" aria-hidden="true"><circle class="dial-knob" id="dial-knob" cx="150" cy="16" r="12"/></svg>
               <div class="grow" id="grow"></div>
               <span class="tap-hint" aria-hidden="true"><span class="jp">孵す</span> Tap to hatch</span>
               <div class="cheer-pops" id="cheer-pops" aria-live="polite"></div>
@@ -130,6 +132,7 @@
             </div>
             <div class="clock" id="clock">25:00</div>
             <div class="clock-sub" id="clock-sub">&nbsp;</div>
+            <div class="cheer-tray" id="cheer-tray" aria-live="polite" hidden></div>
             <div class="run-buttons" id="run-buttons" hidden>
               <button class="btn" type="button" id="pause-btn">Pause</button>
               <button class="btn undo" type="button" id="undo-btn" hidden>Cancel · 10</button>
@@ -174,7 +177,7 @@
           <aside class="plant-side">
             <div class="card welcome" id="welcome" hidden></div>
             <div class="card live" id="live-card" hidden>
-              <div class="card-head"><h2><span class="jp">今</span> Studying now</h2><a class="link" href="#together">Together →</a></div>
+              <div class="card-head"><h2><span class="jp">今</span> Focusing now</h2><a class="link" href="#together">Together →</a></div>
               <div id="live-rooms"></div>
             </div>
             <div class="card today-forest">
@@ -223,7 +226,7 @@
         <div id="together-empty" hidden></div>
         <div id="together-main">
           <div class="card">
-            <div class="card-head"><h2><span class="jp">今</span> Studying now</h2></div>
+            <div class="card-head"><h2><span class="jp">今</span> Focusing now</h2></div>
             <div id="rooms"></div>
           </div>
           <div class="card">
@@ -252,7 +255,7 @@
               <div id="board"></div>
             </div>
             <div class="card span2">
-              <div class="card-head"><h2><span class="jp">科目</span> What everyone studies</h2></div>
+              <div class="card-head"><h2><span class="jp">科目</span> What everyone works on</h2></div>
               <div id="board-tags"></div>
             </div>
           </div>
@@ -359,7 +362,7 @@
             <span class="row-label">Daily goal<small>Minutes of focus for a day to count</small></span>
             <span class="stepper"><button type="button" data-step="-5" aria-label="Less">−</button><input type="number" id="set-goal" min="5" max="600" step="5" inputmode="numeric"><button type="button" data-step="5" aria-label="More">+</button></span>
           </label>
-          <p class="note">Reach your goal to grow your streak. Missing a <b>weekday</b> breaks it; weekends never do, and studying on one still adds a day.</p>
+          <p class="note">Reach your goal to grow your streak. Missing a <b>weekday</b> breaks it; weekends never do, and focusing on one still adds a day.</p>
           <div class="row" id="look-row">
             <span class="row-label">Your badge<small>On your ducks in shared ponds</small></span>
             <span class="inline look">
@@ -417,9 +420,9 @@
         <div class="card set" data-real>
           <h2><span class="jp">通知</span> Notifications</h2>
           <div id="set-push"></div>
-          <label class="row toggle" id="friend-alerts-row"><span class="row-label">When friends start studying<small>So you can join them</small></span><input type="checkbox" id="set-friend-alerts"><i></i></label>
-          <label class="row toggle" id="cheer-alerts-row"><span class="row-label">Cheers from friends<small>When someone cheers you on while you study</small></span><input type="checkbox" id="set-cheer-alerts"><i></i></label>
-          <label class="row toggle"><span class="row-label">Sunday recap<small>Your week on Sunday evening: time studied, ducks and your best day</small></span><input type="checkbox" id="set-weekly-recap"><i></i></label>
+          <label class="row toggle" id="friend-alerts-row"><span class="row-label">When friends start focusing<small>So you can join them</small></span><input type="checkbox" id="set-friend-alerts"><i></i></label>
+          <label class="row toggle" id="cheer-alerts-row"><span class="row-label">Cheers from friends<small>When someone cheers you on while you focus</small></span><input type="checkbox" id="set-cheer-alerts"><i></i></label>
+          <label class="row toggle"><span class="row-label">Sunday recap<small>Your week on Sunday evening: time focused, ducks and your best day</small></span><input type="checkbox" id="set-weekly-recap"><i></i></label>
           <label class="row toggle"><span class="row-label">Daily reminder<small>A nudge if you haven't reached your goal yet</small></span><input type="checkbox" id="set-remind"><i></i></label>
           <div class="row" id="remind-row">
             <span class="row-label">Remind me at</span>
@@ -444,7 +447,7 @@
 
         <div class="card set" data-real data-owner>
           <h2><span class="jp">店</span> Duck shop <small class="muted" id="shop-requests-note"></small></h2>
-          <p class="note">Friends earn grain for their focus and spend it on ducks: the plain ones come with hours studied, the rest are in the shop. You have every duck either way.</p>
+          <p class="note">Friends earn grain for their focus and spend it on ducks: the plain ones come with hours of focus, the rest are in the shop. You have every duck either way.</p>
           <label class="row toggle"><span class="row-label">Friends earn their ducks<small>Off: every friend has every duck, as before</small></span><input type="checkbox" id="set-shop-friends"><i></i></label>
           <label class="row toggle"><span class="row-label">Use the shop myself too<small>Earn your ducks, themes and ponds like everyone else. Off: you have them all again</small></span><input type="checkbox" id="set-shop-me"><i></i></label>
           <h3 class="set-sub"><span class="jp">注文</span> Duck requests</h3>
@@ -516,7 +519,7 @@
           <span class="minutes-input"><input type="number" id="f-min" min="1" max="1440" inputmode="numeric" required>
           <span class="quick" id="f-quick"><button type="button" data-m="15">15</button><button type="button" data-m="25">25</button><button type="button" data-m="45">45</button><button type="button" data-m="60">60</button><button type="button" data-m="90">90</button></span></span>
         </label>
-        <label class="full">Tag<input type="text" id="f-tag" list="tag-list" maxlength="40" autocomplete="off" placeholder="What did you study?"></label>
+        <label class="full">Tag<input type="text" id="f-tag" list="tag-list" maxlength="40" autocomplete="off" placeholder="What did you work on?"></label>
         <label class="full">Note<input type="text" id="f-note" maxlength="300" placeholder="Optional"></label>
         <label class="full toggle-line" id="f-withered-row"><input type="checkbox" id="f-withered"> Cold egg (doesn't count toward goals)</label>
       </div>
@@ -559,10 +562,10 @@
 
   <dialog class="sheet" id="pair-dialog">
     <div class="sheet-body pair">
-      <h2>Add a device</h2>
+      <h2 id="pair-title">Add a device</h2>
       <ol class="steps">
-        <li>On your iPhone, switch on <b>Tailscale</b>.</li>
-        <li>Scan this with the Camera, or open <b id="pair-url"></b></li>
+        <li data-step="tailscale">On your iPhone, switch on <b>Tailscale</b>.</li>
+        <li data-step="open">Scan this with the Camera, or open <b id="pair-url"></b></li>
         <li>On iPhone: tap Share → <b>Add to Home Screen</b>, then open Dakku from your Home Screen.</li>
         <li>Type this code:</li>
       </ol>
@@ -570,6 +573,7 @@
         <div class="qr" id="pair-qr"></div>
         <div class="pair-code-box"><div class="pair-code" id="pair-code">——</div><div class="muted small" id="pair-expiry"></div><button class="link" type="button" id="pair-new">New code</button></div>
       </div>
+      <p class="muted small" id="pair-note" hidden>On iPhone, the Home Screen app doesn't share Safari's sign-in, so this code signs it in as you. Don't open the invite link there: you'd join a second time.</p>
       <div class="sheet-actions"><span class="grow-space"></span><button class="btn primary" type="button" id="pair-close">Done</button></div>
     </div>
   </dialog>
@@ -599,7 +603,7 @@
         <div class="pick-label">Tag</div>
         <div class="chips scroll" id="join-tags"></div>
       </div>
-      <p class="note">Your duck hatches when their session ends, for the time you studied. Leave whenever you like: you keep a duck for your time so far.</p>
+      <p class="note">Your duck hatches when their session ends, for the time you focused. Leave whenever you like: you keep a duck for your time so far.</p>
       <div class="sheet-actions">
         <span class="grow-space"></span>
         <button class="btn" value="no" type="button" id="join-room-cancel">Cancel</button>
@@ -642,6 +646,32 @@
       <div class="duck-detail" id="duck-detail" hidden></div>
     </div>
   </dialog>
+
+  <!-- someone's own pond: a friend's (from Together, or your friends in Settings), or yours as they see it -->
+  <dialog class="sheet pond-sheet" id="pond-dialog">
+    <div class="sheet-body">
+      <div class="profile" id="pond-profile"></div>
+      <div class="pond-live" id="pond-live"></div>
+      <div class="seg small" id="pond-range" role="radiogroup" aria-label="Which ducks">
+        <button type="button" role="radio" data-prange="week">This week</button>
+        <button type="button" role="radio" data-prange="month">This month</button>
+        <button type="button" role="radio" data-prange="all">All</button>
+      </div>
+      <div class="pond-wrap">
+        <div class="forest-stage" id="pond-stage"></div>
+        <div class="tree-pop" id="pond-pop" hidden></div>
+      </div>
+      <div id="pond-tags"></div>
+      <div class="sheet-actions"><span class="grow-space"></span><button class="btn primary" type="button" id="pond-close">Close</button></div>
+    </div>
+  </dialog>
+
+  <!-- a new version of Dakku is in: restart to use it -->
+  <div class="update-bar" id="update-bar" role="status" hidden>
+    <span class="update-text"><b>Dakku has been updated</b><small>Restart to get the new version</small></span>
+    <button class="btn small primary" type="button" id="update-restart">Restart</button>
+    <button class="update-later" type="button" id="update-later" aria-label="Later">✕</button>
+  </div>
 
   <div class="toasts" id="toasts" aria-live="polite"></div>
 </body>

@@ -10,6 +10,9 @@ const PICTURES = 'dakku-pictures'; // kept through updates: 70-odd pictures are 
 const SHELL = ['/', '/app.css', '/app.js', '/art.js', '/kinds.js', '/qr.js', '/lofi.js', '/manifest.webmanifest', '/icons/favicon.png'];
 
 self.addEventListener('install', (event) => {
+  // your data goes straight to the PC, past this worker, where the browser can do that: the live updates
+  // never end, and while they went through an old worker a new one couldn't take over
+  try { event.addRoutes?.({ condition: { urlPattern: new URLPattern({ pathname: '/api/*' }) }, source: 'network' }); } catch { /* not here */ }
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
     await cache.addAll(SHELL.map((url) => new Request(url, { cache: 'no-cache' })));
@@ -27,6 +30,8 @@ self.addEventListener('activate', (event) => {
     }
     for (const key of await caches.keys()) if (![CACHE, FONTS, PICTURES].includes(key)) await caches.delete(key);
     await self.clients.claim();
+    // and says so: a page that opened a moment ago may be running the old files (it hears this once it's ready)
+    for (const client of await self.clients.matchAll({ type: 'window' })) client.postMessage({ type: 'updated', build: BUILD });
   })());
 });
 
@@ -37,7 +42,7 @@ self.addEventListener('fetch', (event) => {
   if (url.origin === self.location.origin) {
     if (url.pathname.startsWith('/api/')) return; // your data always comes live from the PC
     if (url.pathname.startsWith('/ducks/') && url.searchParams.has('v')) event.respondWith(picture(req));
-    else event.respondWith(req.mode === 'navigate' ? page(req) : asset(req, event));
+    else event.respondWith(req.mode === 'navigate' ? page(req, event) : asset(req, event));
   } else if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
     event.respondWith(font(req));
   }
@@ -50,19 +55,20 @@ function withTimeout(promise, ms) {
   });
 }
 
-// the page: fresh when the PC answers quickly, otherwise the copy saved last time
-async function page(req) {
+// the page: the copy saved last time, at once (Dakku opens before the PC answers, or while Tailscale wakes
+// with the phone), with a fresh one fetched behind it for next time; a new version of Dakku still arrives
+// through its service worker (see BUILD). Only the first time, with nothing saved yet, does it wait for the PC.
+async function page(req, event) {
   const cache = await caches.open(CACHE);
-  try {
-    const res = await withTimeout(fetch(req), 4000);
-    if (res.ok) cache.put('/', res.clone());
-    return res;
-  } catch {
-    return (await cache.match('/')) || Response.error();
-  }
+  const hit = await cache.match('/');
+  const fresh = fetch(req).then((res) => { if (res.ok) cache.put('/', res.clone()); return res; }).catch(() => null);
+  if (hit) { event.waitUntil(fresh); return hit; }
+  return (await withTimeout(fresh, 8000).catch(() => null)) || Response.error();
 }
 
-// scripts, styles, icons and the list of pictures: straight from the saved copy, refreshed in the background
+// scripts, styles and icons: straight from the saved copy, refreshed in the background. The list of pictures
+// is asked of the PC first (a duck new since the last visit would otherwise be a plain one until the next),
+// and the saved copy stands in when the PC doesn't answer within two seconds (Tailscale waking) or at all
 async function asset(req, event) {
   const list = new URL(req.url).pathname === '/ducks/ducks.json';
   const cache = await caches.open(list ? PICTURES : CACHE);
@@ -74,6 +80,11 @@ async function asset(req, event) {
     }
     return res;
   }).catch(() => null);
+  if (list && hit) {
+    event.waitUntil(fresh);
+    const res = await withTimeout(fresh, 2000).catch(() => null);
+    return res?.ok ? res : hit;
+  }
   return hit || (await fresh) || Response.error();
 }
 
