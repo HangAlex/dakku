@@ -4,8 +4,8 @@
 The ducks live in two places, and this keeps them in step:
     art/ducks.json        the list: each duck's name, kanji, color, blurb, face and outfit (and "eye": "hidden"
                           for one whose outfit covers the eye on purpose, so the checks don't look for it), and
-                          where the gallery shelves it: its "category" (dakku, holiday, anime, games, screen or
-                          music) and "series" (ducks of the same series sit together)
+                          where the gallery shelves it: its "category" (dakku, holiday, anime, games, screen,
+                          sanrio or music) and "series" (ducks of the same series sit together)
     art/ducks/<id>.png    its picture, finished: transparent, facing left, beak in Dakku's peach
 
 Making a new duck:
@@ -13,9 +13,10 @@ Making a new duck:
        adds it to the list and prints the exact prompt for ChatGPT (also saved in art/prompts/goku.txt)
     2. In ChatGPT, start a new chat in the "Dakku ducks" project (it has the style rules), pick
        Create image, attach art/reference.png (+ → Add from library, once it's been uploaded), paste
-       the prompt, and save the picture as art/incoming/goku.png
+       the prompt, then send the touch-up it prints after it (the head as high as the reference's) in
+       the same chat, and save that picture as art/incoming/goku.png
     3. python3 scripts/import_art.py   (or: python3 scripts/duck.py add goku)
-       finishes the picture (background, facing, beak color, size), checks it (a body drawn flatter than
+       finishes the picture (background, facing, beak color, a brown outline made charcoal, size), checks it (a body drawn flatter than
        the others' is flagged, to be redrawn), puts it in Dakku and makes art/review/goku.png to look at.
 
 Other commands:
@@ -133,6 +134,8 @@ def find_eyes(img, body):
             r, g, b, a = px[x, y]
             if a > 200 and max(r, g, b) < 90:
                 d[x, y] = 255
+    # a crayon dot has paler specks of paper in it: they're filled first, or wearing it away below finds no core
+    dark = dark.filter(ImageFilter.MaxFilter(3)).filter(ImageFilter.MinFilter(3))
     wear = max(1, round(body * 0.012))  # about a third of the dot's radius
     core = dark.filter(ImageFilter.MinFilter(2 * wear + 1)).load()
     mask = bytearray(w * h)
@@ -200,6 +203,23 @@ def find_beak(img, body, eye):
     return best and [(j % w, j // w) for j in best[1]]
 
 
+def beak_alone(img, body):
+    """The beak of a duck whose eye isn't found on purpose ("eye": "hidden": a helmet, or a face that isn't white): the
+    frontmost peach-to-orange patch big enough to be one. Returns its pixels, or None."""
+    w, h = img.size
+    px = img.load()
+    mask = bytearray(w * h)
+    for y in range(h):
+        for x in range(w):
+            if beakish(px[x, y]):
+                mask[y * w + x] = 1
+    parts = [p for p in components(mask, w, h, int((0.09 * body) ** 2))]
+    if not parts:
+        return None
+    front = min(parts, key=lambda p: sum(j % w for j in p) / len(p))
+    return [(j % w, j // w) for j in front]
+
+
 def hsv_median(img, points):
     px = img.load()
     hsv = [colorsys.rgb_to_hsv(*(c / 255 for c in px[x, y][:3])) for x, y in points]
@@ -235,6 +255,58 @@ def match_beak(img, beak):
         px[x, y] = (round(r * 255), round(g * 255), round(b * 255), a)
     return before, hsv_median(img, beak)
 
+
+# the outline's tint: how colorful Shiro's (and King's) is, in Lab chroma, a nearly neutral charcoal. ChatGPT often
+# draws it a reddish brown instead (Ike's was 3x as colorful), which casts the whole duck brown.
+OUTLINE_CHROMA = 5.4
+WHITE_XYZ = (0.95047, 1.0, 1.08883)
+
+
+def to_lab(rgb):
+    lin = [(c / 255 / 12.92) if c / 255 <= 0.04045 else ((c / 255 + 0.055) / 1.055) ** 2.4 for c in rgb[:3]]
+    xyz = (0.4124 * lin[0] + 0.3576 * lin[1] + 0.1805 * lin[2], 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2],
+           0.0193 * lin[0] + 0.1192 * lin[1] + 0.9505 * lin[2])
+    f = [t ** (1 / 3) if t > 0.008856 else 7.787 * t + 16 / 116 for t in (v / n for v, n in zip(xyz, WHITE_XYZ))]
+    return 116 * f[1] - 16, 500 * (f[0] - f[1]), 200 * (f[1] - f[2])
+
+
+def from_lab(L, a, b):
+    fy = (L + 16) / 116
+    xyz = [(t ** 3 if t ** 3 > 0.008856 else (t - 16 / 116) / 7.787) * n for t, n in zip((fy + a / 500, fy, fy - b / 200), WHITE_XYZ)]
+    lin = (3.2406 * xyz[0] - 1.5372 * xyz[1] - 0.4986 * xyz[2], -0.9689 * xyz[0] + 1.8758 * xyz[1] + 0.0415 * xyz[2],
+           0.0557 * xyz[0] - 0.2040 * xyz[1] + 1.0570 * xyz[2])
+    srgb = [12.92 * v if v <= 0.0031308 else 1.055 * v ** (1 / 2.4) - 0.055 for v in (max(0.0, c) for c in lin)]
+    return tuple(max(0, min(255, round(v * 255))) for v in srgb)
+
+
+def smoothstep(t):
+    t = min(1.0, max(0.0, t))
+    return t * t * (3 - 2 * t)
+
+
+def charcoal(img):
+    """Takes a brown cast off the outline: pixels about as dark as the duck's own outline (or darker) and nearly gray
+    keep their hue and lightness but are only as colorful as Shiro's charcoal. Real colors (a brown hat, navy hair)
+    are lighter or more colorful than that and stay. Changes the picture in place; returns how many pixels it changed."""
+    tone = outline_tone(img)
+    line = to_lab(tone)[0] if tone else 20  # Ike's line is L* 15, the new ducks' about 27
+    px = img.load()
+    done, changed = {}, 0
+    for y in range(img.height):
+        for x in range(img.width):
+            p = px[x, y]
+            if not p[3] or max(p[:3]) > 130:
+                continue
+            if p[:3] not in done:
+                L, a, b = to_lab(p)
+                C = math.hypot(a, b)
+                k = (1 - smoothstep((L - line - 6) / 10)) * (1 - smoothstep((C - 16) / 8))
+                f = (C - (C - OUTLINE_CHROMA) * k) / C if k > 0 and C > OUTLINE_CHROMA else 1
+                done[p[:3]] = from_lab(L, a * f, b * f) if f < 1 else p[:3]
+            if done[p[:3]] != p[:3]:
+                px[x, y] = done[p[:3]] + (p[3],)
+                changed += 1
+    return changed
 
 def outline_tone(img):
     """The usual color of the outline around the duck: dark pixels just inside its silhouette."""
@@ -297,6 +369,8 @@ def finish(img, body=None, notes=None, hidden_eye=False):
     if measured:
         body = ia.BODY_UNITS / ia.measure(img, ia.BODY_UNITS)["unit"]
     eye, beak = face(img, body)
+    if hidden_eye and not beak:
+        beak = beak_alone(img, body)
     if eye and beak and sum(x for x, _ in beak) / len(beak) > eye["x"]:
         # the beak is behind the eye: it faces right. Dakku's ducks face left, so it's turned round.
         img = img.transpose(Image.FLIP_LEFT_RIGHT)
@@ -338,6 +412,10 @@ def finish(img, body=None, notes=None, hidden_eye=False):
             problem(f"its size may be off (beak-to-body {ratio:.3f}, usually 0.12–0.15): long hair or a cape "
                          "can make a body measure wide. Look at the review picture; set \"scale\" in art/ducks.json if needed")
     tone = outline_tone(img)
+    if tone and math.hypot(*to_lab(tone)[1:]) > OUTLINE_CHROMA + 3:  # clearly brown (Ike's was 15; a charcoal one is left as it is)
+        charcoal(img)
+        notes.append(f"its outline was a reddish brown ({hex_of(tone)}); it's Shiro's charcoal now")
+        tone = outline_tone(img)
     if tone:
         facts["outline"] = hex_of(tone)
         if max(tone) < 30:
@@ -355,7 +433,7 @@ def from_chatgpt(path):
     if "A" not in raw.getbands() or raw.convert("RGBA").getchannel("A").getextrema()[0] >= 250:
         notes.append("the background wasn't transparent, so it was taken out here")
     sheet = ia.with_alpha(raw)
-    found = ia.pieces(sheet, 1)
+    found = ia.pieces(sheet, 1, around=0.5)  # (one duck: what floats around it is its own, a halo, a ring, sparks)
     if not found:
         raise SystemExit(f"{path.name}: couldn't find a duck in it. Ask ChatGPT for one duck on a transparent background.")
     # anything else that big in the picture means more than one duck (or a stray object)
@@ -376,22 +454,36 @@ FACES = {
 
 def prompt(duck):
     face = FACES.get(duck.get("face", "calm"), FACES["calm"])
-    return f"""Draw one new duck for my study app Dakku. It must match the attached reference ducks exactly; only the outfit is new.
+    if duck.get("eye") == "hidden":  # a blindfold, an eyepatch: the outfit covers the eye
+        face = (f"{duck.get('cover', 'the outfit')} covers the place where the eye would be, so no eye shows at all, "
+                "and nothing else is on the face: no eyebrows, no mouth, no blush.")
+    return f"""Draw one new duck for my study app Dakku, by the same hand as the attached reference ducks: only the outfit is new.
 
-Copy these from the reference, exactly:
-- The body: the same soft, round, blob-shaped white call duck, the same size and shape, sitting low as if floating, with the same small white wing on its side and a calm rounded bottom.
-- The proportions: as round and tall as the plain white duck at the top left, with the head sitting just as high above the water. Never a lower, longer or flatter body.
-- The lines: the same slightly wobbly, soft dark charcoal crayon outline (dark gray-brown, about {hex_of(OUTLINE)}), never hard black.
+The look, most important of all: the reference's hand-made look, on the duck and on everything it wears. Every outline is the plain white reference duck's own line, copied: a soft dark charcoal crayon line (dark gray, about {hex_of(OUTLINE)}: never brown, never hard black), as thick as its line, even along its length, with only its faint grain at the edge: never crumbly, beaded or rough. Every color is laid in like soft colored pencil on textured paper, with a light, even paper grain, never a flat, perfectly even digital fill and never heavy or blotchy strokes. The colors are clear and full like the reference's Cloud, Sonic and Naruto ducks: a blue is a full blue, a red a true red, a black a deep black, each color at its own natural depth. Never pastel, pale, grayed or washed out, and never neon, glossy or darker than the character really is.
+
+The duck itself is the plain white duck at the top left of the reference, copied exactly:
+- The body: the same soft, round, blob-shaped white call duck, sitting low as if floating.
+- The size and height: just as big as the plain duck. The top of its head, its eye and its beak sit as high above its bottom as the plain duck's do, and its body is just as wide: a little taller than it is wide. The outfit goes on that duck; it never makes the duck bigger, smaller, lower, longer or squashed.
+- The bottom: round like the plain duck's, curving up toward the front and toward the back, so only a short stretch in the middle is lowest: never a long flat base, never cut straight across.
 - The face: {face}
 - The beak: the same small pale peach beak, color {beak_hex()}, not orange and not yellow.
+- The wing: only the same one short curved line on the side of the body, near the back: never a separately outlined or raised wing shape, and it never holds or touches anything.
 - The pose: facing left, in the same gentle three-quarter view.
-- No feet, legs, arms or hands at all. Anything the character carries sits on its back or rests against its wing.
+- No feet, legs, arms or hands at all. Anything the character carries sits on its back (or is tucked into the outfit), never against the wing.
 
 The outfit: {duck['look'].rstrip('.')}.
 
-Keep the outfit simple, in the same flat colors and soft crayon outline as the reference: no shading, gradients or shine. Hair and hats may stick up higher, but the duck's body stays the reference size.
+Keep the outfit simple, with no shading, gradients or shine. Hair and hats may stick up higher; anything floating (a halo, a sparkle) stays close to the duck.
 
 The picture: one square image, 1024x1024, with only this one duck, centered, on a truly transparent background (real alpha: no white, no gray checkerboard). No water, ground, shadow, text, border or other ducks."""
+
+
+# ChatGPT's first picture in a chat often sits the head a little low. Asked in the same chat, it keeps the design and
+# fixes just that, so this goes second. (It used to ask for a coarser, rougher crayon line too: that came out crumbly
+# and heavy, which Alex found overdone. Asked for a thicker line, it's 50-70% heavier than Shiro's.)
+TOUCH_UP = ("Lovely design. Keep it exactly as it is, lines and colors too, and change only one thing: if the head sits "
+            "lower than the plain duck's, let it sit as high, so the eye and the beak are as high above the bottom as the plain "
+            "duck's. Same transparent background, same 1024x1024 square.")
 
 
 # ── putting the ducks in Dakku ────────────────────────────────────────────────
@@ -415,18 +507,38 @@ def publish(say=print):
         entry = ia.save_small(img, did, entry)
         entry["name"] = d["name"]
         kinds[did] = entry
-        listed[did] = {"kanji": d["kanji"], "name": d["name"], "color": d.get("color", "#F4F1EA"), "blurb": d.get("blurb", ""),
-                       "category": d.get("category", "dakku"), **({"series": d["series"]} if d.get("series") else {})}
+        listed[did] = listing(d)
     for gone in set(manifest.get("kinds", {})) - set(kinds):
         (ia.OUT / f"{gone}.webp").unlink(missing_ok=True)
         (ia.OUT / f"{gone}.small.webp").unlink(missing_ok=True)
     manifest["kinds"] = kinds
     ia.write_manifest(manifest)
+    write_kinds(listed)
+    say(f"  {len(kinds)} ducks in Dakku")
+    return len(kinds)
+
+
+def listing(d):
+    """What the app knows about a duck besides its picture (web/kinds.js)."""
+    return {"kanji": d["kanji"], "name": d["name"], "color": d.get("color", "#F4F1EA"), "blurb": d.get("blurb", ""),
+            "category": d.get("category", "dakku"), **({"series": d["series"]} if d.get("series") else {})}
+
+
+def write_kinds(listed):
     js = ("/* 鴨 Dakku: the ducks, from art/ducks.json. Written by scripts/duck.py: don't edit it by hand. */\n"
           f"window.DAKKU_DUCKS = {json.dumps(listed, ensure_ascii=False, indent=1)};\n")
     ia.write(KINDS_JS, lambda part: Path(part).write_text(js, encoding="utf-8"))
-    say(f"  {len(kinds)} ducks in Dakku")
-    return len(kinds)
+
+
+def words(say=print):
+    """The names, blurbs and colors in web/kinds.js follow art/ducks.json again, for the ducks already in Dakku
+    (the pictures are left alone: a blurb edit shouldn't re-encode a hundred pictures)."""
+    ducks = load()
+    manifest = json.loads((ia.OUT / "ducks.json").read_text())
+    listed = {did: listing(ducks[did]) for did in manifest["kinds"] if did in ducks}
+    write_kinds(listed)
+    say(f"  {len(listed)} ducks' words in web/kinds.js")
+    return len(listed)
 
 
 def add(did, path, say=print):
@@ -573,6 +685,7 @@ def main(argv=None):
     r.add_argument("ids", nargs="*")
     sub.add_parser("reference", help="remake art/reference.png")
     sub.add_parser("publish", help="put every duck into Dakku")
+    sub.add_parser("words", help="after editing names or blurbs in art/ducks.json: update web/kinds.js, pictures untouched")
     rm = sub.add_parser("remove", help="take a duck out")
     rm.add_argument("id")
     args = ap.parse_args(argv)
@@ -595,11 +708,13 @@ def main(argv=None):
         (PROMPTS / f"{did}.txt").write_text(text + "\n", encoding="utf-8")
         print(text)
         print(f"\n(Saved in art/prompts/{did}.txt.) In ChatGPT, start a new chat in the \"Dakku ducks\" project, pick Create image,\n"
-              f"attach art/reference.png, paste that, and save the picture as\n  art/incoming/{did}.png\nthen run: python3 scripts/import_art.py")
+              f"attach art/reference.png and paste that. When the picture comes, send this in the same chat:\n\n{TOUCH_UP}\n\n"
+              f"and save the new picture as\n  art/incoming/{did}.png\nthen run: python3 scripts/import_art.py")
     elif args.cmd == "prompt":
         if args.id not in ducks:
             raise SystemExit(f"No duck called {args.id!r}.")
         print(prompt(ducks[args.id]))
+        print(f"\n(Then, in the same chat:)\n\n{TOUCH_UP}")
     elif args.cmd == "add":
         path = Path(args.picture) if args.picture else next((INCOMING / f"{args.id}{e}" for e in ia.EXTS if (INCOMING / f"{args.id}{e}").exists()), None)
         if not path or not path.exists():
@@ -618,6 +733,8 @@ def main(argv=None):
         print(reference().relative_to(ROOT))
     elif args.cmd == "publish":
         publish()
+    elif args.cmd == "words":
+        words()
     elif args.cmd == "remove":
         if args.id in BUILT_IN:
             raise SystemExit("The first ten ducks are part of Dakku and stay.")

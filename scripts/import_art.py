@@ -238,8 +238,10 @@ def without_checkerboard(img, dark, light):
     return img
 
 
-def pieces(img, count):
-    """The `count` biggest separate pictures on a sheet, left to right."""
+def pieces(img, count, around=0.0):
+    """The `count` biggest separate pictures on a sheet, left to right. With `around` (a share of a picture's
+    size), what floats near one is kept with it too (a halo above its head, sparks around it), not only what
+    sits inside its box: for a picture of one duck, where everything there is is that duck's."""
     w, h = img.size
     a = img.getchannel("A").load()
     label = [0] * (w * h)
@@ -273,9 +275,15 @@ def pieces(img, count):
     out = []
     src = img.load()
     for size, lab, x0, y0, x1, y1 in sorted(biggest, key=lambda p: p[2]):
-        # keep this picture's own pixels, plus any small bits (a sparkle, a hair tip) that sit inside its box
-        small = {p[1] for p in found if p[0] < size * 0.02 and x0 <= p[2] and p[4] <= x1 and y0 <= p[3] and p[5] <= y1}
-        keep = small | {lab}
+        # keep this picture's own pixels, plus any small bits (a sparkle, a hair tip) that sit inside its box,
+        # or (with `around`) near it
+        mx, my = round((x1 - x0) * around), round((y1 - y0) * around)
+        limit = 0.15 if around else 0.02
+        small = [p for p in found if p[1] != lab and p[0] < size * limit
+                 and x0 - mx <= p[2] and p[4] <= x1 + mx and y0 - my <= p[3] and p[5] <= y1 + my]
+        keep = {p[1] for p in small} | {lab}
+        x0, y0 = min([x0] + [p[2] for p in small]), min([y0] + [p[3] for p in small])
+        x1, y1 = max([x1] + [p[4] for p in small]), max([y1] + [p[5] for p in small])
         piece = Image.new("RGBA", (x1 - x0 + 1, y1 - y0 + 1), (0, 0, 0, 0))
         dst = piece.load()
         for y in range(y0, y1 + 1):

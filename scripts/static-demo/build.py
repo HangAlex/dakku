@@ -42,6 +42,7 @@ def snapshot():
             time.sleep(2.5)
             get = lambda path: json.load(urllib.request.urlopen(f"http://127.0.0.1:{port}{path}"))  # noqa: E731
             snap = {"bootstrap": get("/api/bootstrap"), "group": get(f"/api/groups/{GROUP}"), "anki": get("/api/anki")}
+            snap["ponds"] = {p["id"]: get(f"/api/people/{p['id']}/pond") for p in snap["bootstrap"]["together"]["people"]}
         finally:
             server.shutdown()
             server.server_close()
