@@ -14,6 +14,7 @@ import csv
 import hashlib
 import hmac
 import io
+import ipaddress
 import json
 import math
 import os
@@ -21,6 +22,7 @@ import queue
 import re
 import secrets
 import socket
+import sqlite3
 import subprocess
 import threading
 import time
@@ -61,6 +63,8 @@ HOST_CLOCK = ("id", "mode", "planned", "pomo", "acc", "runFrom", "startedAt", "e
 PAIRS_EACH = 3  # pairing codes each person can have waiting at once
 PUSH_PER_PERSON = 10  # devices with notifications on, per person (each device has one)
 ORIGIN_RE = re.compile(r"^https://[A-Za-z0-9.-]{1,200}(:\d{1,5})?$")  # where Dakku was opened, for notifications
+TWIN_MS = 30 * MINUTE  # someone joining with the same invite from the same network and kind of device is asked if they joined already
+POND_MAX = 1000  # the newest ducks sent of someone's pond to a friend looking at it (a pond shows up to 500)
 
 
 def now_ms():
@@ -323,12 +327,23 @@ def guess_device(user_agent):
     return "Browser"
 
 
+def network(ip):
+    """The network an address is on, near enough: for IPv6 its /64 (a phone's own addresses change
+    within it), for IPv4 the address."""
+    try:
+        addr = ipaddress.ip_address(ip)
+    except ValueError:
+        return ip
+    return str(ipaddress.ip_network(f"{addr}/64", strict=False)) if addr.version == 6 else str(addr)
+
+
 class Ctx:
     """Who is asking: set up by web.py for every request. `public` is the friends' door."""
 
-    def __init__(self, ip="", local=False, device=None, https=False, origin="", user_agent="", public=False):
+    def __init__(self, ip="", local=False, device=None, https=False, origin="", user_agent="", public=False, build=""):
         self.ip, self.local, self.device, self.https, self.origin, self.user_agent = ip, local, device, https, origin, user_agent
         self.public = public
+        self.build = build  # which build of the app the page asking runs, if it says (see web.py)
 
     @property
     def signed_in(self):
@@ -378,9 +393,11 @@ class App:
         self._let_go = set()  # the ones that should end: someone opened more than LIVE_PER_PERSON
         self._failures, self._fail_lock = {}, threading.Lock()
         self._pairs, self._pair_lock = {}, threading.Lock()
+        self._joins, self._joins_lock = [], threading.Lock()  # who joined with which invite from where, lately (see TWIN_MS)
         self._cheers_sent = {}  # who cheered whom when, to keep cheers from turning into spam
         self._anki_live = False
-        self._addresses_cache = (0, None)
+        self._addresses_cache, self._addresses_lock, self._addresses_busy = (0, None), threading.Lock(), False
+        self._build_cache = (0, None)
         self._touched = {}
         settings = self.store.get("settings")
         if settings is None:
@@ -396,6 +413,7 @@ class App:
             self.store.save_person({"id": "me", "name": name, "color": TAG_COLORS[4], "mark": initial(name),
                                     "created": now_ms(), "updated": now_ms()})
         self.store.rename_species(logic.OLD_SPECIES)  # sessions from the tree days hatch as ducks
+        self._keep_hour_ducks()
         if not self.store.get("passcode"):
             self.set_passcode(words.passcode())
         if demo:
@@ -404,9 +422,25 @@ class App:
         if start_threads:
             threading.Thread(target=self._scheduler, name="dakku-scheduler", daemon=True).start()
 
-    def close(self):
+    def stop(self):
+        """Dakku is stopping: the background loop ends, and so do the live updates (see still_wanted), at once
+        rather than at their next look."""
         self._stop.set()
+        with self._clients_lock:
+            clients = list(self._clients)
+        for q in clients:
+            try:
+                q.put_nowait(None)  # (wakes its page's thread: see web.py's api_events)
+            except queue.Full:
+                pass
+
+    def close(self):
+        self.stop()
         with self.store.lock:
+            try:
+                self.store.db.execute("PRAGMA optimize")  # (SQLite's own housekeeping: what it learned about the tables, kept)
+            except sqlite3.Error:
+                pass
             self.store.db.close()
 
     # ── sign-in ──────────────────────────────────────────────────────────────
@@ -461,12 +495,15 @@ class App:
         return self.store.device_by_token(hashlib.sha256(token.encode()).hexdigest())
 
     def touch(self, ctx):
+        """A device was seen (once a minute is enough), and which build of the app it runs (at once, when it's new)."""
         if not ctx.device or self.demo:
             return
-        now = now_ms()
-        if now - self._touched.get(ctx.device["id"], 0) > MINUTE:
+        now, build = now_ms(), ctx.build if ctx.build and ctx.build != ctx.device.get("build") else None
+        if build or now - self._touched.get(ctx.device["id"], 0) > MINUTE:
             self._touched[ctx.device["id"]] = now
-            self.store.touch_device(ctx.device["id"], now, ctx.ip)
+            self.store.touch_device(ctx.device["id"], now, ctx.ip, build)
+            if build:
+                ctx.device["build"] = build
 
     def new_pair_code(self, person="me"):
         """A one-time, 6-digit code that signs a new device in as `person`. Yours are shown on this
@@ -491,10 +528,17 @@ class App:
         return person if until > time.time() else None
 
     def _new_device(self, ctx, person, name):
+        """A sign-in for this browser. The one it had (its cookie is about to be replaced) goes, so a phone
+        signed in again, say with a sign-in link, doesn't count twice; its name and notifications come
+        along when it's the same person's."""
         token = secrets.token_urlsafe(32)
-        device = {"id": new_id(), "name": str(name or "").strip()[:40] or guess_device(ctx.user_agent), "person": person}
+        old = ctx.device if ctx.device and ctx.device.get("id") != "demo" else None
+        same = old is not None and old.get("person", "me") == person
+        device = {"id": new_id(), "name": str(name or "").strip()[:40] or (old["name"] if same else guess_device(ctx.user_agent)), "person": person}
         self.store.add_device(device["id"], hashlib.sha256(token.encode()).hexdigest(), device["name"], now_ms(), ctx.ip, person)
-        log("signed in:", device["name"], "as", person, "from", ctx.ip)
+        if old:
+            self.store.replace_device(old["id"], device["id"] if same else None)
+        log("signed in:", device["name"], "as", person, "from", ctx.ip, *(["(in place of", old["name"] + ")"] if old else []))
         return token, device
 
     def login(self, ctx, body):
@@ -1000,7 +1044,7 @@ class App:
         return {"me": self.whoami(ctx), "settings": self._own_settings(dict(self.settings(pid)), pid), "timer": self.timer(pid, now), "cursor": cursor,
                 "sessions": [public(r) for r in rows], "now": now, "vapidKey": self.vapid.public_b64,
                 "anki": self.anki_view() if pid == "me" else None, "together": self.together(pid), "shop": self.shop(pid),
-                "server": {"version": __version__, "timeZone": self.system_tz, "since": int(self.started * 1000),
+                "server": {"version": __version__, "timeZone": self.system_tz, "since": int(self.started * 1000), "build": self.build_id(),
                            # your PC's addresses are yours: a friend only needs the door they came in by
                            "addresses": self.addresses() if ctx.owner else {"friends": self.addresses().get("friends")}}}
 
@@ -1016,7 +1060,7 @@ class App:
         return q
 
     def still_wanted(self, q):
-        return q not in self._let_go
+        return q not in self._let_go and not self._stop.is_set()
 
     def unsubscribe(self, q):
         with self._clients_lock:
@@ -1194,8 +1238,25 @@ class App:
             s["decor"] = [d for d in s.get("decor") or [] if f"decor:{d}" in items]
         return s
 
-    def _mystery_pool(self, pid, owned):  # (ducks only)
-        return [k for k in logic.species() if logic.price(k) is not None and k not in owned]
+    def _keep_hour_ducks(self):
+        """Once: a duck that came with hours and is in the shop now (logic.WAS_HOURS) stays with everyone whose
+        hours had unlocked it, as bought for nothing."""
+        if self.store.get("keptHourDucks"):
+            return
+        now = now_ms()
+        for person in self.store.people():
+            pid = person["id"]
+            hours = self.store.focused_minutes(pid) / 60
+            wallet = self._wallet(pid)
+            kept = [k for k, h in logic.WAS_HOURS.items() if hours >= h and k not in wallet["bought"]]
+            if kept:
+                wallet["bought"] = wallet["bought"] + kept
+                wallet["log"] = (wallet["log"] + [{"at": now, "kind": k, "price": 0, "how": "kept"} for k in kept])[-200:]
+                self.store.set(self._key("shop", pid), wallet)
+        self.store.set("keptHourDucks", True)
+
+    def _mystery_pool(self, pid, owned):  # (characters only: Dakku's own in the shop cost less than the egg)
+        return [k for k in logic.species() if logic.price(k) is not None and k not in owned and k not in logic.SHOP_ORIGINALS]
 
     def shop(self, pid):
         if self.demo:
@@ -1238,6 +1299,7 @@ class App:
                 "together": logic.GRAIN_TOGETHER, "goalBonus": logic.GRAIN_GOAL_DAY,
                 "mystery": {"price": logic.MYSTERY_PRICE, "left": len(self._mystery_pool(pid, owned))},
                 "custom": {"price": logic.CUSTOM_PRICE}, "price": logic.PRICE,
+                "prices": {"original": logic.ORIGINAL_PRICE, "simple": logic.SIMPLE_PRICE, "standard": logic.PRICE, "detailed": logic.DETAILED_PRICE},
                 "requests": [r for r in self._requests() if r["person"] == pid][-10:]}
 
     def _spend(self, pid, cost, kind, how, now):
@@ -1272,7 +1334,7 @@ class App:
             if kind in logic.HOLIDAY:
                 raise ApiError(400, "That one is free for everyone while its holiday is on.")
             if logic.price(kind) is None:
-                raise ApiError(400, f"That one comes with time: {logic.HOUR_DUCKS[kind]} hours studied.")
+                raise ApiError(400, f"That one comes with time: {logic.HOUR_DUCKS[kind]} hours of focus.")
             self._spend(pid, logic.price(kind), kind, "bought", now_ms())
         log("shop:", pid, "bought", kind)
         self._changed({pid})
@@ -1368,7 +1430,7 @@ class App:
             raise ApiError(400, "Cheer on someone else.")
         rooms = (self.together(sender) or {}).get("rooms", [])
         if not any(r["host"] == to or any(g["person"] == to for g in r["party"]) for r in rooms):
-            raise ApiError(409, "They're not studying where you can see right now.")
+            raise ApiError(409, "They're not focusing where you can see right now.")
         now = now_ms()
         with self.lock:
             sent = [x for x in self._cheers_sent.get(sender, []) if now - x[1] < 3_600_000]
@@ -1507,10 +1569,11 @@ class App:
                             groups=[g["id"] for g in groups if person["id"] in g["members"]],
                             minutes=self.store.focused_minutes(person["id"]), week=info["week"], streak=info["streak"],
                             studying=bool(self.store.get(self._key("timer", person["id"])))))
-        return {"people": out, "groups": groups, "invites": self.store.invites(now)}
+        # (each device's build, against the app's own: whether it runs the newest)
+        return {"people": out, "groups": groups, "invites": self.store.invites(now), "build": self.build_id()}
 
     def create_group(self, body):
-        name = str(body.get("name") or "").strip()[:40] or "Study group"
+        name = str(body.get("name") or "").strip()[:40] or "Focus group"
         theme = body.get("theme") if body.get("theme") in POND_THEMES else ""
         group = {"id": new_id(), "name": name, "theme": theme, "created": now_ms()}
         self.store.save_group(group)
@@ -1591,10 +1654,22 @@ class App:
         person it's for), in the group it's for. Returns (token or None, person)."""
         self._rate_check(ctx, guessable=False)
         code = str(body.get("code") or "").strip()
-        invite = self.store.use_invite(hashlib.sha256(code.encode()).hexdigest(), now_ms()) if code else None
+        code_hash = hashlib.sha256(code.encode()).hexdigest()
+        invite = self.store.find_invite(code_hash, now_ms()) if code else None
         if not invite:
             self._rate_fail(ctx, guessable=False)
             time.sleep(0.4)
+            raise ApiError(401, "That invite has expired or was already used. Ask for a new one.")
+        new = not invite["person"] and not ctx.person
+        name = str(body.get("name") or "").strip()[:30]
+        if new and not name:
+            raise ApiError(400, "Pick a name, so your friends know which ducks are yours.")
+        twin = self._joined_here(ctx, invite) if new and not body.get("again") else None
+        if twin:  # most likely them again: on iPhone, Safari and the Home Screen app share no sign-in
+            raise ApiError(409, f"{twin} joined with this invite from here a few minutes ago. If that was you, sign in with a code "
+                                "from Dakku there instead of joining twice.", twin=twin)
+        invite = self.store.use_invite(code_hash, now_ms())  # (only now: what was turned away above kept its use)
+        if not invite:
             raise ApiError(401, "That invite has expired or was already used. Ask for a new one.")
         now, token = now_ms(), None
         if invite["person"]:
@@ -1604,9 +1679,6 @@ class App:
         elif ctx.person:  # already signed in here (a friend, or you): just join the group
             pid = ctx.person
         else:
-            name = str(body.get("name") or "").strip()[:30]
-            if not name:
-                raise ApiError(400, "Pick a name, so your friends know which ducks are yours.")
             color = str(body.get("color") or "")
             pid = new_id()
             self.store.save_person({"id": pid, "name": name, "color": color if COLOR_RE.match(color) else self._next_color(),
@@ -1614,10 +1686,26 @@ class App:
             self.settings(pid)  # their own settings, with their name
             token, _ = self._new_device(ctx, pid, body.get("device"))
             log("new friend:", name, "via invite", invite["id"])
+            with self._joins_lock:
+                self._joins = [j for j in self._joins if now - j["at"] < TWIN_MS]
+                self._joins.append({"invite": invite["id"], "net": network(ctx.ip), "device": guess_device(ctx.user_agent), "pid": pid, "at": now})
         if invite["grp"]:
             self.store.add_member(invite["grp"], pid, now)
         self._changed(self._audience(pid))
         return token, public_person(self.store.person(pid))
+
+    def _joined_here(self, ctx, invite):
+        """The name of whoever joined with this invite from this network, on the same kind of device,
+        in the last TWIN_MS (if they're still here), or None."""
+        net, device, now = network(ctx.ip), guess_device(ctx.user_agent), now_ms()
+        with self._joins_lock:
+            recent = [j for j in self._joins if j["invite"] == invite["id"] and j["net"] == net and j["device"] == device
+                      and now - j["at"] < TWIN_MS]
+        for j in reversed(recent):
+            person = self.store.person(j["pid"])
+            if person:
+                return person["name"]
+        return None
 
     def together(self, pid):
         """Your groups, the people in them, and the sessions of theirs you could join right now."""
@@ -1709,6 +1797,28 @@ class App:
         return {"group": group, "people": people, "pond": pond, "board": board,
                 "stats": {"sessions": len(rooms), "minutes": sum(s["minutes"] for s in pond if s["status"] == "done"), "longest": longest}}
 
+    def person_pond(self, ctx, pid):
+        """Someone's own pond, as a friend sees it: their ducks on their pond, and how they're doing. For
+        them, for you, and for anyone in a group with them. Their notes stay theirs."""
+        person = self._person_or_404(pid)
+        if pid != ctx.person and not ctx.owner and not self._mates(ctx.person, pid):
+            raise ApiError(403, "You can only see the ponds of people in your groups.")
+        settings, now = self.settings(pid), now_ms()
+        mine = self.store.sessions_of([pid])
+        info = logic.summary(mine, settings["goal"], logic.zone(settings["timeZone"]), now)
+        done = [s for s in mine if s["status"] == "done"]
+        tags = {}
+        for s in done:
+            tags[s["tag"] or "Untagged"] = tags.get(s["tag"] or "Untagged", 0) + s["minutes"]
+        colors = {t["name"]: t["color"] for t in settings["tags"]}
+        return {"person": public_person(person), "theme": settings.get("pondTheme") or "classic", "decor": settings.get("decor") or [],
+                "pond": [{k: s[k] for k in ("id", "start", "minutes", "species", "status", "tag")} for s in mine[-POND_MAX:]],
+                "total": sum(s["minutes"] for s in done), "ducks": len(done), "kinds": len({s["species"] for s in done}),
+                "since": done[0]["start"] if done else None, "streak": info["streak"], "best": info["best"],
+                "week": info["week"], "today": info["today"], "goal": info["goal"],
+                "tags": [{"name": n, "minutes": m, "color": colors.get(n, "")} for n, m in sorted(tags.items(), key=lambda x: -x[1])[:6]],
+                "studying": bool(self.store.get(self._key("timer", pid)))}
+
     # ── Anki ─────────────────────────────────────────────────────────────────
     def refresh_anki(self):
         if not self.anki_url:
@@ -1776,20 +1886,37 @@ class App:
         return today
 
     def build_id(self):
-        """A fingerprint of the app's files."""
+        """A fingerprint of the app's files (looked at again after a second at most: every bootstrap, ping and
+        app.js asks for it)."""
+        stamp, cached = self._build_cache
+        if cached is not None and time.monotonic() - stamp < 1:
+            return cached
         digest = hashlib.sha256()
         for path in sorted(self.web_dir.rglob("*")):
             if path.is_file():
                 st = path.stat()
                 digest.update(f"{path.relative_to(self.web_dir)}:{st.st_mtime_ns}:{st.st_size};".encode())
-        return digest.hexdigest()[:12]
+        build = digest.hexdigest()[:12]
+        self._build_cache = (time.monotonic(), build)
+        return build
 
     # ── where to reach Dakku ──────────────────────────────────────────────────
     def addresses(self):
+        """Where Dakku can be reached. Asking Tailscale takes a moment, so it's asked once in a while, in the
+        background: what it said last time is answered meanwhile (only the very first time does a request wait)."""
         stamp, cached = self._addresses_cache
         # a friends' door that isn't open yet is looked for again soon, so it's there right after enable-friends.sh
         if cached is not None and time.time() - stamp < (300 if cached.get("friends") or self.demo else 20):
             return cached
+        if cached is None:
+            return self._find_addresses()
+        with self._addresses_lock:
+            if not self._addresses_busy:
+                self._addresses_busy = True
+                threading.Thread(target=self._find_addresses, name="dakku-addresses", daemon=True).start()
+        return cached
+
+    def _find_addresses(self):
         found = {"lan": [], "tailnet": None, "https": None, "friends": self.friends_url}
         try:
             probe = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -1811,7 +1938,8 @@ class App:
                     found["friends"] = f"https://{dns}:{FRIENDS_HTTPS}"
         except (OSError, ValueError, subprocess.SubprocessError):
             pass
-        self._addresses_cache = (time.time(), found)
+        with self._addresses_lock:
+            self._addresses_cache, self._addresses_busy = (time.time(), found), False
         return found
 
     # ── the background loop ──────────────────────────────────────────────────

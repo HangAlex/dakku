@@ -14,6 +14,7 @@ import json
 import queue
 import re
 import select
+import signal
 import socket
 import sys
 import threading
@@ -34,15 +35,24 @@ PROXY_HEADERS = ("X-Forwarded-For", "X-Forwarded-Host", "X-Forwarded-Proto", "Fo
                  "Tailscale-User-Login", "Tailscale-User-Name", "Tailscale-Funnel-Request")
 MAX_BODY = 8 * 1024 * 1024  # signed in (an import, a big sync)
 MAX_BODY_ANYONE = 64 * 1024  # before signing in: a passcode, a code, a name
-IDLE_TIMEOUT = 60  # seconds a connection may sit without sending: so idle ones can't pile up and hold threads
+IDLE_TIMEOUT = 75  # seconds a read or write may block: so a connection that went quiet can't hold a thread for ever
+# A connection is kept open between requests (a page's scripts, pictures and API calls share a few), and waits
+# this long for the next one (Keep-Alive says so). Your door, which only your own devices reach, keeps one for
+# longer: a phone's next tap then rarely needs a new connection. At the friends' door, on the internet,
+# strangers holding connections open would cost it a thread each, so it lets go sooner.
+KEEP_ALIVE = 60
+KEEP_ALIVE_PUBLIC = 15
+STOP_WITHIN = 5  # seconds the requests being served get to finish when Dakku is told to stop
+LIVE_BEAT = 20  # seconds between the pings live updates send when nothing's happening (the page starts afresh without them)
 # Someone sending a request a byte at a time could still hold a thread for ever, a minute per byte, and
 # enough of them would take a door down (the friends' door is on the internet). So a request has to send
-# its first line and headers within HEADERS_IN seconds, and its body at BODY_RATE bytes a second at least
-# (after BODY_GRACE seconds); and each door serves at most MAX_CONNECTIONS at once, so trouble at the
-# friends' door can't reach yours.
-HEADERS_IN = 15
+# its first line and headers within HEADERS_IN seconds (counted from when the connection opened, or from
+# the end of its last request), and its body at BODY_RATE bytes a second at least (after BODY_GRACE
+# seconds); and each door serves at most MAX_CONNECTIONS at once, so trouble at the friends' door can't
+# reach yours.
+HEADERS_IN = KEEP_ALIVE_PUBLIC  # (a Server's headers_in; your door's is KEEP_ALIVE, see serve)
 BODY_GRACE, BODY_RATE = 20, 50_000
-MAX_CONNECTIONS = 96
+MAX_CONNECTIONS = 128
 COOKIE = "dakku"
 # The friends' door signs people in with a cookie of its own: browsers share cookies between ports
 # of the same host, and a friend's sign-in must never reach your door (or yours theirs).
@@ -61,6 +71,9 @@ MIME = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=ut
         ".webp": "image/webp", ".jpg": "image/jpeg"}
 COMPRESSIBLE = {".html", ".js", ".css", ".json", ".webmanifest", ".svg", ".txt"}
 GZIP_OVER = 1024  # bytes: anything smaller goes as it is
+PERMISSIONS = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"  # (nothing here uses them)
+STAMPED = ("sw.js", "app.js")  # served with the fingerprint of the app's files in place of __BUILD__ (see App.build_id)
+BUILD_RE = re.compile(r"^[0-9a-f]{6,32}$")
 
 ID = r"([A-Za-z0-9_-]{4,64})"
 PID = r"(me|[A-Za-z0-9_-]{4,64})"  # a person: "me" is you
@@ -109,6 +122,7 @@ ROUTES = [
     ("DELETE", rf"/api/groups/{ID}", "group_delete", "owner", False),
     ("POST", rf"/api/groups/{ID}/members", "member_post", "owner", False),
     ("PATCH", rf"/api/people/{PID}", "person_patch", "member", True),  # your own profile (or anyone's, for you)
+    ("GET", rf"/api/people/{PID}/pond", "person_pond", "member", True),  # someone's pond: theirs, yours, or a groupmate's
     ("GET", r"/api/people", "people_get", "owner", False),
     ("DELETE", rf"/api/people/{PID}", "person_delete", "owner", False),
     ("POST", r"/api/invites", "invite_post", "owner", False),
@@ -128,18 +142,22 @@ def _not_json(word):
 
 def make_handler(app, public=False):
     """The request handler for your door, or (public) the friends' door."""
-    gz_cache = {}
     cookie_name = FRIENDS_COOKIE if public else COOKIE
     old_cookie = OLD_COOKIES[cookie_name]
 
     class Handler(BaseHTTPRequestHandler):
         server_version = "Dakku/" + __version__
         sys_version = ""
-        protocol_version = "HTTP/1.0"
+        protocol_version = "HTTP/1.1"  # connections are kept open between requests (see KEEP_ALIVE)
         timeout = IDLE_TIMEOUT  # (live updates send something every 20 seconds, so they stay open)
+        disable_nagle_algorithm = True  # a response's headers and body go out at once, not an ACK apart
+        compressed = None  # the app's text files, gzipped once each (see Compressed)
 
         def log_message(self, fmt, *args):  # quiet: errors are logged where they happen
             pass
+
+        def version_string(self):
+            return self.server_version  # (no Python version, and no trailing space)
 
         def do_GET(self):
             self._dispatch("GET")
@@ -165,9 +183,10 @@ def make_handler(app, public=False):
             self._send(204 if origin in app.allowed_origins else 403, b"", "text/plain")
 
         # ── plumbing ──────────────────────────────────────────────────────
-        def setup(self):
-            super().setup()
+        def handle_one_request(self):
+            # each request, the first or the next on a kept connection, has HEADERS_IN seconds to arrive
             self.server.due(self.connection, self.server.headers_in)
+            super().handle_one_request()
 
         def finish(self):
             self.server.due(self.connection, None)
@@ -177,7 +196,10 @@ def make_handler(app, public=False):
             self.server.due(self.connection, None)  # its headers are in
             self._cookies = []
             self._signed_in = False
+            self._body_read = False
             try:
+                if self.headers.get("Transfer-Encoding"):  # (a body of unknown length: the next request couldn't be told apart)
+                    raise ApiError(411, "Send a Content-Length.")
                 url = urlsplit(self.path)
                 if url.path.startswith("/api/"):
                     self._api(method, url.path, parse_qs(url.query))
@@ -186,16 +208,28 @@ def make_handler(app, public=False):
                 else:
                     raise ApiError(405, "Method not allowed.")
             except ApiError as err:
+                self._done_with_body()
                 self._json(err.status, {"error": err.message, **err.extra},
                            {"Retry-After": str(err.extra["retryAfter"])} if "retryAfter" in err.extra else None)
-            except (BrokenPipeError, ConnectionResetError):
-                pass
+            except (BrokenPipeError, ConnectionResetError, TimeoutError):  # the other end went away: not an error
+                self.close_connection = True
             except Exception:
                 traceback.print_exc()
+                self._done_with_body()
                 try:
                     self._json(500, {"error": "Something went wrong on the server."})
                 except OSError:
                     pass
+            finally:
+                self._done_with_body()
+
+        def _done_with_body(self):
+            """A body that was never read (the request was turned away first) would be read as the next
+            request on a kept connection: so that connection closes once this response is sent."""
+            if not self._body_read and (self.headers.get("Content-Length") or "0").strip() not in ("", "0"):
+                self.close_connection = True
+            if self.headers.get("Transfer-Encoding"):
+                self.close_connection = True
 
         def _context(self):
             ip = self.client_address[0]
@@ -249,6 +283,7 @@ def make_handler(app, public=False):
             self.server.due(self.connection, None)
             if len(raw) < length:
                 raise ApiError(400, "The request ended early.")
+            self._body_read = True
             try:
                 data = json.loads(raw, parse_constant=_not_json)  # (no NaN or Infinity)
             except (ValueError, RecursionError):
@@ -261,6 +296,12 @@ def make_handler(app, public=False):
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("Referrer-Policy", "no-referrer")
             self.send_header("X-Frame-Options", "DENY")
+            self.send_header("Permissions-Policy", PERMISSIONS)
+            if self.close_connection:
+                self.send_header("Connection", "close")
+            else:
+                self.send_header("Connection", "keep-alive")
+                self.send_header("Keep-Alive", f"timeout={int(self.server.headers_in)}")
             origin = self.headers.get("Origin")
             if origin and origin in app.allowed_origins:
                 self.send_header("Access-Control-Allow-Origin", origin)
@@ -279,9 +320,11 @@ def make_handler(app, public=False):
                 self.send_header(key, value)
             for cookie in getattr(self, "_cookies", ()):
                 self.send_header("Set-Cookie", cookie)
-            self.end_headers()
-            if self.command != "HEAD":
-                self.wfile.write(body)
+            # headers and body in one write (one packet, for most responses), not two
+            self._headers_buffer.append(b"\r\n")
+            data = b"".join(self._headers_buffer)
+            self._headers_buffer = []
+            self.wfile.write(data + body if self.command != "HEAD" else data)
 
         def _json(self, status, data, extra=None):
             body = json.dumps(data, ensure_ascii=False, separators=(",", ":")).encode()
@@ -315,6 +358,9 @@ def make_handler(app, public=False):
             # X-Mori is what the Genkan homepage sends, from before Dakku had its name
             if method not in ("GET", "HEAD") and "1" not in (self.headers.get("X-Dakku"), self.headers.get("X-Mori")):
                 raise ApiError(403, "Missing the X-Dakku header.")
+            # which build of the app is asking (a header; live updates, which can't send one, say it in the address)
+            build = self.headers.get("X-Dakku-Build") or (query.get("build") or [""])[0]
+            ctx.build = build if BUILD_RE.match(build) else ""
             app.touch(ctx)
             getattr(self, "api_" + name)(ctx, query, *match.groups())
 
@@ -379,7 +425,7 @@ def make_handler(app, public=False):
             devices = app.store.devices(ctx.person)
             for d in devices:
                 d["current"] = d["id"] == ctx.device_id
-            self._json(200, {"devices": devices, "current": ctx.device_id})
+            self._json(200, {"devices": devices, "current": ctx.device_id, "build": app.build_id()})
 
         def api_device_patch(self, ctx, q, device_id):
             name = str(self._body().get("name") or "").strip()[:40]
@@ -484,6 +530,9 @@ def make_handler(app, public=False):
         def api_person_patch(self, ctx, q, pid):
             self._json(200, app.update_person(ctx, pid, self._body()))
 
+        def api_person_pond(self, ctx, q, pid):
+            self._json(200, app.person_pond(ctx, pid))
+
         def api_person_delete(self, ctx, q, pid):
             self._json(200, app.remove_person(pid))
 
@@ -497,6 +546,7 @@ def make_handler(app, public=False):
 
         def api_events(self, ctx, q):
             client = app.subscribe(ctx.person)
+            self.close_connection = True  # a stream has no length: the connection ends with it
             try:
                 self.send_response(200)
                 self.send_header("Content-Type", "text/event-stream; charset=utf-8")
@@ -506,17 +556,23 @@ def make_handler(app, public=False):
                 self.end_headers()
                 self.wfile.write(b"retry: 4000\n\n")
                 self.wfile.flush()
-                until, beat = time.time() + 30 * 60, time.time() + 20  # browsers reconnect on their own
+                until, beat = time.time() + 30 * 60, time.time() + LIVE_BEAT  # browsers reconnect on their own
                 # every second: is the page still there? (else its thread waits for the next write to find out)
                 while time.time() < until and app.still_wanted(client) and not self._hung_up():
                     try:
                         event = client.get(timeout=1)
+                        if event is None:  # Dakku is stopping
+                            break
                         self.wfile.write(f"event: change\ndata: {event}\n\n".encode())
                     except queue.Empty:
                         if time.time() < beat:
                             continue
-                        self.wfile.write(b": still here\n\n")
-                    beat = time.time() + 20
+                        # a ping the page can see: one that hears nothing for a while knows its connection died
+                        # without a word (a phone changing networks) and starts afresh; and which build of the
+                        # app is out, so an open page hears of an update
+                        self.wfile.write(f"event: ping\ndata: {json.dumps({'build': app.build_id()})}\n\n".encode())
+                        app.touch(ctx)  # (open, so seen)
+                    beat = time.time() + LIVE_BEAT
                     self.wfile.flush()
             except OSError:
                 pass
@@ -534,21 +590,20 @@ def make_handler(app, public=False):
         # ── the app's files ───────────────────────────────────────────────
         def _static(self, path, query=""):
             rel = path.lstrip("/") or "index.html"
-            target = (app.web_dir / rel).resolve()
-            if target != app.web_dir and app.web_dir not in target.parents:
-                raise ApiError(404, "Not found.")
-            if not target.is_file():
-                if "." in Path(rel).name:
+            try:
+                target = (app.web_dir / rel).resolve()
+                if target != app.web_dir and app.web_dir not in target.parents:
                     raise ApiError(404, "Not found.")
-                target = app.web_dir / "index.html"  # app pages such as /forest
-            stat = target.stat()
-            etag = f'"{stat.st_mtime_ns:x}-{stat.st_size:x}"'
-            modified = formatdate(stat.st_mtime, usegmt=True)
-            build = app.build_id() if target.name == "sw.js" else None
-            if build:  # the service worker changes whenever any app file does, so phones update themselves
-                etag = f'"sw-{build}"'
+                if not target.is_file():
+                    if "." in Path(rel).name:
+                        raise ApiError(404, "Not found.")
+                    target = app.web_dir / "index.html"  # app pages such as /forest
+                stat = target.stat()
+            except (OSError, ValueError):  # a name no file could have (too long, a NUL byte)
+                raise ApiError(404, "Not found.")
+            etag, modified, build = file_version(app, target, stat)
             extra = {"ETag": etag}
-            if not build:  # (sw.js changes with the other files, not when it's saved)
+            if not build:  # (these change with the other files, not when they're saved)
                 extra["Last-Modified"] = modified
             if target.suffix == ".html":
                 extra["Content-Security-Policy"] = CSP
@@ -557,26 +612,74 @@ def make_handler(app, public=False):
             # A picture's address ends in its version (?v=, see scripts/import_art.py), so it can be kept for good;
             # everything else is checked each time (it's usually unchanged: a quick 304).
             cache = "public, max-age=31536000, immutable" if rel.startswith("ducks/") and "v=" in query else "no-cache"
-            # Browsers keep only an HTTP/1.1 server's ETag, and this one answers in HTTP/1.0: so the date too.
+            # (the date too: some caches keep an ETag only from a server that always speaks HTTP/1.1, and this one once didn't)
             if self.headers.get("If-None-Match") == etag or (not build and "If-None-Match" not in self.headers
                                                              and self.headers.get("If-Modified-Since") == modified):
                 self.send_response(304)
                 self.send_header("ETag", etag)
                 self.send_header("Cache-Control", cache)
+                self._common_headers()
                 self.end_headers()
                 return
-            data = target.read_bytes()
-            if build:
-                data = data.replace(b"__BUILD__", build.encode())
+            data = file_bytes(target, build)
             if target.suffix in COMPRESSIBLE and len(data) > GZIP_OVER and self._gzip_ok():
-                key = (str(target), etag)
-                if key not in gz_cache:
-                    gz_cache[key] = gzip.compress(data, 7)
-                data = gz_cache[key]
+                data = Handler.compressed.get(target, etag, data)
                 extra.update({"Content-Encoding": "gzip", "Vary": "Accept-Encoding"})
             self._send(200, data, MIME.get(target.suffix, "application/octet-stream"), extra, cache=cache)
 
+    Handler.compressed = Compressed()
     return Handler
+
+
+def file_version(app, target, stat=None):
+    """How a file of the app is told apart from its last version: its ETag, its Last-Modified date, and the
+    build it's stamped with (sw.js and app.js: see STAMPED)."""
+    stat = stat or target.stat()
+    modified = formatdate(stat.st_mtime, usegmt=True)
+    build = app.build_id() if target.name in STAMPED and target.parent == app.web_dir else None
+    # the service worker changes whenever any app file does, so phones update themselves; and the app
+    # knows which build it is, so it can say (Settings → People & groups shows who has the newest)
+    etag = f'"{target.stem}-{build}"' if build else f'"{stat.st_mtime_ns:x}-{stat.st_size:x}"'
+    return etag, modified, build
+
+
+def file_bytes(target, build=None):
+    data = target.read_bytes()
+    return data.replace(b"__BUILD__", build.encode()) if build else data
+
+
+class Compressed:
+    """The app's text files, gzipped once each: the current version of each file is kept, so no request
+    compresses app.js again, and nothing piles up as files change."""
+
+    def __init__(self):
+        self._files, self._lock = {}, threading.Lock()
+
+    def get(self, target, etag, data):
+        with self._lock:
+            hit = self._files.get(target)
+        if hit and hit[0] == etag:
+            return hit[1]
+        gz = gzip.compress(data, 7)
+        with self._lock:
+            self._files[target] = (etag, gz)
+        return gz
+
+    def warm(self, app):
+        """Compresses the app's files ahead of the first request for them (a moment after starting)."""
+        for target in sorted(app.web_dir.rglob("*")):
+            if target.is_file() and target.suffix in COMPRESSIBLE and not target.is_relative_to(app.web_dir / "ducks"):
+                try:
+                    etag, _, build = file_version(app, target)
+                    data = file_bytes(target, build)
+                    if len(data) > GZIP_OVER:
+                        self.get(target, etag, data)
+                except OSError:
+                    pass
+        for target in (app.web_dir / "ducks" / "ducks.json",):  # (the pictures themselves are already small)
+            if target.is_file():
+                etag, _, _ = file_version(app, target)
+                self.get(target, etag, file_bytes(target))
 
 
 class Server(ThreadingHTTPServer):
@@ -591,6 +694,7 @@ class Server(ThreadingHTTPServer):
 
     def __init__(self, *args, **kwargs):
         self._slots = threading.BoundedSemaphore(self.max_connections)
+        self._busy = 0  # connections being served right now
         self._due, self._due_lock, self._closed = {}, threading.Lock(), threading.Event()
         super().__init__(*args, **kwargs)
         threading.Thread(target=self._cut_off_late, name="dakku-deadlines", daemon=True).start()
@@ -599,17 +703,46 @@ class Server(ThreadingHTTPServer):
         if not self._slots.acquire(timeout=self.wait_for_slot):  # every thread busy: it waits its turn, then is turned away
             self.shutdown_request(request)
             return
+        with self._due_lock:
+            self._busy += 1
         try:
             super().process_request(request, client_address)
         except BaseException:
-            self._slots.release()
+            self._let_go()
             raise
 
     def process_request_thread(self, request, client_address):
         try:
             super().process_request_thread(request, client_address)
         finally:
-            self._slots.release()
+            self._let_go()
+
+    def _let_go(self):
+        with self._due_lock:
+            self._busy -= 1
+        self._slots.release()
+
+    @property
+    def busy(self):
+        return self._busy
+
+    def cut_waiting(self):
+        """Closes the connections that are only waiting for their next request (stopping: the ones in the
+        middle of one finish it)."""
+        with self._due_lock:
+            waiting = list(self._due)
+        for conn in waiting:
+            try:
+                conn.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
+
+    def drain(self, seconds):
+        """Waits, up to `seconds`, for the connections being served to finish."""
+        until = time.monotonic() + seconds
+        while self._busy and time.monotonic() < until:
+            time.sleep(0.05)
+        return not self._busy
 
     def due(self, conn, seconds):
         """`conn` must have sent what it's sending within `seconds` (None: it has)."""
@@ -644,19 +777,41 @@ class Server(ThreadingHTTPServer):
 
 
 def serve(app, host, port, friends_port=None):
-    httpd = Server((host, port), make_handler(app))
+    handler = make_handler(app)
+    httpd = Server((host, port), handler)
+    httpd.headers_in = KEEP_ALIVE  # (yours: only your own devices come in here)
     app.port = httpd.server_address[1]
     log(f"鴨 Dakku {__version__} listening on http://{host}:{app.port}")
-    friends = None
+    doors = [httpd]
     if friends_port:  # the friends' door: this PC only, for Tailscale Funnel to open up
         friends = Server(("127.0.0.1", friends_port), make_handler(app, public=True))
+        doors.append(friends)
         threading.Thread(target=friends.serve_forever, kwargs={"poll_interval": 0.5}, name="dakku-friends", daemon=True).start()
         log(f"the friends' door is on http://127.0.0.1:{friends.server_address[1]}")
+    threading.Thread(target=handler.compressed.warm, args=(app,), name="dakku-gzip", daemon=True).start()
+
+    # Told to stop (systemctl restart, Ctrl-C): no new requests are taken, the ones being served finish (live
+    # updates end on their own within a second), and only then does the database close.
+    def stop(signum, frame):
+        log(f"stopping ({signal.Signals(signum).name})")
+        threading.Thread(target=httpd.shutdown, name="dakku-stop", daemon=True).start()
+
+    try:
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            signal.signal(sig, stop)
+    except ValueError:  # (not the main thread: tests)
+        pass
     try:
         httpd.serve_forever(poll_interval=0.5)
     finally:
-        httpd.server_close()
-        if friends:
-            friends.shutdown()
-            friends.server_close()
+        app.stop()
+        for door in doors[1:]:
+            door.shutdown()
+        for door in doors:
+            door.cut_waiting()
+        for door in doors:
+            door.drain(STOP_WITHIN)
+        for door in doors:
+            door.server_close()
         app.close()
+        log("stopped")

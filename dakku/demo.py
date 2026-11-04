@@ -62,7 +62,7 @@ def friends(app, now):
         app.store.save_person({"id": pid, "name": name, "color": color, "mark": mark, "created": now, "updated": now})
         app.put_settings({"name": name, "tags": [{"name": t} for t in dict.fromkeys(tags)], "tag": tags[0],
                           "species": duck, "randomSpecies": False}, pid)
-    app.store.save_group({"id": GROUP, "name": "Study club", "theme": "", "created": now})
+    app.store.save_group({"id": GROUP, "name": "Focus club", "theme": "", "created": now})
     for pid in ("me", *(f[0] for f in FRIENDS)):
         app.store.add_member(GROUP, pid, now)
 

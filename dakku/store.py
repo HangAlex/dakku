@@ -83,7 +83,8 @@ CREATE TABLE IF NOT EXISTS invites (
 # added after the first version: (table, column, definition)
 LATER_COLUMNS = (("sessions", "person", "TEXT NOT NULL DEFAULT 'me'"), ("sessions", "room", "TEXT NOT NULL DEFAULT ''"),
                  ("devices", "person", "TEXT NOT NULL DEFAULT 'me'"), ("push", "person", "TEXT NOT NULL DEFAULT 'me'"),
-                 ("sessions", "rounds", "INTEGER NOT NULL DEFAULT 0"))
+                 ("sessions", "rounds", "INTEGER NOT NULL DEFAULT 0"),
+                 ("devices", "build", "TEXT NOT NULL DEFAULT ''"))  # which build of the app a device last ran
 
 COLUMNS = ("id", "start", "minutes", "tag", "species", "status", "source", "manual", "note", "updated", "rev", "deleted", "person", "room", "rounds")
 DEFAULTS = {"tag": "", "species": "", "status": "done", "source": "", "manual": 0, "note": "", "deleted": 0, "person": "me", "room": "", "rounds": 0}
@@ -278,14 +279,14 @@ class Store:
             row = self.db.execute("SELECT * FROM devices WHERE token_hash=?", (token_hash,)).fetchone()
         return dict(row) if row else None
 
-    def touch_device(self, device_id, now, ip):
+    def touch_device(self, device_id, now, ip, build=None):
         with self.tx() as db:
-            db.execute("UPDATE devices SET last_seen=?, last_ip=? WHERE id=?", (now, ip, device_id))
+            db.execute("UPDATE devices SET last_seen=?, last_ip=?, build=COALESCE(?, build) WHERE id=?", (now, ip, build, device_id))
 
     def devices(self, person="me"):
         with self.lock:
             return [dict(r) for r in self.db.execute(
-                "SELECT id, name, created, last_seen, last_ip, person FROM devices WHERE person=? ORDER BY last_seen DESC", (person,))]
+                "SELECT id, name, created, last_seen, last_ip, person, build FROM devices WHERE person=? ORDER BY last_seen DESC", (person,))]
 
     def rename_device(self, device_id, name, person="me"):
         with self.tx() as db:
@@ -302,6 +303,16 @@ class Store:
         with self.tx() as db:
             db.execute("DELETE FROM push WHERE person=?", (person,))
             db.execute("DELETE FROM devices WHERE person=?", (person,))
+
+    def replace_device(self, old_id, new_id=None):
+        """A browser signed in again: its old sign-in goes, and its notifications move to the new one
+        (new_id), or go too."""
+        with self.tx() as db:
+            if new_id:
+                db.execute("UPDATE push SET device_id=? WHERE device_id=?", (new_id, old_id))
+            else:
+                db.execute("DELETE FROM push WHERE device_id=?", (old_id,))
+            db.execute("DELETE FROM devices WHERE id=?", (old_id,))
 
     # ── push subscriptions ───────────────────────────────────────────────────
     def add_push(self, endpoint, p256dh, auth, origin, device_id, now, person="me", keep=10):

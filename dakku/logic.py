@@ -167,10 +167,23 @@ GRAIN_TOGETHER = 1.1    # a session studied together
 GRAIN_GOAL_DAY = 20     # each day the daily goal is reached
 UNEARNED = ("manual", "import", "genkan")  # sources that don't earn (a session logged by hand is `manual` too)
 # A long-term collection: at about an hour a day (some 110 grain with the goal bonus) a duck from the shop
-# takes nine or ten days, so the whole shop takes about a year, and the plain ducks keep coming over months.
-HOUR_DUCKS = {"shiro": 0, "sailor": 2, "neko": 5, "ninja": 10, "kitsune": 20, "yukata": 35, "samurai": 50,
-              "nurse": 75, "astro": 100, "king": 150}  # the plain ducks: hours studied to unlock each (Shiro is everyone's)
-PRICE = 1000            # a duck in the shop: every one the same
+# takes about nine days, so the whole shop takes about a year, and Dakku's own ducks keep coming for
+# hours studied, each grander than the last: the Golden duck is 500 hours away.
+HOUR_DUCKS = {"shiro": 0, "sailor": 2, "neko": 5, "kitsune": 10, "yukata": 20, "samurai": 35, "astro": 50,
+              "scholar": 75, "knight": 100, "king": 150, "dragon": 200, "tenshi": 300, "phoenix": 400,
+              "kin": 500}  # hours studied to unlock each (Shiro is everyone's)
+WAS_HOURS = {"ninja": 10, "nurse": 75}  # came with hours until 1.15, in the shop since: whoever's hours had unlocked one keeps it
+# The ducks for grain. Dakku's own cost least; a character costs more the more there is to it: a hood or a
+# hat, a whole outfit, or a detailed one with a sword or the like besides.
+ORIGINAL_PRICE = 400    # one of Dakku's own, in the shop
+SIMPLE_PRICE, PRICE, DETAILED_PRICE = 700, 1000, 1300  # (PRICE: a character, as a rule)
+SHOP_ORIGINALS = ("ninja", "nurse", "kappa", "tanuki", "ramen", "cowboy")
+SIMPLE = ("kirby", "sonic", "godzilla", "snoopy", "monokuma", "hellokitty", "kuromi", "cinnamoroll", "pompompurin", "totoro",
+          "moogle", "taiko", "spiderman", "monoco")
+DETAILED = ("cloud", "ike", "shulk", "clive", "link", "sora", "trunks", "yuta", "yor", "zelda", "bocchi", "nagisa",
+            "tidus", "squall", "noctis", "lightning",  # (Zidane and Terra: a vest and a tail, a dress: the usual price)
+            "majima", "estelle", "geralt", "yui", "mio", "mugi", "azusa", "gustave", "maelle", "sciel", "verso",
+            "shadowheart", "shinguji", "yorha", "crono")
 HOLIDAY = {"witch": "halloween", "harvest": "thanksgiving", "santa": "christmas"}  # the holiday ducks: free in their holiday, and only then
 # The themes, ponds and pond decorations are in the shop too ("theme:sumi", "pond:night", "decor:koi"):
 # Ai and the classic pond are everyone's, and the holidays' themes and ponds are free while they're on.
@@ -186,7 +199,7 @@ SEASON_OF = {12: "winter", 1: "winter", 2: "winter", 3: "spring", 4: "spring", 5
 THEME_PRICE = 1200      # Sumi, Yozakura, Sakura
 POND_PRICE = 1200       # each pond (a season's is free while it lasts)
 DECOR_PRICE = 500       # each thing on the pond
-MYSTERY_PRICE = 700     # a mystery egg: a duck you don't have yet, picked at random (cheaper than choosing)
+MYSTERY_PRICE = 600     # a mystery egg: a character you don't have yet, picked at random (less than any of them)
 CUSTOM_PRICE = 4000     # asking for a new duck: you make it, they get it, and it joins the shop for everyone
 
 
@@ -210,8 +223,10 @@ def grain_earned(sessions, goal, tz):
 
 
 def price(kind):
-    """What a duck costs in the shop, or None for one that comes with hours."""
-    return None if kind in HOUR_DUCKS or kind in HOLIDAY else PRICE
+    """What a duck costs in the shop, or None for one that comes with hours (or with its holiday)."""
+    if kind in HOUR_DUCKS or kind in HOLIDAY:
+        return None
+    return ORIGINAL_PRICE if kind in SHOP_ORIGINALS else SIMPLE_PRICE if kind in SIMPLE else DETAILED_PRICE if kind in DETAILED else PRICE
 
 
 def event_on(event, day):
