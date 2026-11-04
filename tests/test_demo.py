@@ -80,7 +80,7 @@ class DemoTest(unittest.TestCase):
 
     def test_friends_to_study_with(self):
         together = self.phone.call("GET", "/api/together")[1]
-        self.assertEqual([g["name"] for g in together["groups"]], ["Study club"])
+        self.assertEqual([g["name"] for g in together["groups"]], ["Focus club"])
         self.assertEqual({p["name"] for p in together["people"]}, {"You", "Mina", "Kai"})
         group = self.phone.call("GET", "/api/groups/demo-club")[1]
         self.assertGreater(group["stats"]["sessions"], 20)

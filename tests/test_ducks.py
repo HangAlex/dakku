@@ -2,6 +2,7 @@
 new pictures in Dakku's style."""
 import hashlib
 import json
+import math
 import re
 import sys
 import tempfile
@@ -61,6 +62,14 @@ class TheList(unittest.TestCase):
             self.assertTrue(d["name"] and d["kanji"] and d["look"], did)
             self.assertIn(d.get("face", "calm"), duck.FACES)
 
+    def test_every_duck_fits_the_tile_frame(self):
+        # in a tile every duck shares one frame (art.js FIT_W), so they're all drawn the same size: one wider than it
+        # would be drawn smaller than the rest
+        fit_w = float(re.search(r"const FIT_W = (\d+)", (ROOT / "web" / "art.js").read_text()).group(1))
+        for did, entry in self.manifest["kinds"].items():
+            left, right = entry["reach"]
+            self.assertLessEqual(right - left + 2, fit_w, f"{did} reaches wider than a tile's frame: raise FIT_W in art.js")
+
     def test_every_picture_is_in_style(self):
         self.assertEqual(duck.check(say=lambda line: None), 0)
 
@@ -86,6 +95,27 @@ class TheDuckMaker(unittest.TestCase):
         done, facts = duck.finish(img, body=self.body, notes=notes)
         self.assertTrue(any("peach" in n for n in notes), notes)
         self.assertFalse(duck.off(duck.hsv_median(done, duck.find_beak(done, self.body, duck.find_eye(done, self.body)))))
+
+    def test_a_brown_outline_is_made_charcoal(self):
+        # ChatGPT's reddish-brown line casts a whole duck brown; finishing gives it Shiro's charcoal, and a real brown
+        # (a hat, a headband: lighter and more colorful) stays as it is
+        img = self.shiro.copy()
+        px = img.load()
+        hat = (120, 72, 44)
+        for y in range(img.height):
+            for x in range(img.width):
+                r, g, b, a = px[x, y]
+                if a > 250 and max(r, g, b) < 80:
+                    px[x, y] = (52, 30, 20, a)  # the line, the reddish brown ChatGPT draws
+        for x in range(10, 30):
+            px[x, img.height // 2] = hat + (255,)
+        notes = []
+        done, _ = duck.finish(img, body=self.body, notes=notes)
+        self.assertTrue(any("charcoal" in n for n in notes), notes)
+        line = [p for p in done.get_flattened_data() if p[3] > 250 and max(p[:3]) < 80]
+        chroma = sorted(math.hypot(*duck.to_lab(p)[1:]) for p in line)
+        self.assertLess(chroma[len(chroma) // 2], duck.OUTLINE_CHROMA + 0.5)
+        self.assertEqual(done.getpixel((20, img.height // 2))[:3], hat)
 
     def test_a_duck_facing_right_is_turned_round(self):
         notes = []
@@ -148,6 +178,7 @@ class TheDuckMaker(unittest.TestCase):
 
     def test_the_prompt_says_it_all(self):
         text = duck.prompt({"look": "a chef hat and apron", "face": "angry"})
-        for must in ("attached reference", "as round and tall as the plain white duck", duck.beak_hex(), "No feet, legs, arms or hands", "facing left",
+        for must in ("attached reference", "crayon", "never a flat, perfectly even digital fill", "as high above its bottom as the plain duck's",
+                     "never a long flat base", "one short curved line", duck.beak_hex(), "No feet, legs, arms or hands", "facing left",
                      "transparent background", "a chef hat and apron", "angry eyebrow"):
             self.assertIn(must, text)

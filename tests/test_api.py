@@ -8,6 +8,7 @@ import time
 import unittest
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from unittest import mock
 
 from dakku import ec, logic, webpush
 from dakku.app import LIVE_PER_PERSON, MINUTE, App, Ctx, now_ms
@@ -344,6 +345,19 @@ class Sync(DakkuTest):
         self.assertEqual(data["timer"]["planned"], 25 * MINUTE)
         conn.close()
 
+    def test_live_updates_ping_with_the_apps_build(self):
+        # a page that hears nothing for a while knows its connection died without a word and makes a new
+        # one; and the ping says which build of the app is out, so an open page hears of an update
+        self.assertEqual(self.local.call("GET", "/api/bootstrap")[1]["server"]["build"], self.app.build_id())
+        with mock.patch("dakku.web.LIVE_BEAT", 0.2):
+            conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=5)
+            conn.request("GET", "/api/events", headers={"Host": f"127.0.0.1:{self.port}"})
+            res = conn.getresponse()
+            self.assertEqual((res.fp.readline(), res.fp.readline()), (b"retry: 4000\n", b"\n"))
+            self.assertEqual(res.fp.readline(), b"event: ping\n")
+            self.assertEqual(json.loads(res.fp.readline()[len(b"data: "):]), {"build": self.app.build_id()})
+            conn.close()
+
 
 class Files(DakkuTest):
     def test_app_files(self):
@@ -359,7 +373,22 @@ class Files(DakkuTest):
         self.assertEqual(res.getheader("Service-Worker-Allowed"), "/")
         self.assertNotIn(b"__BUILD__", sw)  # stamped with a fingerprint of the app's files
         (Path(self.tmp.name) / "web" / "index.html").write_text("<!doctype html><title>Dakku 2</title>")
+        time.sleep(1.05)  # (the fingerprint is looked at again after a second)
         self.assertNotEqual(self.phone.call("GET", "/sw.js")[1], sw)  # so an app update reaches phones
+
+    def test_the_app_knows_which_build_it_is(self):
+        # the PC writes the build into app.js as it sends it, so each phone can say which version it runs
+        (Path(self.tmp.name) / "web" / "app.js").write_text("const APP_BUILD = /^[0-9a-f]{6,32}$/.test('__BUILD__') ? '__BUILD__' : '';")
+        status, js, res = self.phone.call("GET", "/app.js")
+        build = self.app.build_id()
+        self.assertEqual((status, res.getheader("ETag")), (200, f'"app-{build}"'))
+        self.assertEqual(js.count(build.encode()), 2)
+        self.assertEqual(self.phone.call("GET", "/app.js", headers={"If-None-Match": f'"app-{build}"'})[0], 304)
+        body = self.sign_in_phone()
+        self.phone.call("GET", "/api/devices", headers={"X-Dakku-Build": build})
+        devices = self.phone.call("GET", "/api/devices")[1]
+        self.assertEqual(([d["build"] for d in devices["devices"]], devices["build"]), ([build], build))
+        self.assertEqual(body["device"]["id"], devices["devices"][0]["id"])
 
     def test_dropped_connections_are_not_errors(self):
         import contextlib, io, socket, struct

@@ -164,6 +164,73 @@ class Invites(TogetherTest):
         self.assertEqual(phone.call("POST", "/api/join", {"code": link["code"]})[0], 200)
         self.assertEqual(phone.call("GET", "/api/whoami")[1]["person"]["id"], mina.person)
 
+    def test_signing_in_again_replaces_the_old_sign_in(self):
+        # one phone, one sign-in: a sign-in link (or a code) used where you're signed in already takes the
+        # place of the old one, name and all, instead of counting the phone twice
+        group = self.group()
+        mina = self.friend(group)
+        devices = lambda: mina.call("GET", "/api/devices")[1]["devices"]  # noqa: E731
+        mina.call("PATCH", f"/api/devices/{devices()[0]['id']}", {"name": "HK"})
+        self.assertEqual(mina.call("POST", "/api/join", {"code": self.invite(group, person=mina.person)["code"]})[0], 200)
+        self.assertEqual([d["name"] for d in devices()], ["HK"])
+        self.assertEqual(mina.call("POST", "/api/login", {"pair": mina.call("POST", "/api/pair")[1]["code"]})[0], 200)
+        self.assertEqual([d["name"] for d in devices()], ["HK"])
+        people = self.me.call("GET", "/api/people")[1]["people"]
+        self.assertEqual(next(len(p["devices"]) for p in people if p["id"] == mina.person), 1)
+
+    def test_you_see_whose_phone_has_the_newest_app(self):
+        # each page says which build of the app it runs (a header, or for live updates the address), so
+        # Settings → People & groups can say who's up to date
+        mina = self.friend(self.group())
+        builds = lambda: [d["build"] for d in next(p for p in self.me.call("GET", "/api/people")[1]["people"] if p["name"] == "Mina")["devices"]]  # noqa: E731
+        self.assertEqual(builds(), [""])  # (an app from before says nothing)
+        mina.call("GET", "/api/together", headers={"X-Dakku-Build": "0123456789ab"})
+        self.assertEqual(builds(), ["0123456789ab"])
+        mina.call("GET", "/api/together", headers={"X-Dakku-Build": "<b>not one</b>"})
+        self.assertEqual(builds(), ["0123456789ab"])  # anything else is no build at all
+        mina.call("GET", "/api/together", headers={"X-Dakku-Build": self.app.build_id()})
+        self.assertEqual((builds(), self.me.call("GET", "/api/people")[1]["build"]), ([self.app.build_id()], self.app.build_id()))
+
+    def test_joining_twice_from_one_phone_asks_first(self):
+        # on iPhone, Safari and the Home Screen app share no sign-in: the same invite from the same phone a
+        # few minutes later is most likely the same person, so they're asked before a second pond is made
+        group = self.group()
+        invite = self.invite(group)
+        iphone = {"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"}
+        phone = lambda ip="2001:db8:7e73:3000:c134:72ae:1a65:9c1f", ua=iphone: Client(  # noqa: E731
+            self.friends_port, host="pc.example.ts.net:8443", extra={"X-Forwarded-For": ip, "X-Forwarded-Proto": "https", **ua})
+        uses = lambda: next(i["uses"] for i in self.app.store.invites(now_ms()) if i["id"] == invite["id"])  # noqa: E731
+        self.assertEqual(phone().call("POST", "/api/join", {"code": invite["code"], "name": "Azusa"})[0], 200)
+        left = uses()
+        status, body, _ = phone("2001:db8:7e73:3000:aaaa:bbbb:cccc:dddd").call("POST", "/api/join", {"code": invite["code"], "name": "Asuza"})
+        self.assertEqual((status, body.get("twin")), (409, "Azusa"))  # (a phone's IPv6 address changes within its network)
+        self.assertEqual(uses(), left)  # asking used nothing up
+        self.assertEqual(phone().call("POST", "/api/join", {"code": invite["code"], "name": "Mina", "again": True})[0], 200)  # someone else
+        self.assertEqual(phone("198.51.100.4").call("POST", "/api/join", {"code": invite["code"], "name": "Kai"})[0], 200)  # elsewhere
+        android = {"User-Agent": "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/130.0 Mobile Safari/537.36"}
+        self.assertEqual(phone(ua=android).call("POST", "/api/join", {"code": invite["code"], "name": "Sam"})[0], 200)  # another phone
+        self.assertEqual(sorted(p["name"] for p in self.app.store.people()), ["Azusa", "Kai", "Me", "Mina", "Sam"])
+
+
+class Ponds(TogetherTest):
+    def test_a_friends_pond_is_open_to_their_groupmates_and_you(self):
+        group = self.group()
+        mina, kai = self.friend(group, "Mina"), self.friend(group, "Kai")
+        self.start(mina, 60, species="shiro", tag="Maths")
+        self.rewind(mina.person, 30)
+        session = mina.call("POST", "/api/timer", {"action": "finish"})[1]["session"]
+        mina.call("POST", "/api/sync", {"ops": [{"op": "upsert", "session": {**session, "note": "chapter 3, secretly", "updated": now_ms() + 1}}]})
+        for viewer in (kai, self.me, mina):
+            status, pond, _ = viewer.call("GET", f"/api/people/{mina.person}/pond")
+            self.assertEqual(status, 200, pond)
+            self.assertEqual((pond["person"]["name"], pond["ducks"], pond["total"], pond["streak"]), ("Mina", 1, 30, 1))
+            self.assertEqual([(s["minutes"], s["tag"], s["species"]) for s in pond["pond"]], [(30, "Maths", "shiro")])
+            self.assertNotIn("note", pond["pond"][0])  # their notes stay theirs
+        self.assertEqual(mina.call("GET", "/api/people/me/pond")[0], 200)  # and yours is open to them
+        stranger = self.friend(self.group("Elsewhere"), "Stranger")
+        self.assertEqual(stranger.call("GET", f"/api/people/{mina.person}/pond")[0], 403)  # not in a group with Mina
+        self.assertEqual(self.me.call("GET", "/api/people/nobody1/pond")[0], 404)
+
 
 class TheFriendsDoor(TogetherTest):
     def test_nobody_there_is_this_pc(self):

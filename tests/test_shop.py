@@ -1,7 +1,7 @@
 """The duck shop: friends earn grain for their focus and spend it on ducks; you have every duck."""
 import json
 import secrets
-from datetime import date
+from datetime import date, datetime
 from unittest import mock
 
 from dakku import logic
@@ -30,7 +30,10 @@ class ShopTest(TogetherTest):
     def studied(self, client, minutes, **extra):
         """A session synced from `client`'s device, as one run offline would be."""
         sid = f"s{secrets.token_hex(6)}"  # (two in the same millisecond still get their own)
-        session = {"id": sid, "start": now_ms() - minutes * 60_000 - 3_600_000, "minutes": minutes, "tag": "Study", "updated": now_ms(), **extra}
+        start = now_ms() - minutes * 60_000 - 3_600_000
+        today = datetime.now().astimezone().replace(hour=0, minute=0, second=0, microsecond=0)
+        start = max(start, int(today.timestamp() * 1000) + 1000)  # (just after midnight, an hour ago was yesterday: a day that's over)
+        session = {"id": sid, "start": start, "minutes": minutes, "tag": "Study", "updated": now_ms(), **extra}
         status, body, _ = client.call("POST", "/api/sync", {"ops": [{"op": "upsert", "session": session}]})
         self.assertEqual(status, 200, body)
         return body
@@ -91,7 +94,7 @@ class Owning(ShopTest):
         before = self.shop(self.mina)["balance"]
         status, body, _ = self.mina.call("POST", "/api/shop/buy", {"duck": "sonic"})
         self.assertEqual(status, 200, body)
-        self.assertEqual(body["shop"]["balance"], before - logic.PRICE)
+        self.assertEqual(body["shop"]["balance"], before - logic.price("sonic"))
         self.assertIn("sonic", body["shop"]["owned"])
         self.start(self.mina, minutes=25, species="sonic")
         self.assertEqual(self.app.timer(self.mina.person)["species"], "sonic")
@@ -103,7 +106,8 @@ class Owning(ShopTest):
     def test_a_mystery_egg_is_a_duck_you_dont_have(self):
         for _ in range(8):
             self.studied(self.mina, 180)
-        sellable = {k for k in logic.species() if logic.price(k) is not None and k not in logic.HOLIDAY}  # (January)
+        # the characters for sale (January: no holiday's), not Dakku's own in the shop, which cost less than the egg
+        sellable = {k for k in logic.species() if logic.price(k) is not None and k not in logic.HOLIDAY and k not in logic.SHOP_ORIGINALS}
         got = set()
         while self.shop(self.mina)["mystery"]["left"]:
             status, body, _ = self.mina.call("POST", "/api/shop/mystery")
@@ -113,6 +117,31 @@ class Owning(ShopTest):
         self.assertEqual(got, sellable)
         status, body, _ = self.mina.call("POST", "/api/shop/mystery")
         self.assertEqual(status, 409, body)
+
+    def test_the_prices_go_by_how_much_there_is_to_a_duck(self):
+        self.assertEqual([logic.price(k) for k in ("ninja", "sonic", "nurse", "link")],
+                         [logic.ORIGINAL_PRICE, logic.SIMPLE_PRICE, logic.ORIGINAL_PRICE, logic.DETAILED_PRICE])
+        self.assertLess(logic.ORIGINAL_PRICE, logic.MYSTERY_PRICE)
+        self.assertLess(logic.MYSTERY_PRICE, min(logic.SIMPLE_PRICE, logic.PRICE, logic.DETAILED_PRICE))
+        self.assertEqual(self.shop(self.mina)["catalog"]["sonic"], {"price": logic.SIMPLE_PRICE})
+        self.assertEqual(self.shop(self.mina)["catalog"]["kitsune"], {"hours": 10})
+
+    def test_a_duck_your_hours_had_unlocked_stays_yours_once_its_in_the_shop(self):
+        for _ in range(4):
+            self.studied(self.mina, 180)  # 12 hours: Ninja came at 10 before, Nurse at 75
+        self.app.store.set("keptHourDucks", None)  # as on the first start with this Dakku
+        self.app._keep_hour_ducks()
+        owned = self.shop(self.mina)["owned"]
+        self.assertIn("ninja", owned)
+        self.assertNotIn("nurse", owned)
+        status, body, _ = self.mina.call("POST", "/api/shop/buy", {"duck": "ninja"})
+        self.assertEqual(status, 409, body)  # hers already
+        self.assertEqual(self.shop(self.mina)["balance"], 4 * 315 + logic.GRAIN_GOAL_DAY)  # for nothing
+        kai = self.friend(self.group_, "Kai")
+        for _ in range(4):
+            self.studied(kai, 180)
+        self.app._keep_hour_ducks()  # only the once: from now on Ninja is bought
+        self.assertNotIn("ninja", self.shop(kai)["owned"])
 
     def test_a_holiday_duck_is_free_in_its_month_and_only_then(self):
         self.assertEqual(self.shop(self.mina)["catalog"]["witch"], {"event": "halloween", "month": 10, "inSeason": False})
@@ -234,9 +263,9 @@ class Requests(ShopTest):
         self.assertEqual(status, 200, body)
         self.assertIn("link", self.shop(self.mina)["owned"])
         kai = self.friend(self.group_, "Kai")
-        for _ in range(4):
+        for _ in range(5):
             self.studied(kai, 180)
-        self.assertEqual(self.shop(kai)["catalog"]["link"], {"price": logic.PRICE})
+        self.assertEqual(self.shop(kai)["catalog"]["link"], {"price": logic.DETAILED_PRICE})  # (a sword and a shield besides)
         status, body, _ = kai.call("POST", "/api/shop/buy", {"duck": "link"})
         self.assertEqual(status, 200, body)
 
