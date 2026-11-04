@@ -15,7 +15,7 @@ phone, the Mac or the Genkan homepage lands in one place, on this PC.
   the classic one, spring, autumn, winter, night, a Japanese garden, sakura, Halloween, Thanksgiving, Christmas, Lunar
   New Year, or one that follows the seasons (more ponds and themes are on the way). Add decorations if you like: a torii gate, a
   stone lantern, koi, floating lanterns and lotus. The ducks float around them.
-- **共 Together**: study with friends, with nothing for them to install. Join someone's session halfway through with any
+- **共 Together**: focus with friends, with nothing for them to install. Join someone's session halfway through with any
   duck, leave whenever you like, and everyone keeps a duck for the time they put in. Each group has its own pond of the
   ducks you hatched together, with a small badge on each duck saying whose it is, and a weekly leaderboard, hours,
   streaks and what everyone studied.
@@ -28,11 +28,16 @@ phone, the Mac or the Genkan homepage lands in one place, on this PC.
 - **店 Duck shop** (for friends): your friends earn their ducks, a long-term collection. Every duck they hatch with the
   timer earns grain (🌾), more a minute the longer the session (half a minute under 10 minutes, then 1, 1.25 from 25,
   1.5 from 50, 1.75 from 90, counted up to 3 hours), a tenth more studying together, and 20 for each day they reach
-  their goal; cold eggs and time logged by hand earn nothing. Shiro is everyone's from the start, and the other plain
-  ducks come with hours studied (Sailor at 2 hours up to King at 150). Every other duck is 1,000 in the gallery's shop
-  (about ten days at an hour a day). The holiday ducks are free for everyone in their month and can't be picked
-  outside it (the Witch in October, the Harvest duck in November, Santa in December). A mystery egg is a random duck
-  they don't have yet for 700. For 4,000 they can ask you for a new duck: you get a notification and see it in
+  their goal; cold eggs and time logged by hand earn nothing. Shiro is everyone's from the start, and Dakku's own ducks
+  come with hours studied, each grander than the last: Sailor at 2 hours, then Neko, Kitsune, Yukata, Samurai and
+  Astro, the Scholar at 75, the Knight at 100, the King at 150, the Dragon at 200, the Angel at 300, the Phoenix at
+  400 and the Golden duck at 500. A few more of Dakku's own are 400 in the gallery's shop (the Ninja, the Nurse, the
+  Kappa, the Tanuki, Ramen and the Cowboy; anyone whose hours had unlocked the Ninja or the Nurse before keeps them),
+  and a character costs more the more there is to it: 700 for a hood or a hat (Kirby, Sonic, the Sanrio ducks,
+  Totoro), 1,000 for a whole outfit, 1,300 for a detailed one with a sword or the like besides (Cloud, Ike, Link): a
+  week or two at an hour a day. The holiday ducks are free for everyone in their month and can't be picked outside it
+  (the Witch in October, the Harvest duck in November, Santa in December). A mystery egg is a random character they
+  don't have yet for 600. For 4,000 they can ask you for a new duck: you get a notification and see it in
   Settings → Duck shop, make it with `scripts/duck.py`, and hand it over (they get it, and it joins the shop for
   everyone), or refund it. Grain buys the rest of the look too, in Settings: Sumi, Yozakura and Sakura are 1,200 each
   (Ai is everyone's), each pond 1,200, and each pond decoration 500. The classic pond and the seasonal one (it changes
@@ -45,7 +50,7 @@ phone, the Mac or the Genkan homepage lands in one place, on this PC.
   pond and a painted ring around the timer together, with bats, falling leaves, snow or plum petals drifting past
   (Christmas is a light theme). Tap it again to go back to your own theme and pond. When a holiday starts, its theme
   and pond come on by themselves, and yours come back when it ends (Settings → Events → Switch on by themselves).
-- **Sunday recap**: on Sunday evening, a notification with your week: time studied, ducks and your best day. Turn it off
+- **Sunday recap**: on Sunday evening, a notification with your week: time focused, ducks and your best day. Turn it off
   in Settings → Notifications.
 
 ## The streak rule
@@ -114,13 +119,16 @@ an account, just a link from you.
    It opens a separate door for friends at https://your-pc.your-tailnet.ts.net:8443 with Tailscale Funnel. Your own
    address stays private.
 2. In Dakku: 共 **Together** → **New group**, then **Invite**, and send the link (or show the QR code).
-3. They open it and pick a name, a color and a badge (a letter or an emoji), and they're in. On iPhone they can add
-   it to the Home Screen too; there it asks for the 6-digit code from Dakku in Safari (Settings → Add a device).
+3. They open it and pick a name, a color and a badge (a letter or an emoji), and they're in. On iPhone, Safari then
+   shows how to add Dakku to the Home Screen, with a 6-digit code to sign in there (the Home Screen app doesn't share
+   Safari's sign-in). Someone joining a second time with the same invite from the same phone and network within half
+   an hour is asked first whether they're the one who just joined.
 
 Then:
 
 - **Join in the middle.** Your sessions are open to your groups ("Friends can join this session", under the timer).
-  Anyone in a group with you sees it live on their Hatch tab with a **Join** button, picks any duck and a tag, and
+  Anyone in a group with you sees it live on their Hatch tab with a **Join** button (and for a pomodoro, what's left of
+  the round, and which round it is), picks any duck and a tag, and
   studies along. They can leave whenever they like and keep a duck for the time they put in (giving up leaves a cold
   egg); if they stay to the end, everyone's duck hatches when yours does. Start a 2-hour session, have someone join an
   hour in, and you get your 2-hour duck while they get their 1-hour one. Friends' sessions can be joined the same way.
@@ -128,12 +136,16 @@ Then:
 - **Cheers.** Tap **Cheer** next to someone studying (on Hatch or Together) and send a quick cheer or your own words.
   It pops up over their egg and on their phone (Settings → Notifications → Cheers from friends switches that off),
   and the card for their duck says who cheered them on. Anyone who could join a session can cheer it.
-- **A pond for each group**: only the ducks from sessions you studied together, each with a small round badge in its
+- **A pond for each group**: only the ducks from sessions you focused on together, each with a small round badge in its
   owner's color and mark, and a legend. Your own pond is still all yours. Each group can have its own pond picture.
 - **The group's stats**: a leaderboard for the week, month or all time, with today, streaks, ducks and time spent
   together, and the tags everyone studied.
-- **What friends see**: their own sessions, and in a group, its pond and stats. Never your settings, devices, passcode,
-  Anki or data. Your passcode and pairing codes don't work at the friends' door, and nobody there counts as this PC.
+- **Each other's ponds**: tap someone's name or badge (focusing now, on the leaderboard, or in Settings → People &
+  groups) to see their own pond with every duck they've hatched, their rank, streak and hours, what they work on, and
+  their session if they're in one. The notes on their ducks stay theirs.
+- **What friends see**: their own sessions, and in a group, its pond and stats and each other's ponds. Never your
+  settings, devices, passcode, Anki or data. Your passcode and pairing codes don't work at the friends' door, and
+  nobody there counts as this PC.
 - **Keeping an eye on it**: Settings → **People & groups** lists everyone with their devices, when they were last seen
   and how much they studied; make a sign-in link for a friend's new phone, take back unused invites, or remove someone
   (which signs them out; their ducks are kept). `journalctl --user -u dakku -f` logs every sign-in and join.
@@ -197,9 +209,14 @@ notifications and importing.
 
 ## The ducks
 
-Fifty kinds of duck, all available from the start. Each one is a single picture in `art/ducks/` (`sonic.png`,
+Sixty-five kinds of duck, all available from the start. Each one is a single picture in `art/ducks/` (`sonic.png`,
 `kirby.png`, …), finished and in Dakku's style, and a line in `art/ducks.json` with its name, kanji, color, blurb,
 face and outfit. The app and the server both take the list from there, so adding a duck needs no code changes.
+
+The duck gallery and **Choose a duck** show them shelf by shelf, or sorted across the shelves: recently used, yours
+first, by price, most hatched or A to Z (each remembers its own choice, on that device). Tapping a duck in either
+opens its page, with its blurb; from there **Hatch with this duck** picks it for the next egg, and ‹ › go through
+the ducks in the order the grid shows them.
 
 ### Making a new duck
 
@@ -210,14 +227,29 @@ python3 scripts/duck.py new goku "spiky black hair and an orange gi with a blue 
 That adds Goku to the list and prints the exact prompt for ChatGPT (also saved in `art/prompts/goku.txt`). Add
 `--angry` for Dakku's angry eyebrow. In ChatGPT, start a new chat in the **Dakku ducks** project (it has the style
 rules), pick **Create image**, attach `art/reference.png` (six finished ducks to match; after the first upload it's
-under + → Add from library), paste the prompt, and save the picture as `art/incoming/goku.png`. Then:
+under + → Add from library) and paste the prompt. ChatGPT's first picture in a chat often sits the head a little
+low, so send the touch-up `duck.py` prints after the prompt in the same chat: it keeps the design, lines and colors
+and fixes just that. (Don't ask it for a rougher crayon line: it comes out crumbly and heavy.) Check the picture
+before adding it:
+
+```bash
+python3 scripts/duckgate.py goku=path/to/chatgpt.png
+```
+
+It measures the duck at the size Dakku draws it against all the others: its size (and the `"scale"` that would fix
+it), how high the eye and beak sit, the bottom's roundness, the wing, the outline's thickness and grain (around
+Shiro's: never heavier or rougher; a smoother line is only noted), the white's cream, anything left behind when it was cut out, and more, and draws
+`art/review/gate/gate-goku.png` with it next to Shiro and their outlines laid over each other. Anything it flags, ask
+for in the same chat ("keep everything exactly as it is and change only …"), one or two things at a time. Then save
+the picture as `art/incoming/goku.png` and:
 
 ```bash
 python3 scripts/import_art.py
 ```
 
 It finishes the picture and checks it: it takes out a white or painted-in checkerboard background, cuts out the duck,
-turns it to face left if it faces right, brings the beak to Dakku's peach (`#FBBE7A`) if ChatGPT drifted, sizes it
+turns it to face left if it faces right, brings the beak to Dakku's peach (`#FBBE7A`) if ChatGPT drifted, makes a
+reddish-brown outline Shiro's charcoal (a brown line casts the whole duck brown; real browns stay), sizes it
 from its body (or from its beak, when long hair or something it carries makes the outline wide), and warns about
 anything it can't fix (no eye or beak found, an odd size, a nearly black outline, a body drawn lower and longer than
 the others', which makes a duck look short: have ChatGPT redraw that one). The finished picture goes to
@@ -232,6 +264,7 @@ python3 scripts/duck.py check       # every picture against Dakku's style
 python3 scripts/duck.py review      # all the ducks side by side, at Dakku's size (art/review/all.png)
 python3 scripts/duck.py prompt goku # a duck's prompt again
 python3 scripts/duck.py reference   # remakes art/reference.png from some finished ducks
+python3 scripts/duckgate.py --all --brief   # every duck against the others, one line each
 ```
 
 A duck can be sized up or down with `"scale": 1.05` in `art/ducks.json` (then `duck.py publish`). One whose outfit
@@ -288,7 +321,16 @@ No dependencies, just Python's standard library and plain JavaScript.
 
 Sign-in: requests from this PC itself (loopback address and host name, no proxy headers) are trusted. Everything else
 signs in with the passcode or a one-time pairing code and gets a long-lived, HttpOnly cookie. Sign-in attempts are
-rate-limited, and Settings → Devices signs out any device.
+rate-limited, and Settings → Devices signs out any device. A browser signing in again (a sign-in link opened where
+you're signed in already, say) replaces its old sign-in, so a phone never counts twice.
+
+Live, and up to date: live updates are server-sent events. The PC pings every 20 seconds, so a page that hears nothing
+for 50 seconds (a phone that changed networks) makes a new connection, and a page coming back or reconnecting fetches
+whatever it missed, friends' sessions included. The ping carries a fingerprint of the app's files: when it changes, the
+page fetches the new service worker, and when that takes over it offers a restart (or simply reloads, just after
+opening or while you're away from it). An open live connection would keep the old service worker busy, and a new one
+can't take over until it's idle, so the page stops its live updates for that moment (and Chrome sends `/api/` past the
+service worker altogether).
 
 Friends: each person has their own sessions, settings and timer (yours are "me"). The friends' door is a second server
 on 127.0.0.1:8643, which Tailscale Funnel relays from the internet. It serves only the routes friends need, never
@@ -299,10 +341,21 @@ nothing at the friends' door, and friends never see your PC's addresses.
 A session someone joins is a room: the host's session id, which each guest's session points to. A session never changes
 hands: nobody can log one under someone else's running session's id.
 
-Slow or greedy clients: a request must send its headers within 15 seconds and its body at 50 KB/s, each door
-serves at most 96 connections at once (so trouble at the friends' door can't reach yours), live updates are capped per
-person (the oldest page lets go), push subscriptions are the size of real ones and redirects from push services aren't
-followed. `data/` and the backups are only yours (folders 700, files 600).
+On the wire: a connection is kept open between requests (HTTP/1.1), so a page's scripts, pictures and API calls share
+a few connections instead of opening one each; it waits for the next request (a minute at your door, 15 seconds at
+the friends' door, which is on the internet) and is then let go. Text files
+are gzipped once, ahead of the first request. The service worker opens the app from its saved copy at once and fetches
+a fresh page behind it, so Dakku opens before the PC has answered (or while Tailscale is still waking up with the
+phone); a new version still comes through the service worker, as above.
+
+Stopping (`systemctl --user restart dakku`): no new requests are taken, the ones being served finish, live updates
+end, and only then does the database close, so a restart never cuts a request in half.
+
+Slow or greedy clients: a request must send its headers within that same time (counted from the end of the one before
+on a kept connection) and its body at 50 KB/s, each door serves at most 128 connections at once (so trouble at the friends'
+door can't reach yours), live updates are capped per person (the oldest page lets go), push subscriptions are the size
+of real ones and redirects from push services aren't followed. `data/` and the backups are only yours (folders 700,
+files 600).
 
 Fast over a slow link: each duck has a small copy for everywhere it isn't shown big (the full picture loads for its own
 page, its hatching and share pictures), the ponds have thumbnails for Settings, picture addresses carry their version
