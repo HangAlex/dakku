@@ -12,6 +12,8 @@
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
   const MIN = 60_000, HOUR = 60 * MIN, DAY = 24 * HOUR;
+  // which build of Dakku this is: the PC writes it in as it sends this file ('' where nothing does, as in the demo)
+  const APP_BUILD = /^[0-9a-f]{6,32}$/.test('__BUILD__') ? '__BUILD__' : '';
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -25,7 +27,7 @@
     set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* full or blocked */ } },
     del(key) { try { localStorage.removeItem(key); } catch { /* blocked */ } },
   };
-  const K = { cache: 'dakku:cache', outbox: 'dakku:outbox', theme: 'dakku:theme', seen: 'dakku:seen', mine: 'dakku:mine', away: 'dakku:away', timer: 'dakku:timer', ui: 'dakku:ui', join: 'dakku:join', cheers: 'dakku:cheers', beforeEvent: 'dakku:before-event' };
+  const K = { cache: 'dakku:cache', outbox: 'dakku:outbox', theme: 'dakku:theme', seen: 'dakku:seen', mine: 'dakku:mine', away: 'dakku:away', timer: 'dakku:timer', ui: 'dakku:ui', join: 'dakku:join', cheers: 'dakku:cheers', beforeEvent: 'dakku:before-event', golden: 'dakku:golden' };
   // what this device kept from before Dakku had its name ("mori:…") is kept under Dakku's
   try {
     for (const key of Object.keys(localStorage)) {
@@ -81,7 +83,9 @@
     pick: { minutes: 25, mode: 'timer', tag: '', species: 'matsu', pomo: { focus: 25, brk: 5, rounds: 4 } },
     devices: null, passcode: null, pushSub: null, swReg: null,
     dragging: false, starting: false, ended: null,
-    together: null, groupData: {}, groupId: null, groupRange: 'month', boardRange: 'week', admin: null, joinPick: null,
+    together: null, togetherAt: 0, groupData: {}, groupId: null, groupRange: 'month', boardRange: 'week', admin: null, joinPick: null,
+    pond: null, pondRange: 'all', // someone's pond you're looking at (see openPond)
+    build: APP_BUILD, updated: false, touched: false, // the app's files this page runs, and whether a newer version is in
   };
 
   /* ───────────── time, in your home time zone ───────────── */
@@ -140,10 +144,11 @@
     if (D) return D;
     const goal = S.settings.goal;
     const list = [...S.sessions.values()].filter((s) => !s.deleted).sort((a, b) => a.start - b.start);
-    const byDay = new Map(), byTag = new Map(), bySpecies = new Map();
+    const byDay = new Map(), byTag = new Map(), bySpecies = new Map(), lastUsed = new Map();
     let total = 0, trees = 0, withered = 0, longest = 0, run = 0, bestRun = 0, early = false, night = false;
     for (const s of list) {
       s._day = dayKey(s.start);
+      lastUsed.set(Art.kindOf(s.species), s.start); // (the list is oldest first, so the last one stays)
       if (s.status === 'withered') { withered++; run = 0; continue; }
       trees++;
       run++;
@@ -161,7 +166,7 @@
     }
     const today = todayKey();
     const { current, best, freezes, frozen } = streaks(byDay, goal, today);
-    D = { list, byDay, byTag, bySpecies, total, trees, withered, longest, bestRun, early, night, today, goal, streak: current, best, freezes, frozen };
+    D = { list, byDay, byTag, bySpecies, lastUsed, total, trees, withered, longest, bestRun, early, night, today, goal, streak: current, best, freezes, frozen };
     return D;
   }
   // The weekday rule, with streak freezes: every 7 days in a row earns one (you can hold 2), and a
@@ -269,7 +274,7 @@
     try {
       res = await fetch(path, {
         method, credentials: 'same-origin', cache: 'no-store', signal: ctrl.signal,
-        headers: { 'X-Dakku': '1', ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
+        headers: { 'X-Dakku': '1', ...(APP_BUILD ? { 'X-Dakku-Build': APP_BUILD } : {}), ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
         body: body !== undefined ? JSON.stringify(body) : undefined,
       });
     } catch {
@@ -323,7 +328,10 @@
   }
 
   function applyBootstrap(data) {
-    S.me = data.me; S.server = data.server; S.vapidKey = data.vapidKey; S.anki = data.anki; S.together = data.together || null; S.shop = data.shop || null;
+    S.me = data.me; S.server = data.server; S.vapidKey = data.vapidKey; S.anki = data.anki; S.shop = data.shop || null;
+    adoptTogether(data.together || null);
+    checkGolden();
+    checkBuild(data.server?.build);
     markDemo();
     S.sessions = new Map(data.sessions.map((s) => [s.id, s]));
     S.cursor = data.cursor;
@@ -345,7 +353,7 @@
       else S.sessions.set(s.id, s);
     }
     S.cursor = Math.max(S.cursor, res.cursor || 0);
-    if (res.shop) S.shop = res.shop;
+    if (res.shop) { S.shop = res.shop; checkGolden(); }
     for (const op of S.outbox) applyOp(op);
     if (res.settings) {
       const before = JSON.stringify(S.settings);
@@ -452,12 +460,17 @@
     try { applyPull(await api('GET', `/api/sync?since=${S.cursor}`)); } catch { /* offline: try later */ }
   }
 
-  // live updates from the PC
-  let es = null, esRetry = 0;
+  // live updates from the PC. A connection can die without a word (a phone changing networks): the PC
+  // pings every 20 seconds, so one that hears nothing for LIVE_QUIET is let go and a new one made. And
+  // each time one opens, whatever changed while there was none is fetched.
+  const LIVE_QUIET = 50_000;
+  let es = null, esRetry = 0, esHeard = 0;
   function connectLive() {
     if (es || !('EventSource' in window) || !S.settings || document.hidden) return;
-    es = new EventSource('/api/events');
+    es = new EventSource(APP_BUILD ? `/api/events?build=${APP_BUILD}` : '/api/events');
+    esHeard = Date.now();
     es.addEventListener('change', (e) => {
+      esHeard = Date.now();
       try {
         const d = JSON.parse(e.data);
         if (d.timer !== undefined) applyTimer(d.timer, d.timer?.now);
@@ -465,7 +478,11 @@
         if (d.together) refreshTogether();
       } catch { /* ignore a bad event */ }
     });
-    es.onopen = () => { S.live = true; esRetry = 0; setReachable(true); paintSync(); };
+    es.addEventListener('ping', (e) => {
+      esHeard = Date.now();
+      try { checkBuild(JSON.parse(e.data).build); } catch { /* ignore a bad ping */ }
+    });
+    es.onopen = () => { esHeard = Date.now(); S.live = true; esRetry = 0; setReachable(true); paintSync(); catchUp(); };
     es.onerror = () => {
       S.live = false;
       paintSync();
@@ -476,6 +493,12 @@
     };
   }
   function disconnectLive() { if (es) { es.close(); es = null; S.live = false; } }
+  const liveQuiet = () => es?.readyState === EventSource.OPEN && Date.now() - esHeard > LIVE_QUIET;
+  // what changed while there were no live updates (or the page was away): yours, and your friends'
+  function catchUp() {
+    if (Date.now() - S.lastSync > 2000) pull();
+    if (Date.now() - S.togetherAt > 2000) refreshTogether(0);
+  }
 
   // your groups, the people in them, and who's studying right now
   let togetherTimer = 0;
@@ -483,8 +506,9 @@
     clearTimeout(togetherTimer);
     togetherTimer = setTimeout(async () => {
       try {
-        S.together = await api('GET', '/api/together');
+        adoptTogether(await api('GET', '/api/together'));
         saveCache();
+        if ($('#pond-dialog').open && S.pond?.person) openPond(S.pond.person.id); // a duck of theirs may have hatched
         if (S.view === 'together') renderTogether();
         else {
           S.groupData = {}; // a duck may have hatched: the group ponds are fetched fresh next time
@@ -997,7 +1021,7 @@
     const host = $('#party');
     host.hidden = !party.length && !(t.open && inGroups() && t.mode !== 'room');
     host.innerHTML = party.length
-      ? `<span class="muted small">${t.mode === 'room' ? 'Studying with' : 'With you'}</span>${party.map((g) => `<span class="party-who">${badgeHTML(personOf(g.person))}<b>${esc(nameOf(g.person))}</b><span class="muted small">${g.host ? 'host' : `since ${esc(fmtTime(g.since))}`}</span></span>`).join('')}`
+      ? `<span class="muted small">${t.mode === 'room' ? 'Focusing with' : 'With you'}</span>${party.map((g) => `<span class="party-who">${badgeHTML(personOf(g.person))}<b>${esc(nameOf(g.person))}</b><span class="muted small">${g.host ? 'host' : `since ${esc(fmtTime(g.since))}`}</span></span>`).join('')}`
       : '<span class="muted small">Your friends can join this session.</span>';
   }
 
@@ -1054,7 +1078,7 @@
       frac = 1 - ph.left / ph.part;
       clock = fmtClock(ph.left);
       sub = t.runFrom == null || h.runFrom == null ? 'Paused' : sleeping ? `Break · back to focus at ${fmtTime(Date.now() + ph.left)}`
-        : `Round ${ph.round} of ${h.pomo.rounds} · you've studied ${fmtMin(Math.floor(yours / MIN))} with ${nameOf(t.host)}`;
+        : `Round ${ph.round} of ${h.pomo.rounds} · you've focused ${fmtMin(Math.floor(yours / MIN))} with ${nameOf(t.host)}`;
       growth = pomoFocus(h, elapsedOf(h, now)) / (h.pomo.focus * h.pomo.rounds);
       $('#pause-btn').textContent = t.runFrom == null ? 'Resume' : 'Pause';
     } else if (t.mode === 'room') {
@@ -1063,7 +1087,7 @@
       if (left != null) {
         frac = 1 - left / t.hostTimer.planned;
         clock = fmtClock(left);
-        sub = t.runFrom == null ? 'Paused · your time is on hold' : `You've studied ${fmtMin(Math.floor(el / MIN))} · hatches with ${nameOf(t.host)}`;
+        sub = t.runFrom == null ? 'Paused · your time is on hold' : `You've focused ${fmtMin(Math.floor(el / MIN))} · hatches with ${nameOf(t.host)}`;
         growth = el / Math.max(1, el + left);
       } else {
         frac = (el % HOUR) / HOUR;
@@ -1098,14 +1122,16 @@
     $('#dial-arc').setAttribute('d', arcPath(frac));
     $('#clock').textContent = clock;
     $('#clock-sub').textContent = sub;
+    paintCheers(t);
     const g = Math.round(clamp(growth, 0, 1) * 400) / 400;
     const stage = !t ? 'idle' : t.runFrom == null || sleeping ? 'still' : g >= 0.8 ? 'w3' : g >= 0.5 ? 'w2' : 'w1';
-    const key = `${g >= 0.8 ? 2 : g >= 0.5 ? 1 : 0}|${stage}|${sleeping}|${Art.sprites.eggs.length}`;
+    const gold = !!t && Art.kindOf(t.species) === 'kin'; // 金: a Golden duck on its way has its stars around the egg
+    const key = `${g >= 0.8 ? 2 : g >= 0.5 ? 1 : 0}|${stage}|${sleeping}|${gold}|${Art.sprites.eggs.length}`;
     if (key !== lastGrowKey) {
       lastGrowKey = key;
       // the egg wobbles more as it gets close; at 50% it cracks, at 80% a duck peeks out. On a break it naps.
       $('#grow').innerHTML = `<svg viewBox="0 0 300 300" aria-hidden="true">
-        <g class="wobble ${stage}"><g transform="translate(50 -24) scale(2)">${Art.eggInner(t ? g : 0)}</g></g></svg>
+        <g class="wobble ${stage}"><g transform="translate(50 -24) scale(2)">${Art.eggInner(t ? g : 0)}${gold ? Art.goldStars() : ''}</g></g></svg>
         ${sleeping ? '<div class="zzz" aria-hidden="true"><i>z</i><i>z</i><i>Z</i></div>' : ''}`;
     }
     dial.classList.toggle('break', sleeping);
@@ -1141,17 +1167,32 @@
     } else welcome.hidden = true;
   }
 
+  // a friend's session as it goes (the clocks tick every second, see boot): for a pomodoro the part
+  // they're in, what's left of it and the round; for a stopwatch how long they've been at it
+  function roomClock(r) {
+    if (r.mode === 'pomo' && r.pomo) {
+      const planned = r.elapsed + (r.remaining || 0);
+      const el = r.running && r.endsAt ? planned - Math.max(0, r.endsAt - serverNow()) : r.elapsed;
+      const ph = pomoPhase({ pomo: r.pomo, planned }, el);
+      // (non-breaking spaces inside each part: on a narrow phone it wraps between them)
+      return `🍅\u00a0${ph.phase === 'break' ? 'On\u00a0a\u00a0break' : 'Focusing'} · ${fmtClock(ph.left)}\u00a0left · round\u00a0${ph.round}\u00a0of\u00a0${r.pomo.rounds}`;
+    }
+    return `${fmtClock(r.elapsed + (r.running && r.at ? Date.now() - r.at : 0), Math.floor)}\u00a0in, open-ended`;
+  }
+  function adoptTogether(t) {
+    S.together = t;
+    S.togetherAt = Date.now();
+    for (const r of t?.rooms || []) r.at = S.togetherAt; // (when its numbers were true)
+  }
   function roomRow(r) {
     const others = r.party.filter((g) => !g.host);
     const busy = S.timer && !r.mine;
-    const clock = r.mode === 'pomo'
-      ? `🍅 ${r.phase === 'break' ? 'On a break' : 'Focusing'} · round ${r.round} of ${r.pomo?.rounds}`
-      : r.mode === 'timer'
-        ? (r.running && r.endsAt ? `<span data-ends="${r.endsAt}">${fmtClock(Math.max(0, r.endsAt - serverNow()))}</span> left` : `${fmtClock(r.remaining)} left`)
-        : `${fmtMin(Math.floor(r.elapsed / MIN))} in, open-ended`;
+    const clock = r.mode === 'timer'
+      ? (r.running && r.endsAt ? `<span data-ends="${r.endsAt}">${fmtClock(Math.max(0, r.endsAt - serverNow()))}</span> left` : `${fmtClock(r.remaining)} left`)
+      : `<span data-room-clock="${esc(r.id)}">${esc(roomClock(r))}</span>`;
     return `<div class="room${r.mine ? ' mine' : ''}">
-      ${badgeHTML(personOf(r.host), 'big')}
-      <div class="what"><span><b>${esc(nameOf(r.host))}</b>${r.tag ? ` · ${esc(r.tag)}` : ''}</span>
+      <button class="pond-link" type="button" data-pond="${esc(r.host)}" title="See ${esc(nameOf(r.host))}'s pond">${badgeHTML(personOf(r.host), 'big')}</button>
+      <div class="what"><span><button class="name-link" type="button" data-pond="${esc(r.host)}">${esc(nameOf(r.host))}</button>${r.tag ? ` · ${esc(r.tag)}` : ''}</span>
         <span class="muted small">${clock}${r.running ? '' : ' · paused'}${others.length ? ` · with ${others.map((g) => esc(nameOf(g.person))).join(', ')}` : ''}</span></div>
       <span class="room-acts">${r.host !== myId() ? `<button class="btn small" type="button" data-cheer="${esc(r.host)}" title="Send ${esc(nameOf(r.host))} a cheer">Cheer</button>` : ''}
         ${r.mine ? '<span class="chip">You\'re in</span>' : `<button class="btn small primary" type="button" data-join="${esc(r.id)}"${busy ? ' disabled title="Finish your own session first"' : ''}>Join</button>`}</span>
@@ -1207,6 +1248,24 @@
     setTimeout(() => el.remove(), 8000);
   }
 
+  // the cheers for this session stay under the clock until the duck hatches: a pop alone is easy to miss
+  // when you're locked in (the latest six, newest last; the hatch card names everyone)
+  let cheersShown = '';
+  function paintCheers(t) {
+    const tray = $('#cheer-tray');
+    const list = (t?.cheers || []).slice().sort((a, b) => a.at - b.at);
+    if (!list.length) { tray.hidden = true; tray.innerHTML = ''; cheersShown = ''; return; }
+    const key = `${t.id}:${list.map((c) => c.id).join(',')}`;
+    if (key === cheersShown) return;
+    const was = new Set(cheersShown.startsWith(`${t.id}:`) ? cheersShown.slice(String(t.id).length + 1).split(',') : []);
+    const shown = list.slice(-6);
+    tray.innerHTML = `<span class="cheer-tray-title"><span class="jp">応援</span>${list.length === 1 ? 'A cheer' : `${list.length} cheers`} for you</span>`
+      + (list.length > shown.length ? `<span class="cheer-more">+${list.length - shown.length} earlier</span>` : '')
+      + shown.map((c) => `<span class="cheer-item${was.size && !was.has(c.id) ? ' new' : ''}"><b>${esc(c.name)}</b> ${esc(c.text)}</span>`).join('');
+    tray.hidden = false;
+    cheersShown = key;
+  }
+
   function sessionRow(s) {
     const end = s.start + s.minutes * MIN;
     const src = { genkan: 'homepage', manual: 'by hand', import: 'imported', sync: 'synced' }[s.source] || (s.manual ? 'by hand' : '');
@@ -1237,11 +1296,14 @@
       if (prev <= 30 && m >= 150) m = 5;
       return clamp(m, 5, DIAL_MAX);
     };
-    const onRing = (x, y) => {
+    // in the dial's units (it's 300 across): inside EGG_R are the egg, its face and "Tap to hatch", where a
+    // tap starts the session; from there out is the ring, for dragging the time
+    const EGG_R = 112;
+    const fromCenter = (x, y) => {
       const r = dial.getBoundingClientRect();
-      const d = Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2)) / (r.width / 300);
-      return d > 70 && d < 165;
+      return Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2)) / (r.width / 300);
     };
+    const onRing = (x, y) => { const d = fromCenter(x, y); return d > EGG_R && d < 165; };
     const canDrag = () => !S.timer && S.pick.mode === 'timer';
     const begin = () => { S.dragging = true; dial.classList.add('dragging'); };
     const move = (x, y) => {
@@ -1256,32 +1318,36 @@
       dial.classList.remove('dragging');
       savePick();
     };
-    dial.addEventListener('touchstart', (e) => {
-      if (!canDrag() || e.touches.length !== 1) return;
-      const p = e.touches[0];
-      if (!onRing(p.clientX, p.clientY)) return;
-      e.preventDefault();
-      begin();
-      move(p.clientX, p.clientY);
-    }, { passive: false });
-    dial.addEventListener('touchmove', (e) => { if (S.dragging) { e.preventDefault(); move(e.touches[0].clientX, e.touches[0].clientY); } }, { passive: false });
-    dial.addEventListener('touchend', end);
-    dial.addEventListener('touchcancel', end);
-    dial.addEventListener('mousedown', (e) => {
-      if (!canDrag() || !onRing(e.clientX, e.clientY)) return;
-      e.preventDefault();
-      begin();
-      move(e.clientX, e.clientY);
-      const mm = (ev) => move(ev.clientX, ev.clientY);
-      window.addEventListener('mousemove', mm);
-      window.addEventListener('mouseup', () => { window.removeEventListener('mousemove', mm); end(); }, { once: true });
-    });
-    // tapping the egg in the middle starts the session (the ring around it is for dragging the time;
-    // a drag that ends over the egg isn't a tap)
+    // the ring, and the knob (in a layer of its own, over an event's ring): a touch stays with what it began on
+    for (const el of [dial, $('.dial-top')]) {
+      el.addEventListener('touchstart', (e) => {
+        if (!canDrag() || e.touches.length !== 1) return;
+        const p = e.touches[0];
+        if (!onRing(p.clientX, p.clientY)) return;
+        e.preventDefault();
+        begin();
+        move(p.clientX, p.clientY);
+      }, { passive: false });
+      el.addEventListener('touchmove', (e) => { if (S.dragging) { e.preventDefault(); move(e.touches[0].clientX, e.touches[0].clientY); } }, { passive: false });
+      el.addEventListener('touchend', end);
+      el.addEventListener('touchcancel', end);
+      el.addEventListener('mousedown', (e) => {
+        if (!canDrag() || !onRing(e.clientX, e.clientY)) return;
+        e.preventDefault();
+        begin();
+        move(e.clientX, e.clientY);
+        const mm = (ev) => move(ev.clientX, ev.clientY);
+        window.addEventListener('mousemove', mm);
+        window.addEventListener('mouseup', () => { window.removeEventListener('mousemove', mm); end(); }, { once: true });
+      });
+    }
+    // tapping the egg starts the session (a drag that ends over the egg isn't a tap, nor a press that wandered off)
+    let downAt = null;
+    dial.parentElement.addEventListener('pointerdown', (e) => { downAt = [e.clientX, e.clientY]; });
     dial.parentElement.addEventListener('click', (e) => {
       if (S.timer || S.starting || S.dragging || Date.now() - dragEnded < 500 || e.target.closest('button')) return;
-      const r = dial.getBoundingClientRect();
-      if (Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)) / (r.width / 300) <= 70) startTimer();
+      if (downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 12) return;
+      if (fromCenter(e.clientX, e.clientY) <= EGG_R) startTimer();
     });
     dial.addEventListener('keydown', (e) => {
       if ((e.key === 'Enter' || e.key === ' ') && !S.timer) { e.preventDefault(); startTimer(); return; } // the egg is the Hatch button
@@ -1429,7 +1495,7 @@
     if (!groups.length) {
       $('#together-empty').innerHTML = `<div class="card empty-together">
         <span class="seal big" aria-hidden="true">共</span>
-        <h2>Study with friends</h2>
+        <h2>Focus with friends</h2>
         ${owner ? `<p>Make a group and invite someone. When you start a session they can join you halfway, with their own duck, and you each get your own time. Your ducks from those sessions gather in a pond of your own together.</p>
           <button class="btn primary" type="button" data-act="new-group">Make a group</button>`
         : '<p>You\'re not in a group right now. Ask whoever invited you for a new link.</p>'}</div>`;
@@ -1438,7 +1504,7 @@
     if (!groups.some((g) => g.id === S.groupId)) S.groupId = groups[0].id;
     const rooms = tg.rooms || [];
     $('#rooms').innerHTML = rooms.length ? rooms.map(roomRow).join('')
-      : `<p class="empty">Nobody's studying right now.${S.timer ? '' : ' Start a session on the <a href="#hatch">Hatch</a> tab and your friends can join you.'}</p>`;
+      : `<p class="empty">Nobody's focusing right now.${S.timer ? '' : ' Start a session on the <a href="#hatch">Hatch</a> tab and your friends can join you.'}</p>`;
     const cached = S.groupData[S.groupId];
     if (cached) renderGroup(cached); // what we had, until the fresh one arrives
     const data = await loadGroup(true);
@@ -1472,11 +1538,11 @@
       `<p class="forest-note">${list.length ? 'Tap a duck to see whose it is' : 'Ducks from the sessions you do together gather here.'}</p>`;
     const counts = new Map();
     for (const s of list) if (s.status !== 'withered') counts.set(s.person, (counts.get(s.person) || 0) + 1);
-    $('#group-legend').innerHTML = people.map((p) => `<span class="legend-who">${badgeHTML(p)}${esc(p.id === myId() ? 'You' : p.name)}<span class="muted">${plural(counts.get(p.id) || 0, 'duck')}</span></span>`).join('');
+    $('#group-legend').innerHTML = people.map((p) => `<button class="legend-who" type="button" data-pond="${esc(p.id)}" title="See ${esc(p.id === myId() ? 'your' : `${p.name}'s`)} pond">${badgeHTML(p)}${esc(p.id === myId() ? 'You' : p.name)}<span class="muted">${plural(counts.get(p.id) || 0, 'duck')}</span></button>`).join('');
     const together = list.filter((s) => s.status !== 'withered');
     const rooms = new Set(list.map((s) => s.room || s.id));
     $('#group-tiles').innerHTML = [
-      [fmtHM(together.reduce((n, s) => n + s.minutes, 0)), 'studied together'],
+      [fmtHM(together.reduce((n, s) => n + s.minutes, 0)), 'focused together'],
       [rooms.size.toLocaleString(), rooms.size === 1 ? 'session together' : 'sessions together'],
       [together.length ? fmtHM(Math.max(...together.map((s) => s.minutes))) : '–', 'longest'],
       [fmtHM(stats.minutes), 'together, ever'],
@@ -1488,8 +1554,8 @@
     $('#board').innerHTML = `<div class="board">${ranked.map((b, i) => {
       const p = who[b.person] || personOf(b.person);
       return `<div class="board-row${b.person === myId() ? ' me' : ''}">
-        <span class="place">${i + 1}</span>${badgeHTML(p)}
-        <span class="nm">${esc(b.person === myId() ? 'You' : p.name)}${b.studying ? '<span class="now" title="Studying now"></span>' : ''}</span>
+        <span class="place">${i + 1}</span><button class="pond-link" type="button" data-pond="${esc(b.person)}" tabindex="-1" aria-hidden="true">${badgeHTML(p)}</button>
+        <span class="nm"><button class="name-link" type="button" data-pond="${esc(b.person)}">${esc(b.person === myId() ? 'You' : p.name)}</button>${b.studying ? '<span class="now" title="Focusing now"></span>' : ''}</span>
         <span class="val">${fmtHM(b[key])}</span>
         <span class="track"><i style="width:${(b[key] / top) * 100}%;background:${esc(p.color)}"></i></span>
         <span class="sub muted small">${plural(b.ducks, 'duck')} · ${b.streak}-day streak · ${fmtHM(b.together)} together</span>
@@ -1509,7 +1575,7 @@
     $('#group-people').innerHTML = people.map((p) => {
       const b = board.find((x) => x.person === p.id);
       const me = p.id === myId();
-      return `<div class="person-row">${badgeHTML(p)}<span class="nm">${esc(me ? `${p.name} (you)` : p.name)}${b?.studying ? '<span class="now" title="Studying now"></span>' : ''}</span>
+      return `<div class="person-row"><button class="pond-link" type="button" data-pond="${esc(p.id)}" tabindex="-1" aria-hidden="true">${badgeHTML(p)}</button><span class="nm"><button class="name-link" type="button" data-pond="${esc(p.id)}">${esc(me ? `${p.name} (you)` : p.name)}</button>${b?.studying ? '<span class="now" title="Focusing now"></span>' : ''}</span>
         <span class="muted small">${b ? `${fmtHM(b.week)} this week` : ''}</span>
         ${me && !owner ? `<button class="link" type="button" data-leave="${esc(group.id)}">Leave group</button>` : ''}
         ${owner && !me ? `<button class="link" type="button" data-unmember="${esc(p.id)}">Remove</button>` : ''}</div>`;
@@ -1539,15 +1605,98 @@
     pop.style.top = `${ev.clientY}px`;
   }
 
+  // someone's own pond (a friend's, or yours as they see it): their ducks on their pond, their rank and
+  // streak, what they study, and their session if they're in one
+  let pondScene = null, pondItems = [];
+  async function openPond(pid) {
+    const dlg = $('#pond-dialog');
+    if (S.pond?.person?.id !== pid) { S.pond = { person: S.admin?.people?.find((x) => x.id === pid) || personOf(pid), loading: true }; S.pondRange = 'all'; }
+    paintPond();
+    if (!dlg.open) dlg.showModal();
+    try {
+      const data = await api('GET', `/api/people/${encodeURIComponent(pid)}/pond`);
+      if (dlg.open && S.pond?.person?.id === pid) { S.pond = data; paintPond(); }
+    } catch (err) {
+      if (!S.pond?.loading) return; // (what it showed before stays)
+      dlg.close();
+      toast(err instanceof Offline ? "Your PC can't be reached right now." : err.message);
+    }
+  }
+  function paintPond() {
+    const d = S.pond, p = d.person, mine = p.id === myId();
+    $('#pond-pop').hidden = true;
+    const who = `${badgeHTML(p)} ${mine ? 'Your pond' : `${esc(p.name)}'s pond`}`;
+    if (d.loading) {
+      $('#pond-profile').innerHTML = `<div><div class="who">${who}</div><div class="rank">&nbsp;</div></div>`;
+      $('#pond-stage').innerHTML = $('#pond-live').innerHTML = $('#pond-tags').innerHTML = '';
+      return;
+    }
+    const { rank } = rankFor(d.total);
+    $('#pond-profile').innerHTML = `
+      <div><div class="who">${who}${d.studying ? ' <em>focusing now</em>' : ''}</div><div class="rank">${rank[1]} ${rank[2]}<small>${rank[3]}</small></div></div>
+      <div class="hanko${rank[1].length > 1 ? ' two' : ''}" aria-hidden="true">${rank[1]}</div>
+      <div class="big">
+        <div class="stat"><div class="v">${fmtHours(d.total)}<small>h</small></div><div class="k">focused</div></div>
+        <div class="stat"><div class="v">${d.ducks.toLocaleString()}</div><div class="k">${d.ducks === 1 ? 'duck' : 'ducks'}</div></div>
+        <div class="stat"><div class="v">${d.streak}</div><div class="k">day streak</div></div>
+        <div class="stat"><div class="v">${fmtHM(d.week)}</div><div class="k">this week</div></div>
+      </div>
+      <div class="next"><span>${d.since ? `Hatching since ${esc(fmtDate(dayKey(d.since), { month: 'short', year: 'numeric' }))}` : 'No ducks yet'}${d.kinds ? ` · ${plural(d.kinds, 'kind')} of duck` : ''} · best streak ${plural(d.best, 'day')}</span></div>`;
+    const room = (S.together?.rooms || []).find((r) => r.host === p.id);
+    $('#pond-live').innerHTML = room && !mine ? roomRow(room) : '';
+    $$('#pond-range button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.prange === S.pondRange)));
+    const list = d.pond.filter((s) => inGroupRange(s, S.pondRange)).sort((a, b) => a.start - b.start);
+    pondItems = list;
+    const look = { theme: themeFor(d.theme), decor: d.decor || [] }, phone = innerWidth < 600;
+    if (!list.length) {
+      pondScene = null;
+      $('#pond-stage').innerHTML = `<div class="empty-forest">${Art.pondSVG(Art.pond([], { seed: p.id, shape: 'wide', ...look }), { label: 'An empty pond' })}<p>${S.pondRange === 'all' ? 'No ducks yet.' : 'No ducks hatched then.'}</p></div>`;
+    } else {
+      pondScene = Art.pond(list.map((s) => ({ kind: s.species, cold: s.status === 'withered' })), { seed: p.id + S.pondRange, max: 400, maxAspect: phone ? 1.2 : 0.8, shape: phone ? 'tall' : 'wide', ...look });
+      const hidden = list.length - pondScene.shownCount;
+      $('#pond-stage').innerHTML = Art.pondSVG(pondScene, { cls: 'pond-svg', label: `${list.length} ducks` }) +
+        `<p class="forest-note">${hidden > 0 ? `The latest ${pondScene.shownCount.toLocaleString()} of ${list.length.toLocaleString()} ducks` : 'Tap a duck to see its session'}</p>`;
+    }
+    const tags = d.tags || [], total = tags.reduce((n, t) => n + t.minutes, 0), top = tags[0]?.minutes || 1;
+    const fallback = ['#2B6CC4', '#12A37A', '#E9A100', '#D9568F', '#6C55C8', '#D9482B'];
+    $('#pond-tags').innerHTML = total ? `<div class="hbars">${tags.map((t, i) => `
+      <div class="hbar" style="--c:${t.name === 'Untagged' ? 'var(--ink-3)' : esc(t.color || fallback[i % fallback.length])}">
+        <span class="name">${esc(t.name)}</span><span class="val">${fmtMin(t.minutes)} · ${Math.round((t.minutes / total) * 100)}%</span>
+        <span class="track"><i style="width:${(t.minutes / top) * 100}%"></i></span></div>`).join('')}</div>` : '';
+  }
+  function pondHit(ev) {
+    const pop = $('#pond-pop'), svg = $('#pond-stage svg');
+    if (!pondScene || !svg || !svg.contains(ev.target)) { pop.hidden = true; return; }
+    const pt = svg.createSVGPoint();
+    pt.x = ev.clientX;
+    pt.y = ev.clientY;
+    const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    let best = null, bestD = Infinity;
+    for (const d of pondScene.drawn) {
+      if (d.type !== 'duck') continue;
+      const dx = (p.x - (d.x + 50 * d.k)) / (d.k * 40), dy = (p.y - (d.y + 67 * d.k)) / (d.k * 60);
+      if (dx * dx + dy * dy < bestD) { bestD = dx * dx + dy * dy; best = d; }
+    }
+    const s = best && bestD <= 1.4 ? pondItems[best.idx] : null;
+    if (!s) { pop.hidden = true; return; }
+    pop.innerHTML = `<b>${s.status === 'withered' ? 'A cold egg' : esc(speciesName(s.species))}</b><br>${fmtMin(s.minutes)}${s.tag ? ` · ${esc(s.tag)}` : ''}<br>${esc(fmtDate(dayKey(s.start), { month: 'short', day: 'numeric' }))}, ${esc(fmtTime(s.start))}`;
+    pop.hidden = false;
+    // (inside the sheet, which moves as it opens: placed in it, not on the screen)
+    const box = $('#pond-stage').parentElement.getBoundingClientRect();
+    pop.style.left = `${clamp(ev.clientX - box.left, 120, box.width - 120)}px`;
+    pop.style.top = `${ev.clientY - box.top}px`;
+  }
+
   // joining someone's session as it runs, with a duck of your own
   function openJoin(id) {
     const room = (S.together?.rooms || []).find((r) => r.id === id);
     if (!room) { toast('That session has already ended.'); refreshTogether(0); return; }
     if (S.timer) { toast('Finish your own session first.'); return; }
+    if ($('#pond-dialog').open) $('#pond-dialog').close(); // (joined from their pond)
     S.joinPick = { species: S.settings.randomSpecies ? 'random' : S.pick.species, tag: S.pick.tag, room: id };
     $('#join-room-title').textContent = `Join ${nameOf(room.host)}`;
     const left = room.mode === 'timer' ? `${fmtClock(room.running && room.endsAt ? Math.max(0, room.endsAt - serverNow()) : room.remaining)} left` : 'open-ended';
-    $('#join-room-sub').textContent = `${room.tag ? `${room.tag} · ` : ''}${left} · ${plural(room.party.length, 'person', 'people')} studying`;
+    $('#join-room-sub').textContent = `${room.tag ? `${room.tag} · ` : ''}${left} · ${plural(room.party.length, 'person', 'people')} focusing`;
     paintJoinPick();
     $('#join-dialog').showModal();
   }
@@ -1593,7 +1742,7 @@
       $('#invite-expiry').textContent = `${res.uses === 1 ? 'Works once' : `Works for ${res.uses} people`} · until ${fmtDate(dayKey(res.expires), { month: 'short', day: 'numeric' })}`;
       $('#invite-share').hidden = !navigator.share;
       $('#invite-copy').onclick = async () => { try { await navigator.clipboard.writeText(res.url); toast('Link copied.'); } catch { toast('Copy it from the box above.'); } };
-      $('#invite-share').onclick = async () => { try { await navigator.share({ title: '鴨 Dakku', text: 'Study with me on Dakku', url: res.url }); } catch (err) { if (err.name !== 'AbortError') toast(err.message); } };
+      $('#invite-share').onclick = async () => { try { await navigator.share({ title: '鴨 Dakku', text: 'Focus with me on Dakku', url: res.url }); } catch (err) { if (err.name !== 'AbortError') toast(err.message); } };
       $('#invite-dialog').showModal();
     } catch (err) { toast(err instanceof Offline ? "Your PC can't be reached." : err.message); }
   }
@@ -1604,7 +1753,7 @@
       if (!mine) return;
       saveSettings({ name: mine.slice(0, 40) }, { quiet: true });
     }
-    const name = await askText('Make a group', 'A group shares a pond, a leaderboard, and each other\'s live sessions. You can rename it later.', 'Group name', 'Study club', 'Make it');
+    const name = await askText('Make a group', 'A group shares a pond, a leaderboard, and each other\'s live sessions. You can rename it later.', 'Group name', 'Focus club', 'Make it');
     if (!name) return;
     try {
       if (unnamed) await flush();
@@ -1615,7 +1764,7 @@
     } catch (err) { toast(err.message); }
   }
   async function refreshTogetherNow() {
-    try { S.together = await api('GET', '/api/together'); saveCache(); } catch { /* offline */ }
+    try { adoptTogether(await api('GET', '/api/together')); saveCache(); } catch { /* offline */ }
     S.admin = null;
     render();
   }
@@ -1675,7 +1824,7 @@
     host.innerHTML = `<div class="year-stats">
         <div class="stat"><div class="v">${fmtHours(y.minutes)}<small>h</small></div><div class="k">focused</div></div>
         <div class="stat"><div class="v">${y.ducks.toLocaleString()}</div><div class="k">${y.ducks === 1 ? 'duck' : 'ducks'}</div></div>
-        <div class="stat"><div class="v">${y.days}</div><div class="k">${y.days === 1 ? 'day' : 'days'} studied</div></div>
+        <div class="stat"><div class="v">${y.days}</div><div class="k">${y.days === 1 ? 'day' : 'days'} focused</div></div>
         <div class="stat"><div class="v">${y.best >= 0 ? esc(y.monthName(y.best, 'short')) : '–'}</div><div class="k">best month</div></div>
       </div>
       <div class="chart">${svg}${table(['Month', 'Minutes'], y.months.map((v, i) => [y.monthName(i), String(v)]).filter((r, i) => i <= now))}</div>
@@ -1902,7 +2051,7 @@
   // The gallery's shelves: each category, with the ducks of a series side by side (and the plain ducks in
   // the order their hours unlock them).
   const CATEGORIES = [['dakku', '鴨', 'Dakku originals'], ['holiday', '祝', 'Holidays'], ['anime', 'アニメ', 'Anime'],
-    ['games', 'ゲーム', 'Video games'], ['screen', '映画', 'TV & movies'], ['music', '音楽', 'Music']];
+    ['games', 'ゲーム', 'Video games'], ['screen', '映画', 'TV & movies'], ['sanrio', 'サンリオ', 'Sanrio'], ['music', '音楽', 'Music']];
   const categoryOf = (k) => CATEGORIES.find((c) => c[0] === (Art.KINDS[k]?.category || 'dakku')) || CATEGORIES[0];
   function shelves() {
     const shown = SPECIES;
@@ -1911,6 +2060,25 @@
     return CATEGORIES.map(([id, jp, name]) => ({ jp, name, kinds: shown.filter((k) => categoryOf(k)[0] === id).sort(order) }))
       .filter((shelf) => shelf.kinds.length);
   }
+  // The gallery and the picker can also be sorted across all the shelves (each keeps its own choice, on this device);
+  // ducks that tie keep the shelves' order. With no shop, every duck is yours and free, so those two sorts aren't offered.
+  const DUCK_SORTS = [['shelf', 'By shelf'], ['recent', 'Recently used'], ['owned', 'Yours first'], ['price', 'By price'], ['most', 'Most hatched'], ['name', 'A to Z']];
+  const duckSorts = () => DUCK_SORTS.filter(([id]) => shopOn() || (id !== 'owned' && id !== 'price'));
+  let ducksMode = 'gallery';
+  const duckSort = () => { const s = store.get(K.ui, {}).duckSort?.[ducksMode]; return duckSorts().some(([id]) => id === s) ? s : 'shelf'; };
+  function duckGroups() {
+    const sort = duckSort();
+    if (sort === 'shelf') return shelves();
+    const all = shelves().flatMap((shelf) => shelf.kinds), rank = new Map(all.map((k, i) => [k, i]));
+    if (sort === 'owned') return [{ jp: '手持ち', name: 'Yours', kinds: all.filter(owns) }, { jp: 'まだ', name: 'Still to get', kinds: all.filter((k) => !owns(k)) }].filter((g) => g.kinds.length);
+    const d = derive();
+    // by price: grain first, then the ones that come with hours (fewest first), then the holiday ones
+    const cost = (k) => { const c = S.shop?.catalog?.[k] || {}; return c.price ?? (c.hours != null ? 1e6 + c.hours : 2e6 + (c.month || 0)); };
+    const key = { recent: (k) => -(d.lastUsed.get(k) || 0), price: cost, most: (k) => -(d.bySpecies.get(k) || 0) }[sort];
+    const kinds = sort === 'name' ? [...all].sort((a, b) => Art.KINDS[a].name.localeCompare(Art.KINDS[b].name))
+      : [...all].sort((a, b) => key(a) - key(b) || rank.get(a) - rank.get(b));
+    return [{ jp: '', name: '', kinds }];
+  }
   // in the shop: what a duck you don't have takes, on its tile
   const monthName = (m, style = 'long') => new Date(2000, m - 1, 1).toLocaleString(undefined, { month: style });
   const priceTag = (k) => {
@@ -1918,28 +2086,39 @@
     return !c ? '' : c.hours != null ? `🔒 ${c.hours} h` : c.month && !c.inSeason ? `${monthName(c.month, 'short')} only` : grain(c.price);
   };
 
-  // mode 'pick': tapping a duck chooses it for the next egg (one you don't have yet opens its page, to buy
-  // it). 'gallery': tapping one shows it big.
-  function openDucks(mode, sp) {
+  // mode 'pick': tapping a duck opens its page, to read about it and hatch it next (or buy it); the Surprise tile
+  // chooses at once. 'gallery': tapping one shows it big. back = true: coming back from a duck's page, so the
+  // grid is where it was, with the duck you were looking at in view (not back at the top).
+  let gridScroll = 0, lastDuck = '';
+  function openDucks(mode, sp, back = false) {
+    ducksMode = mode;
     const d = derive(), random = S.settings.randomSpecies, pick = mode === 'pick';
     $('#ducks-title').textContent = pick ? 'Choose a duck' : 'Duck gallery';
     $('#ducks-note').textContent = pick ? '' : `${SPECIES.filter((k) => d.bySpecies.get(k)).length} of ${SPECIES.length} hatched`;
     const tile = (k) => {
       const info = Art.KINDS[k], n = d.bySpecies.get(k) || 0, have = owns(k);
       const line = !have ? `<span class="c lock">${priceTag(k)}</span>` : pick ? '' : `<span class="c">${n ? plural(n, 'duck') : 'not yet'}</span>`;
-      return `<button type="button" class="dtile${!pick && !n ? ' unhatched' : ''}${have ? '' : ' locked'}" data-${pick && have ? 'pick' : 'duck'}="${k}" aria-pressed="${pick && !random && k === S.pick.species}"${info.series ? ` title="${esc(info.series)}"` : ''}>${Art.duckSVG(k, { fit: true })}
+      return `<button type="button" class="dtile${!pick && !n ? ' unhatched' : ''}${have ? '' : ' locked'}" data-duck="${k}" aria-pressed="${pick && !random && k === S.pick.species}"${info.series ? ` title="${esc(info.series)}"` : ''}>${Art.duckSVG(k, { fit: true })}
           <span class="n">${esc(info.kanji)}</span><span class="e">${esc(info.name)}</span>${line}</button>`;
     };
     $('#duck-grid').innerHTML = shopBar() +
       (pick ? `<div class="shelf-grid"><button type="button" class="dtile" data-pick="random" aria-pressed="${random}">${SURPRISE_SVG}<span class="n">運</span><span class="e">Surprise</span><span class="c">a new one each time</span></button></div>` : '') +
-      shelves().map((shelf) => `<h3 class="duck-shelf"><span class="jp">${shelf.jp}</span> ${esc(shelf.name)} <small>${shelf.kinds.length}</small></h3>
+      `<label class="duck-sort">Sort <select id="duck-sort">${duckSorts().map(([id, label]) => `<option value="${id}"${id === duckSort() ? ' selected' : ''}>${label}</option>`).join('')}</select></label>` +
+      duckGroups().map((shelf) => `${shelf.name ? `<h3 class="duck-shelf"><span class="jp">${shelf.jp}</span> ${esc(shelf.name)} <small>${shelf.kinds.length}</small></h3>` : ''}
         <div class="shelf-grid">${shelf.kinds.map(tile).join('')}</div>`).join('');
     $('#duck-grid').hidden = false;
     $('#duck-detail').hidden = true;
-    const dlg = $('#ducks-dialog');
-    if (!dlg.open) dlg.showModal();
+    const dlg = $('#ducks-dialog'), body = $('#ducks-dialog .sheet-body');
+    if (!dlg.open) { gridScroll = 0; lastDuck = ''; dlg.showModal(); }
     if (sp) showDuck(sp);
-    else $('#ducks-dialog .sheet-body').scrollTop = 0;
+    else if (back) {
+      body.scrollTop = gridScroll;
+      const tile = lastDuck && $(`#duck-grid [data-duck="${lastDuck}"]`);
+      if (tile) {
+        const t = tile.getBoundingClientRect(), b = body.getBoundingClientRect();
+        if (t.top < b.top || t.bottom > b.bottom) tile.scrollIntoView({ block: 'center' });
+      }
+    } else body.scrollTop = 0;
     // the full pictures come in while you look at the grid, so an enlarged duck is sharp at once
     // (each is small, and kept for good once fetched): the ones you've hatched first
     if (!pick) warmDucks([...SPECIES].sort((a, b) => (d.bySpecies.get(b) ? 1 : 0) - (d.bySpecies.get(a) ? 1 : 0)));
@@ -1949,7 +2128,7 @@
     if (!shopOn()) return '';
     const s = S.shop;
     return `<div class="shop-bar">
-        <div class="shop-grain"><b>${grain(s.balance)}</b><span class="muted small">grain to spend · ${fmtHM(Math.round(s.hours * 60))} studied</span></div>
+        <div class="shop-grain"><b>${grain(s.balance)}</b><span class="muted small">grain to spend · ${fmtHM(Math.round(s.hours * 60))} of focus</span></div>
         <div class="shop-acts">
           <button class="btn small" type="button" data-mystery${s.mystery.left && s.balance >= s.mystery.price ? '' : ' disabled'}>🥚 Mystery egg <small>${grain(s.mystery.price)}</small></button>
           ${S.me?.role === 'owner' ? '' : `<button class="btn small" type="button" data-custom>✎ Ask for a duck <small>${grain(s.custom.price)}</small></button>`}
@@ -1967,14 +2146,18 @@
     next();
   }
 
-  // one duck, big, with what it's about; ‹ › go through them all
+  // one duck, big, with what it's about; ‹ › go through them all, in the order the grid shows them
   function showDuck(sp, fresh = '') {
-    const info = Art.KINDS[sp], n = derive().bySpecies.get(sp) || 0, i = SPECIES.indexOf(sp);
-    const before = SPECIES[(i - 1 + SPECIES.length) % SPECIES.length], after = SPECIES[(i + 1) % SPECIES.length];
+    const body = $('#ducks-dialog .sheet-body'), fromGrid = !$('#duck-grid').hidden, was = body.scrollTop;
+    leaveGrid();
+    lastDuck = sp;
+    const all = duckGroups().flatMap((shelf) => shelf.kinds);
+    const info = Art.KINDS[sp], n = derive().bySpecies.get(sp) || 0, i = all.indexOf(sp);
+    const before = all[(i - 1 + all.length) % all.length], after = all[(i + 1) % all.length];
     Art.sharpen([before, after]); // the next ones ‹ › show are sharp at once
     $('#duck-detail').innerHTML = `
       <button class="link" type="button" data-back>← All ducks</button>
-      <div class="duck-big">${Art.duckSVG(sp, { big: true })}</div>
+      <div class="duck-big${sp === 'kin' ? ' gold-rays' : ''}">${Art.duckSVG(sp, { big: true })}</div>
       ${fresh ? `<p class="duck-new">${fresh}</p>` : ''}
       <h3 class="duck-name"><span class="jp">${esc(info.kanji)}</span> ${esc(info.name)}</h3>
       <p class="duck-series muted small">${info.series ? `${esc(info.series)} · ` : ''}${esc(categoryOf(sp)[2])}</p>
@@ -1988,14 +2171,18 @@
       </div>`;
     $('#duck-grid').hidden = true;
     $('#duck-detail').hidden = false;
-    $('#ducks-dialog .sheet-body').scrollTop = 0;
+    body.scrollTop = fromGrid ? 0 : was; // ‹ › keep the page where it is, so the buttons stay under your thumb
   }
 
+  // on the way from the grid to a duck's page (or the shop's pages): remember where the grid was
+  function leaveGrid() {
+    if (!$('#duck-grid').hidden) gridScroll = $('#ducks-dialog .sheet-body').scrollTop;
+  }
   function howToGet(sp) {
     const c = S.shop.catalog[sp];
     if (c.hours != null) {
       const pct = Math.min(100, Math.round((S.shop.hours / c.hours) * 100));
-      return `<p class="shop-note">Comes with ${c.hours} hours of focus: you're at ${fmtHM(Math.round(S.shop.hours * 60))}.</p><div class="shop-progress"><i style="width:${pct}%"></i></div>`;
+      return `<p class="shop-note">${sp === 'kin' ? 'The rarest duck of all. ' : ''}Comes with ${c.hours} hours of focus: you're at ${fmtHM(Math.round(S.shop.hours * 60))}.</p><div class="shop-progress"><i style="width:${pct}%"></i></div>`;
     }
     if (c.month) return `<p class="shop-note">A holiday duck: free for everyone in ${monthName(c.month)}, and only then.</p>`;
     const short = c.price - S.shop.balance;
@@ -2045,6 +2232,7 @@
         ${s.balance >= s.custom.price ? '' : `<p class="shop-note">${grain(s.custom.price - s.balance)} more to go.</p>`}
       </form>
       ${s.requests.length ? `<ul class="custom-list">${s.requests.slice().reverse().map((r) => `<li><span>${esc(r.text)}</span><small>${status(r)}</small></li>`).join('')}</ul>` : ''}`;
+    leaveGrid();
     $('#duck-grid').hidden = true;
     $('#duck-detail').hidden = false;
   }
@@ -2066,13 +2254,16 @@
       <p class="duck-blurb">Every duck you hatch with the timer earns grain, and a minute is worth more the longer you keep going:</p>
       <ul class="earn-list">${rates}</ul>
       <p class="shop-note">So 25 minutes earns ${at(25)}, an hour ${at(60)} and two hours ${at(120)} (a session counts up to ${s.cap / 60} hours).
-        Studying together earns a tenth more, and each day you reach your goal adds ${grain(s.goalBonus)}.
+        Focusing together earns a tenth more, and each day you reach your goal adds ${grain(s.goalBonus)}.
         A cold egg, or time logged by hand, doesn't earn any.</p>
-      <p class="shop-note">The plain ducks come with hours of focus; every other duck is ${grain(s.price)} in the shop. The holiday ducks are free
-        for everyone in their holiday's month, and only then. A mystery egg is a duck you don't have yet for ${grain(s.mystery.price)}.</p>
+      <p class="shop-note">Dakku's own ducks come with hours of focus, grander the longer you go, and a few are in the shop for
+        ${grain(s.prices?.original ?? s.price)}. A character duck is ${grain(s.prices?.simple ?? s.price)} for a hood or a hat, ${grain(s.prices?.standard ?? s.price)}
+        for a whole outfit, and ${grain(s.prices?.detailed ?? s.price)} for a detailed one with a sword or the like. The holiday ducks are free
+        for everyone in their holiday's month, and only then. A mystery egg is a character you don't have yet for ${grain(s.mystery.price)}.</p>
       <p class="shop-note">Grain buys themes, ponds and things for your pond too (in Settings): a theme or a pond is ${grain(s.items['theme:sumi'].price)},
         and each decoration ${grain(s.items['decor:koi'].price)}. The seasonal pond is free and follows the seasons; a season's own pond is free while it lasts,
         and bought to keep it all year. A holiday's theme and pond are free while it's on.</p>`;
+    leaveGrid();
     $('#duck-grid').hidden = true;
     $('#duck-detail').hidden = false;
   }
@@ -2137,10 +2328,10 @@
     ['深海', '深海', 'Deep dive', 'One session of 3 hours or more', (x) => x.longest >= 180],
     ['賑', '賑やか', 'Busy pond', '5 ducks in one day', (x) => x.busyDay >= 5, (x) => [x.busyDay, 5]],
     ['週末', '週末戦士', 'Weekend warrior', 'Focus on both days of a weekend', (x) => x.weekend],
-    ['多才', '多才', 'Many talents', 'Study 5 different tags', (x) => x.tagsUsed >= 5, (x) => [x.tagsUsed, 5]],
+    ['多才', '多才', 'Many talents', 'Focus on 5 different tags', (x) => x.tagsUsed >= 5, (x) => [x.tagsUsed, 5]],
     ['茄', 'ポモドーロ', 'Pomodoro', 'Finish a 4-round pomodoro', (x) => x.bestRounds >= 4],
     ['畑', 'トマト畑', 'Tomato field', '50 pomodoro rounds', (x) => x.rounds >= 50, (x) => [x.rounds, 50]],
-    ['仲間', '仲間', 'Study buddy', 'Study with a friend', (x) => x.together >= 1],
+    ['仲間', '仲間', 'Focus buddy', 'Focus with a friend', (x) => x.together >= 1],
     ['絆', '絆', 'Bond', '10 sessions with friends', (x) => x.together >= 10, (x) => [x.together, 10]],
     ['共', '一緒に', 'Better together', '50 sessions with friends', (x) => x.together >= 50, (x) => [x.together, 50]],
     ['暗記', '暗記', 'Memorizer', 'Review Anki 7 days in a row', (x) => x.ankiBest >= 7, (x) => [x.ankiBest, 7], 'anki'],
@@ -2227,7 +2418,7 @@
       const total = d.byDay.get(k) || 0;
       return `<div class="day"><div class="day-head"><span class="d"><span class="jp">${WD_KANJI[weekday(k)]}</span>${esc(fmtDate(k, { weekday: 'short', month: 'short', day: 'numeric', year: k.slice(0, 4) !== d.today.slice(0, 4) ? 'numeric' : undefined }))}</span>
         <span class="t">${total >= d.goal ? '<span class="met">達成</span>' : ''}${fmtMin(total)}</span></div>${items.map(sessionRow).join('')}</div>`;
-    }).join('') : `<p class="empty">${S.logTag ? 'No sessions with this tag yet.' : 'Nothing logged yet. Hatch a duck, or log time you studied without the timer.'}</p>`;
+    }).join('') : `<p class="empty">${S.logTag ? 'No sessions with this tag yet.' : 'Nothing logged yet. Hatch a duck, or log time you focused without the timer.'}</p>`;
     $('#log-more').hidden = keys.length <= S.logDays;
   }
 
@@ -2393,7 +2584,7 @@
   async function renderPeopleAdmin(refresh = false) {
     const door = S.server?.addresses?.friends;
     $('#set-friends-door').innerHTML = door
-      ? `<div class="row"><span class="row-label">The friends' door is open<small>Friends join and study from anywhere, without Tailscale, at <b>${esc(door)}</b></small></span></div>`
+      ? `<div class="row"><span class="row-label">The friends' door is open<small>Friends join and focus from anywhere, without Tailscale, at <b>${esc(door)}</b></small></span></div>`
       : `<div class="row"><span class="row-label">The friends' door is closed<small>So friends can join without Tailscale, run <b>scripts/enable-friends.sh</b> (in Dakku's folder) on your PC once.</small></span></div>`;
     if (refresh || !S.admin) {
       try { S.admin = await api('GET', '/api/people'); } catch { if (!S.admin) { $('#set-people').innerHTML = '<p class="empty">Unavailable offline.</p>'; return; } }
@@ -2413,9 +2604,9 @@
     const others = people.filter((p) => p.id !== 'me');
     const peopleRows = others.map((p) => `
       <div class="device">
-        <span class="nm">${badgeHTML(p)} ${esc(p.name)}${p.studying ? '<em>studying now</em>' : ''}</span>
-        <span class="meta">${plural(p.devices.length, 'device')}${p.lastSeen ? ` · seen ${esc(ago(p.lastSeen))}` : ''} · ${fmtMin(p.week)} this week · ${fmtHours(p.minutes)} h in all</span>
-        <span class="acts"><button type="button" class="link" data-person-link="${esc(p.id)}">Sign-in link</button><button type="button" class="link danger" data-person-remove="${esc(p.id)}">Remove</button></span>
+        <span class="nm"><button class="name-link" type="button" data-pond="${esc(p.id)}">${badgeHTML(p)} ${esc(p.name)}</button></span>
+        <span class="meta">${p.studying ? '<em>focusing now</em> · ' : ''}${plural(p.devices.length, 'device')}${versionNote(p.devices, S.admin.build)}${p.lastSeen ? ` · seen ${esc(ago(p.lastSeen))}` : ''} · ${fmtMin(p.week)} this week · ${fmtHours(p.minutes)} h in all</span>
+        <span class="acts"><button type="button" class="link" data-pond="${esc(p.id)}">Pond</button><button type="button" class="link" data-person-link="${esc(p.id)}">Sign-in link</button><button type="button" class="link danger" data-person-remove="${esc(p.id)}">Remove</button></span>
       </div>`).join('');
     const inviteRows = invites.map((i) => `
       <div class="device"><span class="nm">${i.person ? `Sign-in link for ${esc(byId[i.person]?.name || 'someone')}` : `Invite to ${esc(groups.find((g) => g.id === i.grp)?.name || 'a group')}`}</span>
@@ -2428,16 +2619,23 @@
       ${invites.length ? `<h3 class="admin-sub">Invites waiting</h3>${inviteRows}` : ''}`;
   }
 
+  // whether someone's devices run the newest Dakku (each one says which build it runs, see APP_BUILD)
+  function versionNote(devices, build) {
+    if (!build || !devices.length) return '';
+    const behind = devices.filter((d) => d.build !== build).length;
+    return !behind ? ' · up to date'
+      : ` · <span class="behind" title="It updates the next time Dakku is opened on it">${devices.length > 1 ? `${behind} not updated yet` : 'not updated yet'}</span>`;
+  }
   async function renderDevices(refresh = false) {
     const host = $('#set-devices');
     if (refresh || !S.devices) {
-      try { S.devices = (await api('GET', '/api/devices')).devices; } catch { if (!S.devices) { host.innerHTML = '<p class="empty">Device list unavailable offline.</p>'; return; } }
+      try { const res = await api('GET', '/api/devices'); S.devices = res.devices; S.devicesBuild = res.build; } catch { if (!S.devices) { host.innerHTML = '<p class="empty">Device list unavailable offline.</p>'; return; } }
     }
     const current = S.me?.device?.id;
     host.innerHTML = (S.me?.trusted ? `<div class="device"><span class="nm">This PC<em>here</em></span><span class="meta">Runs Dakku · always signed in</span></div>` : '') +
       (S.devices.length ? S.devices.map((d) => `
         <div class="device"><span class="nm">${esc(d.name)}${d.id === current ? '<em>this device</em>' : ''}</span>
-          <span class="meta">Last seen ${esc(ago(d.last_seen))}${d.last_ip ? ` · ${esc(d.last_ip)}` : ''}</span>
+          <span class="meta">Last seen ${esc(ago(d.last_seen))}${versionNote([d], S.devicesBuild)}${d.last_ip ? ` · ${esc(d.last_ip)}` : ''}</span>
           <span class="acts"><button type="button" class="link" data-dev-rename="${esc(d.id)}">Rename</button><button type="button" class="link" data-dev-remove="${esc(d.id)}">Sign out</button></span></div>`).join('')
         : '<p class="empty">No other devices yet.</p>');
   }
@@ -2518,9 +2716,14 @@
   }
 
   let pairTimer = 0;
-  async function openPair() {
+  // (here: this very phone, from Safari to its Home Screen, which needs no Tailscale, address or QR code)
+  async function openPair({ here = false } = {}) {
     const friend = S.me?.role === 'friend';
-    $('#pair-dialog .steps li:first-child').hidden = friend; // friends don't need Tailscale
+    $('#pair-title').textContent = here ? 'Put Dakku on your Home Screen' : 'Add a device';
+    $('#pair-dialog [data-step="tailscale"]').hidden = friend || here; // friends don't need Tailscale
+    $('#pair-dialog [data-step="open"]').hidden = here;
+    $('#pair-qr').hidden = here;
+    $('#pair-note').hidden = !here;
     if (!S.me?.trusted && !friend) {
       await confirmBox('Add a device', 'Pairing codes come from the PC that runs Dakku. Open Dakku there (http://localhost:8640) → Settings → Add a device. Or sign in on the new device with your five-word passcode.', 'OK', true);
       return;
@@ -2587,11 +2790,12 @@
     } catch (err) { toast(err.message); }
   }
 
-  function confirmBox(title, text, yes = 'OK', alertOnly = false) {
+  function confirmBox(title, text, yes = 'OK', alertOnly = false, no = 'Cancel') {
     const dlg = $('#confirm-dialog');
     $('#confirm-title').textContent = title;
     $('#confirm-text').textContent = text;
     $('#confirm-yes').textContent = yes;
+    $('#confirm-no').textContent = no;
     $('#confirm-no').hidden = alertOnly;
     dlg.returnValue = '';
     dlg.showModal();
@@ -2626,12 +2830,13 @@
     if (lastDone && lastDone.id === s.id && !$('#done').hidden) { lastDone = s; return; }
     lastDone = s;
     const d = derive();
-    const info = Art.KINDS[Art.kindOf(s.species)];
+    const info = Art.KINDS[Art.kindOf(s.species)], gold = Art.kindOf(s.species) === 'kin';
     const card = $('#done .done-card');
     card.classList.remove('withered');
+    goldCard(gold);
     $('#done-tree').innerHTML = Art.duckSVG(s.species, { big: true });
-    $('#done-kanji').textContent = '誕生';
-    $('#done-title').textContent = `${info.kanji} ${info.name} hatched!`;
+    $('#done-kanji').textContent = gold ? '金' : '誕生';
+    $('#done-title').textContent = gold ? 'The Golden duck hatched!' : `${info.kanji} ${info.name} hatched!`;
     const cheered = [...new Set(cheeredBy.get(s.id) || [])];
     $('#done-sub').textContent = `${fmtMin(s.minutes)}${s.tag ? ` of ${s.tag}` : ''}${s.rounds ? ` · 🍅 ×${s.rounds}` : ''}${cheered.length ? ` · cheered on by ${cheered.join(', ')}` : ''}`;
     // the PC may not have confirmed this duck yet: count it in already
@@ -2648,9 +2853,42 @@
     $('#done-share').hidden = false;
     $('#done-again').textContent = 'Hatch another';
     noteBox(s);
-    feathers(info.color);
+    feathers(info.color, gold);
     $('#done').hidden = false;
     render();
+  }
+  // 金: the card turns gold (rays, shimmering letters) for the Golden duck, and back for the next duck
+  function goldCard(on) {
+    $('#done .done-card').classList.toggle('golden', on);
+    $('#done .done-card').classList.toggle('gold-rays', on);
+    delete $('#done-again').dataset.golden;
+  }
+  // The Golden duck is 500 hours away, and the moment the hours get there is marked once, on this device:
+  // the first look here only remembers whether it's there already (a new phone at 600 hours sees nothing).
+  function checkGolden() {
+    if (!shopOn() || !Array.isArray(S.shop?.owned)) return;
+    const had = store.get(K.golden, null), has = S.shop.owned.includes('kin');
+    if (had === null || has === had) { if (had !== has) store.set(K.golden, has); return; }
+    store.set(K.golden, has);
+    if (has) goldenReached();
+  }
+  function goldenReached() {
+    if (!$('#done').hidden) return; // not over a hatching: the pond shows it from now on anyway
+    const hours = S.shop.catalog?.kin?.hours || 500;
+    lastDone = null;
+    $('#done .done-card').classList.remove('withered');
+    goldCard(true);
+    $('#done-tree').innerHTML = Art.duckSVG('kin', { big: true });
+    $('#done-kanji').textContent = '金';
+    $('#done-title').textContent = 'The Golden duck is yours';
+    $('#done-sub').textContent = `${hours} hours of focus. The rarest duck on the pond, and it's in yours now.`;
+    $('#done-stats').innerHTML = '';
+    $('#done-note').hidden = true;
+    $('#done-share').hidden = true;
+    $('#done-again').textContent = 'Hatch with it';
+    $('#done-again').dataset.golden = '1';
+    feathers('#E2B33C', true);
+    $('#done').hidden = false;
   }
   // a note on the duck that just hatched (what it was for), kept with its session and shown in the log
   function noteBox(s) {
@@ -2668,6 +2906,7 @@
     $('#done-kanji').textContent = '残念';
     $('#done-title').textContent = 'This egg went cold';
     $('#done-sub').textContent = `${fmtMin(s.minutes)}${s.tag ? ` of ${s.tag}` : ''}${s.note ? ` · ${s.note}` : ''}. It stays in your pond, but doesn't count.`;
+    goldCard(false);
     $('#done-stats').innerHTML = '';
     $('#done-note').hidden = true;
     $('#feathers').innerHTML = '';
@@ -2675,13 +2914,15 @@
     $('#done-again').textContent = 'Try again';
     $('#done').hidden = false;
   }
-  function feathers(color) {
+  function feathers(color, gold = false) {
     const host = $('#feathers');
     host.innerHTML = '';
     const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#57C7CF';
-    const colors = lightTheme() ? ['#FFB3D1', '#E9C6FF', color, accent] : ['#FFFFFF', '#FFFFFF', color, accent]; // white doesn't show on a light page
-    for (let i = 0; i < 24; i++) {
-      const p = document.createElement('i');
+    const colors = gold ? ['#F2C14E', '#FFE08A', '#D4A017', lightTheme() ? '#B8860B' : '#FFF8DC'] // 金: gold, and gold stars besides
+      : lightTheme() ? ['#FFB3D1', '#E9C6FF', color, accent] : ['#FFFFFF', '#FFFFFF', color, accent]; // white doesn't show on a light page
+    for (let i = 0; i < (gold ? 44 : 24); i++) {
+      const p = document.createElement(gold && i % 3 === 0 ? 'b' : 'i');
+      if (p.tagName === 'B') p.textContent = i % 2 ? '✦' : '✧';
       p.style.left = `${Math.random() * 100}%`;
       p.style.background = colors[i % colors.length];
       p.style.animationDuration = `${3 + Math.random() * 3}s`;
@@ -2818,7 +3059,7 @@
       ctx.textBaseline = 'alphabetic';
       ctx.fillStyle = c.ink2;
       ctx.font = `400 32px ${FONT_B}`;
-      ctx.fillText(S.settings.name ? `${S.settings.name}'s study pond` : 'My study pond', 72, 236);
+      ctx.fillText(S.settings.name ? `${S.settings.name}'s pond` : 'My pond', 72, 236);
       ctx.fillStyle = c.ink;
       ctx.font = `600 60px ${FONT_D}`;
       const rankText = `${rank[1]} ${rank[2]}`;
@@ -2865,7 +3106,7 @@
       ctx.fillStyle = c.ink2;
       ctx.font = `500 40px ${FONT_B}`;
       ctx.fillText('hours of focus', 66 + hw + 18, 448);
-      statCols(ctx, 72, 540, W - 144, [[y.ducks.toLocaleString(), y.ducks === 1 ? 'duck hatched' : 'ducks hatched'], [String(y.days), y.days === 1 ? 'day studied' : 'days studied'],
+      statCols(ctx, 72, 540, W - 144, [[y.ducks.toLocaleString(), y.ducks === 1 ? 'duck hatched' : 'ducks hatched'], [String(y.days), y.days === 1 ? 'day focused' : 'days focused'],
         [y.best >= 0 ? y.monthName(y.best, 'short') : '–', 'best month']], c);
       const scene = Art.pond(y.list.map((s) => ({ kind: s.species, cold: s.status === 'withered' })), { seed: 'year' + y.year, max: 300, minAspect: 0.42, maxAspect: 0.42, ...pondOpts(S.settings.pondTheme) });
       await fitPond(ctx, scene, 72, 620, W - 144, 360);
@@ -2928,7 +3169,7 @@
         { seed: data.group.id + S.groupRange, max: 500, maxAspect: 0.72, ...pondOpts(data.group.theme || S.settings.pondTheme) });
       await fitPond(ctx, scene, 72, 344, W - 144, 680, who);
       const done = list.filter((x) => x.status !== 'withered'), minutes = done.reduce((n, x) => n + x.minutes, 0);
-      statCols(ctx, 72, 1100, W - 144, [[minutes >= 60 ? `${fmtHours(minutes)}h` : `${minutes}m`, 'studied together'],
+      statCols(ctx, 72, 1100, W - 144, [[minutes >= 60 ? `${fmtHours(minutes)}h` : `${minutes}m`, 'focused together'],
         [String(new Set(list.map((x) => x.room || x.id)).size), 'sessions'], [done.length.toLocaleString(), done.length === 1 ? 'duck' : 'ducks']], c);
       cardFooter(ctx, W, H, c);
     } else {
@@ -3082,18 +3323,22 @@
     store.del(K.timer);
     if (joinCode()) { showJoin(); return; }
     showGate('gate');
-    const iOS = /iP(hone|ad|od)/.test(navigator.userAgent);
-    const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-    $('#gate-tip').hidden = !(iOS && !standalone);
+    $('#gate-tip').hidden = !(onIOS() && !standalone());
     paintGate();
     setTimeout(() => $('#login-code').focus(), 50);
   }
+  const onIOS = () => /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const standalone = () => matchMedia('(display-mode: standalone)').matches || !!navigator.standalone;
   // at the friends' door there's no passcode: say what to do instead
   async function paintGate() {
     let me = null;
     try { me = await api('GET', '/api/whoami'); } catch { /* unreachable: keep the usual words */ }
     const door = !!me?.public;
     $('#gate-friend').hidden = !door;
+    // on iPhone the Home Screen app and Safari share no sign-in: someone who joined in Safari needs a code from there
+    $('#gate-friend').innerHTML = onIOS() && standalone()
+      ? 'Joined already, in Safari? Open Dakku there, tap <b>設定 Settings → Add a device</b>, and type the 6-digit code here. New to Dakku? Open the invite link you were sent.'
+      : 'To get in, open the invite link you were sent, or type the 6-digit code from Dakku on your other device (Settings → <b>Add a device</b>).';
     $('#gate-help').hidden = door;
     $('#login-label').textContent = door ? 'Code from your other device' : 'Passcode or pairing code';
     $('#login-code').placeholder = door ? '6 digits' : 'five words, or 6 digits';
@@ -3125,25 +3370,41 @@
       const peek = await api('POST', '/api/invite', { code });
       $('#join-title').textContent = peek.forPerson ? `Welcome back, ${peek.forPerson}` : peek.from ? `${peek.from} invited you` : "You're invited";
       $('#join-lede').textContent = peek.forPerson ? 'This link signs this device in to your Dakku pond.'
-        : `Study together${peek.group ? ` in ${peek.group}` : ''}${peek.people.length > 1 ? ` with ${peek.people.join(', ')}` : ''}. Every focus session hatches a little duck, and you can join each other's sessions as they run.`;
+        : `Focus together${peek.group ? ` in ${peek.group}` : ''}${peek.people.length > 1 ? ` with ${peek.people.join(', ')}` : ''}. Every focus session hatches a little duck, and you can join each other's sessions as they run.`;
       $('#join-form').querySelectorAll('label, input, .join-look, p.muted').forEach((el) => { el.hidden = !!peek.forPerson; });
       $('#join-btn').textContent = peek.forPerson ? 'Sign in' : 'Join';
       $('#join-name').required = !peek.forPerson;
+      $('#join-alt').hidden = !!peek.forPerson;
     } catch (err) {
       $('#join-title').textContent = 'This invite has run out';
       $('#join-lede').textContent = err instanceof Offline ? "Dakku can't be reached right now. Try again in a moment." : err.message;
       $('#join-form').hidden = true;
       if (!(err instanceof Offline)) store.del(K.join);
     }
+    $('#join-have').onclick = () => { forgetJoin(); signedOut(); }; // joined already: sign in with a code instead
     $('#join-form').onsubmit = async (e) => {
       e.preventDefault();
       $('#join-btn').disabled = true;
       $('#join-msg').textContent = '';
+      const name = $('#join-name').value.trim(), body = { code, name, color, mark: name[0]?.toUpperCase() || '' };
       try {
-        await api('POST', '/api/join', { code, name: $('#join-name').value.trim(), color, mark: $('#join-name').value.trim()[0]?.toUpperCase() || '' });
+        try {
+          await api('POST', '/api/join', body);
+        } catch (err) {
+          if (err.status !== 409 || !err.data?.twin) throw err;
+          // someone joined with this invite from here a few minutes ago: most likely this person, in Safari
+          const twin = err.data.twin;
+          if (await confirmBox(`Are you ${twin}?`, `${twin} joined with this invite from here a few minutes ago. If that was you, there's no need to join again: open Dakku where you joined, tap 設定 Settings → Add a device, and type the code it shows on the next screen.`, "That's me", false, "I'm someone else")) {
+            forgetJoin();
+            signedOut();
+            return;
+          }
+          await api('POST', '/api/join', { ...body, again: true });
+        }
         forgetJoin();
         await start();
         location.hash = '#together';
+        if (onIOS() && !standalone()) openPair({ here: true }); // so the Home Screen app signs in as them too, not as someone new
       } catch (err) {
         $('#join-msg').textContent = err instanceof Offline ? "Dakku can't be reached right now." : err.message;
       } finally {
@@ -3305,7 +3566,13 @@
       if (e.target.closest('[data-mystery]')) { mysteryEgg(); return; }
       if (e.target.closest('[data-custom]')) { showCustom(); return; }
       if (e.target.closest('[data-earn]')) { showEarn(); return; }
-      if (e.target.closest('[data-back]')) { openDucks($('#ducks-title').textContent === 'Choose a duck' ? 'pick' : 'gallery'); }
+      if (e.target.closest('[data-back]')) { openDucks(ducksMode, null, true); }
+    });
+    $('#ducks-dialog').addEventListener('change', (e) => {
+      if (e.target.id !== 'duck-sort') return;
+      const ui = store.get(K.ui, {});
+      store.set(K.ui, { ...ui, duckSort: { ...ui.duckSort, [ducksMode]: e.target.value } });
+      openDucks(ducksMode);
     });
     $('#ducks-dialog').addEventListener('submit', (e) => {
       if (e.target.id !== 'custom-form') return;
@@ -3316,6 +3583,10 @@
     $('#open-sessions').addEventListener('change', (e) => { saveSettings({ openSessions: e.target.checked }, { quiet: true }); });
     document.addEventListener('click', (e) => { const j = e.target.closest('[data-join]'); if (j && !j.disabled) openJoin(j.dataset.join); });
     document.addEventListener('click', (e) => { const c = e.target.closest('[data-cheer]'); if (c) openCheer(c.dataset.cheer); });
+    document.addEventListener('click', (e) => { const p = e.target.closest('[data-pond]'); if (p) openPond(p.dataset.pond); });
+    $('#pond-close').addEventListener('click', () => $('#pond-dialog').close());
+    $('#pond-range').addEventListener('click', (e) => { const b = e.target.closest('[data-prange]'); if (!b || !S.pond || S.pond.loading) return; S.pondRange = b.dataset.prange; paintPond(); });
+    $('#pond-dialog').addEventListener('click', (e) => { if (e.target.closest('#pond-stage')) pondHit(e); else $('#pond-pop').hidden = true; });
     $('#cheer-picks').addEventListener('click', (e) => { const b = e.target.closest('[data-cheer-text]'); if (b) sendCheer(b.dataset.cheerText); });
     $('#cheer-form').addEventListener('submit', (e) => { e.preventDefault(); sendCheer($('#cheer-text').value); });
     $('#cheer-cancel').addEventListener('click', () => $('#cheer-dialog').close());
@@ -3325,7 +3596,7 @@
       if (!t) return;
       const m = Math.round(elapsedOf(t) / MIN);
       if (t.mode === 'room') {
-        if (await confirmBox('Leave now?', m >= 1 ? `Your duck hatches now, for the ${fmtMin(m)} you studied. ${nameOf(t.host)} keeps going.` : 'It has been under a minute, so nothing will be logged.', 'Leave')) timerAction('finish');
+        if (await confirmBox('Leave now?', m >= 1 ? `Your duck hatches now, for the ${fmtMin(m)} you focused. ${nameOf(t.host)} keeps going.` : 'It has been under a minute, so nothing will be logged.', 'Leave')) timerAction('finish');
         return;
       }
       if (t.mode === 'timer' && elapsedOf(t) < t.planned - 30_000) {
@@ -3340,7 +3611,7 @@
     $('#giveup-btn').addEventListener('click', async () => {
       if (!S.timer) return;
       if (S.timer.mode === 'room') {
-        if (await confirmBox('Give up this egg?', `It goes cold, and ${nameOf(S.timer.host)} keeps going. To keep a duck for the time you studied, tap Leave instead.`, 'Give up')) timerAction('cancel');
+        if (await confirmBox('Give up this egg?', `It goes cold, and ${nameOf(S.timer.host)} keeps going. To keep a duck for the time you focused, tap Leave instead.`, 'Give up')) timerAction('cancel');
         return;
       }
       if (await confirmBox('Give up this egg?', 'It goes cold. Cold eggs stay in your pond but don\'t count toward your goal.', 'Give up')) timerAction('cancel');
@@ -3365,7 +3636,10 @@
     });
     $('#done-close').addEventListener('click', () => { $('#done').hidden = true; });
     $('#done').addEventListener('click', (e) => { if (e.target.id === 'done') $('#done').hidden = true; });
-    $('#done-again').addEventListener('click', () => { $('#done').hidden = true; location.hash = '#hatch'; route(); });
+    $('#done-again').addEventListener('click', () => {
+      if ($('#done-again').dataset.golden) { delete $('#done-again').dataset.golden; chooseDuck('kin'); } // 金: from its moment straight to hatching with it
+      $('#done').hidden = true; location.hash = '#hatch'; route();
+    });
     $('#done-share').addEventListener('click', () => { if (lastDone) share('session', { session: lastDone }); });
 
     // pond
@@ -3610,6 +3884,7 @@
       } else {
         S.swReg?.update().catch(() => {}); // pick up a new version of Dakku
         connectLive();
+        refreshTogether(0); // who's studying now: it changed while you were away
         await pull();
         await flush();
         checkAway();
@@ -3618,7 +3893,12 @@
       }
     });
     window.addEventListener('pagehide', () => { noteAway(); saveCache(); });
-    window.addEventListener('online', () => { flush(); connectLive(); });
+    // back from the browser's memory (it keeps a page as it was), or on a network again: a new connection
+    window.addEventListener('pageshow', (e) => { if (e.persisted) { disconnectLive(); connectLive(); catchUp(); } });
+    window.addEventListener('online', () => { flush(); disconnectLive(); connectLive(); });
+    $('#update-restart').addEventListener('click', () => location.reload());
+    $('#update-later').addEventListener('click', () => { $('#update-bar').hidden = true; });
+    for (const type of ['pointerdown', 'keydown']) addEventListener(type, () => { S.touched = true; }, { once: true, capture: true });
     matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { applyTheme(); render(); });
     let resizeTimer = 0;
     window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { if (S.view === 'stats') renderStats(); }, 200); });
@@ -3726,13 +4006,50 @@
     const secure = location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname);
     if (!secure) return;
     const hadController = !!navigator.serviceWorker.controller;
-    navigator.serviceWorker.register('/sw.js').then((reg) => { S.swReg = reg; reg.update().catch(() => {}); }).catch(() => {});
-    let reloaded = false;
+    let resume = 0;
+    navigator.serviceWorker.register('/sw.js').then((reg) => {
+      S.swReg = reg;
+      // A new version waits while anything of the old one's is still going, and the live updates always
+      // are: so they stop for a moment, it takes over, and they start again (see controllerchange).
+      const letIn = () => {
+        if (!reg.waiting || !es) return;
+        disconnectLive();
+        resume = setTimeout(connectLive, 10_000); // (if it doesn't take over after all)
+      };
+      reg.addEventListener('updatefound', () => {
+        const next = reg.installing;
+        next?.addEventListener('statechange', () => { if (next.state === 'installed') letIn(); });
+      });
+      letIn();
+      reg.update().catch(() => {});
+    }).catch(() => {});
+    // a new version is in: its worker takes over at once, and tells the pages (one that opened just as it
+    // took over may have the old files, and no takeover of its own to see)
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!hadController || reloaded || S.dragging) return;
-      reloaded = true;
-      location.reload(); // a new version of Dakku arrived
+      clearTimeout(resume);
+      connectLive();
+      if (hadController) offerUpdate();
     });
+    navigator.serviceWorker.addEventListener('message', (e) => { if (e.data?.type === 'updated' && hadController) offerUpdate(); });
+  }
+  // the PC says which build of the app it has: one that changed while this page was open is a new version
+  function checkBuild(build) {
+    if (!build) return;
+    if (!S.build) { S.build = build; return; }
+    if (build === S.build) return;
+    S.build = build;
+    // a page with a service worker gets the new version through it (its taking over offers the restart, and
+    // until then a reload would only bring back the old files); one without just reloads
+    if (navigator.serviceWorker?.controller) navigator.serviceWorker.getRegistration().then((reg) => reg?.update()).catch(() => {});
+    else offerUpdate();
+  }
+  // a new version of Dakku: just after opening it simply reloads, and so it does while you're away from
+  // it; otherwise it asks, so nothing reloads under you
+  function offerUpdate() {
+    if (S.updated) return;
+    S.updated = true;
+    if (!S.dragging && (document.hidden || (performance.now() < 8000 && !S.touched))) { location.reload(); return; }
+    $('#update-bar').hidden = false;
   }
 
   function loadFonts() {
@@ -3768,12 +4085,19 @@
     setInterval(() => {
       if (document.hidden) return;
       for (const el of $$('[data-ends]')) el.textContent = fmtClock(Math.max(0, +el.dataset.ends - serverNow()));
+      for (const el of $$('[data-room-clock]')) {
+        const room = (S.together?.rooms || []).find((r) => r.id === el.dataset.roomClock);
+        if (room) el.textContent = roomClock(room);
+      }
     }, 1000);
+    let lastCheck = Date.now();
     setInterval(() => {
       if (!S.settings || document.hidden) return;
       if (D && D.today !== todayKey()) render();
-      if (!S.live) pull();
+      if (!S.live) { pull(); refreshTogether(0); } // no live updates: look every half minute instead
+      else if (liveQuiet()) { disconnectLive(); connectLive(); }
       if (S.outbox.length) flush();
+      if (Date.now() - lastCheck > 30 * MIN) { lastCheck = Date.now(); S.swReg?.update().catch(() => {}); } // a page left open finds updates too
       paintSync();
     }, 30_000);
   }

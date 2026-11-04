@@ -386,5 +386,419 @@ window.DAKKU_DUCKS = {
   "blurb": "Just gonna get a little bit of study time, Stan.",
   "category": "screen",
   "series": "South Park"
+ },
+ "scholar": {
+  "kanji": "学",
+  "name": "Scholar",
+  "color": "#2E3A5C",
+  "blurb": "Graduated from the pond. Postgrad pending.",
+  "category": "dakku"
+ },
+ "knight": {
+  "kanji": "騎士",
+  "name": "Knight",
+  "color": "#9AA8B8",
+  "blurb": "Sworn to protect the to-do list.",
+  "category": "dakku"
+ },
+ "dragon": {
+  "kanji": "竜",
+  "name": "Dragon",
+  "color": "#3FA46A",
+  "blurb": "Hoards hours, not gold.",
+  "category": "dakku"
+ },
+ "tenshi": {
+  "kanji": "天使",
+  "name": "Angel",
+  "color": "#F6D77A",
+  "blurb": "Heaven is a finished to-do list.",
+  "category": "dakku"
+ },
+ "phoenix": {
+  "kanji": "鳳凰",
+  "name": "Phoenix",
+  "color": "#E8572B",
+  "blurb": "Rises from every all-nighter.",
+  "category": "dakku"
+ },
+ "kin": {
+  "kanji": "金",
+  "name": "Golden",
+  "color": "#E2B33C",
+  "blurb": "Worth its weight in hours.",
+  "category": "dakku"
+ },
+ "kappa": {
+  "kanji": "河童",
+  "name": "Kappa",
+  "color": "#5BAA5B",
+  "blurb": "Keeps the dish full. Never skips a session.",
+  "category": "dakku"
+ },
+ "tanuki": {
+  "kanji": "狸",
+  "name": "Tanuki",
+  "color": "#8A6A4F",
+  "blurb": "Shapeshifts into someone who studies.",
+  "category": "dakku"
+ },
+ "ramen": {
+  "kanji": "麺",
+  "name": "Ramen",
+  "color": "#E8B04A",
+  "blurb": "Slurps up every chapter.",
+  "category": "dakku"
+ },
+ "cowboy": {
+  "kanji": "牧",
+  "name": "Cowboy",
+  "color": "#A0673A",
+  "blurb": "Rounds up the reading list.",
+  "category": "dakku"
+ },
+ "hellokitty": {
+  "kanji": "白猫",
+  "name": "Hello Kitty",
+  "color": "#E8394A",
+  "blurb": "Says nothing. Studies everything.",
+  "category": "sanrio",
+  "series": "Sanrio"
+ },
+ "kuromi": {
+  "kanji": "黒",
+  "name": "Kuromi",
+  "color": "#3A2E3F",
+  "blurb": "Mischief managed. Homework too.",
+  "category": "sanrio",
+  "series": "Sanrio"
+ },
+ "cinnamoroll": {
+  "kanji": "巻",
+  "name": "Cinnamoroll",
+  "color": "#9FD3F2",
+  "blurb": "Flaps its ears and flies through the reading.",
+  "category": "sanrio",
+  "series": "Sanrio"
+ },
+ "pompompurin": {
+  "kanji": "黄",
+  "name": "Pompompurin",
+  "color": "#F2C94C",
+  "blurb": "Pudding first. Then the problem set.",
+  "category": "sanrio",
+  "series": "Sanrio"
+ },
+ "totoro": {
+  "kanji": "隣",
+  "name": "Totoro",
+  "color": "#7A8590",
+  "blurb": "Waits at the bus stop, reading till it comes.",
+  "category": "anime",
+  "series": "Studio Ghibli"
+ },
+ "tidus": {
+  "kanji": "波",
+  "name": "Tidus",
+  "color": "#E9B33C",
+  "blurb": "HA HA HA. Okay, back to studying.",
+  "category": "games",
+  "series": "Final Fantasy"
+ },
+ "squall": {
+  "kanji": "獅",
+  "name": "Squall",
+  "color": "#4A4A52",
+  "blurb": "Whatever. Fine, one more chapter.",
+  "category": "games",
+  "series": "Final Fantasy"
+ },
+ "noctis": {
+  "kanji": "夜",
+  "name": "Noctis",
+  "color": "#2A2F45",
+  "blurb": "Naps between chapters. Royal privilege.",
+  "category": "games",
+  "series": "Final Fantasy"
+ },
+ "zidane": {
+  "kanji": "尾",
+  "name": "Zidane",
+  "color": "#5B8FD1",
+  "blurb": "Lifts your flashcards. Returns them, mostly.",
+  "category": "games",
+  "series": "Final Fantasy"
+ },
+ "lightning": {
+  "kanji": "雷",
+  "name": "Lightning",
+  "color": "#E58FA3",
+  "blurb": "Strikes through the to-do list.",
+  "category": "games",
+  "series": "Final Fantasy"
+ },
+ "terra": {
+  "kanji": "幻",
+  "name": "Terra",
+  "color": "#6BBF6B",
+  "blurb": "Half esper. All focus.",
+  "category": "games",
+  "series": "Final Fantasy"
+ },
+ "majima": {
+  "kanji": "蛇",
+  "name": "Majima",
+  "color": "#E8B830",
+  "blurb": "Kiryu-chan! Study break's over.",
+  "category": "games",
+  "series": "Like a Dragon"
+ },
+ "gohan": {
+  "kanji": "飯",
+  "name": "Gohan",
+  "color": "#6B3FA0",
+  "blurb": "Chi-Chi said study. The universe can wait.",
+  "category": "anime",
+  "series": "Dragon Ball"
+ },
+ "estelle": {
+  "kanji": "旅",
+  "name": "Estelle",
+  "color": "#E8623A",
+  "blurb": "Today's quest: the chapter. Reward: the next chapter.",
+  "category": "games",
+  "series": "Trails"
+ },
+ "okabe": {
+  "kanji": "狂",
+  "name": "Okabe",
+  "color": "#B9B9B9",
+  "blurb": "El Psy Kongroo. The study plan is the Organization's.",
+  "category": "anime",
+  "series": "Steins;Gate"
+ },
+ "hachiman": {
+  "kanji": "八",
+  "name": "Hachiman",
+  "color": "#4A5A6A",
+  "blurb": "Youth is a lie. Studying alone is efficient.",
+  "category": "anime",
+  "series": "Oregairu"
+ },
+ "geralt": {
+  "kanji": "狼",
+  "name": "Geralt",
+  "color": "#9A9A9A",
+  "blurb": "Hmm. Two swords, one syllabus.",
+  "category": "games",
+  "series": "The Witcher"
+ },
+ "yui": {
+  "kanji": "唯",
+  "name": "Yui",
+  "color": "#B5744B",
+  "blurb": "Gui-tah! Also: what was the question?",
+  "category": "anime",
+  "series": "K-On!"
+ },
+ "mio": {
+  "kanji": "澪",
+  "name": "Mio",
+  "color": "#2E2E3E",
+  "blurb": "Would rather not be watched. Studies anyway.",
+  "category": "anime",
+  "series": "K-On!"
+ },
+ "ritsu": {
+  "kanji": "律",
+  "name": "Ritsu",
+  "color": "#C9A04A",
+  "blurb": "Keeps the beat. Forgets the club forms.",
+  "category": "anime",
+  "series": "K-On!"
+ },
+ "mugi": {
+  "kanji": "紬",
+  "name": "Mugi",
+  "color": "#F2D16B",
+  "blurb": "Tea and cake first. Then, reluctantly, the textbook.",
+  "category": "anime",
+  "series": "K-On!"
+ },
+ "azusa": {
+  "kanji": "梓",
+  "name": "Azusa",
+  "color": "#3B3B5A",
+  "blurb": "Azunyan! Already practicing while the others eat cake.",
+  "category": "anime",
+  "series": "K-On!"
+ },
+ "leon": {
+  "kanji": "警",
+  "name": "Leon",
+  "color": "#2F4A6B",
+  "blurb": "Raccoon City was easier than this chapter.",
+  "category": "games",
+  "series": "Resident Evil"
+ },
+ "moogle": {
+  "kanji": "玉",
+  "name": "Moogle",
+  "color": "#C8B9E8",
+  "blurb": "Kupo! The pom-pom knows the answer.",
+  "category": "games",
+  "series": "Final Fantasy"
+ },
+ "taiko": {
+  "kanji": "鼓",
+  "name": "Don-chan",
+  "color": "#E8422A",
+  "blurb": "Don! Ka! Every answer right on the beat.",
+  "category": "games",
+  "series": "Taiko no Tatsujin"
+ },
+ "gustave": {
+  "kanji": "工",
+  "name": "Gustave",
+  "color": "#3A4F7A",
+  "blurb": "One last expedition. Then the exam.",
+  "category": "games",
+  "series": "Clair Obscur: Expedition 33"
+ },
+ "lune": {
+  "kanji": "月",
+  "name": "Lune",
+  "color": "#6C5BB5",
+  "blurb": "Reads every page twice. In two languages.",
+  "category": "games",
+  "series": "Clair Obscur: Expedition 33"
+ },
+ "maelle": {
+  "kanji": "刺",
+  "name": "Maelle",
+  "color": "#D6B35A",
+  "blurb": "Fences through the flashcards. En garde, chapter three.",
+  "category": "games",
+  "series": "Clair Obscur: Expedition 33"
+ },
+ "sciel": {
+  "kanji": "札",
+  "name": "Sciel",
+  "color": "#4B8A6E",
+  "blurb": "Draws a card. It says: keep going.",
+  "category": "games",
+  "series": "Clair Obscur: Expedition 33"
+ },
+ "verso": {
+  "kanji": "裏",
+  "name": "Verso",
+  "color": "#8C8C8C",
+  "blurb": "Lost count of the expeditions. Not of the chapters.",
+  "category": "games",
+  "series": "Clair Obscur: Expedition 33"
+ },
+ "monoco": {
+  "kanji": "面",
+  "name": "Monoco",
+  "color": "#B8A078",
+  "blurb": "Borrows a monster's skill. And your notes.",
+  "category": "games",
+  "series": "Clair Obscur: Expedition 33"
+ },
+ "shadowheart": {
+  "kanji": "影",
+  "name": "Shadowheart",
+  "color": "#3B3F57",
+  "blurb": "Prays the quiz is short. Shar isn't listening.",
+  "category": "games",
+  "series": "Baldur's Gate 3"
+ },
+ "astarion": {
+  "kanji": "牙",
+  "name": "Astarion",
+  "color": "#A3A3B5",
+  "blurb": "Darling, the sun is out. Study inside.",
+  "category": "games",
+  "series": "Baldur's Gate 3"
+ },
+ "shinguji": {
+  "kanji": "桜",
+  "name": "Sakura",
+  "color": "#E07A9A",
+  "blurb": "Stage by night, cram school by day.",
+  "category": "games",
+  "series": "Sakura Wars"
+ },
+ "yorha": {
+  "kanji": "機",
+  "name": "2B",
+  "color": "#3C3C3C",
+  "blurb": "Emotions are prohibited. So is procrastinating.",
+  "category": "games",
+  "series": "NieR"
+ },
+ "harry": {
+  "kanji": "魔",
+  "name": "Harry",
+  "color": "#7A1F2B",
+  "blurb": "Mischief managed. Potions essay, not yet.",
+  "category": "screen",
+  "series": "Harry Potter"
+ },
+ "gandalf": {
+  "kanji": "灰",
+  "name": "Gandalf",
+  "color": "#8F8F8F",
+  "blurb": "You shall not pass. Without reviewing.",
+  "category": "screen",
+  "series": "The Lord of the Rings"
+ },
+ "spiderman": {
+  "kanji": "蜘",
+  "name": "Spider-Man",
+  "color": "#D62828",
+  "blurb": "Great power, great reading list.",
+  "category": "screen",
+  "series": "Marvel"
+ },
+ "natsu": {
+  "kanji": "火",
+  "name": "Natsu",
+  "color": "#E86A7A",
+  "blurb": "I'm all fired up! The reading list is kindling.",
+  "category": "anime",
+  "series": "Fairy Tail"
+ },
+ "tsuna": {
+  "kanji": "焔",
+  "name": "Tsuna",
+  "color": "#F28C28",
+  "blurb": "Hyper Dying Will mode. Deadline, extinguished.",
+  "category": "anime",
+  "series": "Reborn!"
+ },
+ "nagito": {
+  "kanji": "希",
+  "name": "Nagito",
+  "color": "#B9C4C8",
+  "blurb": "Lucky the quiz got cancelled. Unlucky what cancelled it.",
+  "category": "games",
+  "series": "Danganronpa"
+ },
+ "chiaki": {
+  "kanji": "遊",
+  "name": "Chiaki",
+  "color": "#E8A4B8",
+  "blurb": "One more level. Then, fine, one more page.",
+  "category": "games",
+  "series": "Danganronpa"
+ },
+ "crono": {
+  "kanji": "時",
+  "name": "Crono",
+  "color": "#D9302F",
+  "blurb": "Doesn't say a word. Turns in the essay anyway.",
+  "category": "games",
+  "series": "Chrono Trigger"
  }
 };

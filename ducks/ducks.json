@@ -15,13 +15,13 @@
    ]
   },
   "sailor": {
-   "src": "ducks/sailor.webp?v=a5d12574b2",
+   "src": "ducks/sailor.webp?v=1f07cfe416",
    "w": 336,
    "h": 393,
    "baseX": 160.4,
    "baseY": 392,
    "unit": 0.18731,
-   "small": "ducks/sailor.small.webp?v=4a903c851a",
+   "small": "ducks/sailor.small.webp?v=1cf5d95a9a",
    "name": "Sailor",
    "reach": [
     20.0,
@@ -29,13 +29,13 @@
    ]
   },
   "neko": {
-   "src": "ducks/neko.webp?v=ea0834c6aa",
+   "src": "ducks/neko.webp?v=66c12ccff6",
    "w": 344,
    "h": 401,
    "baseX": 166.2,
    "baseY": 400,
    "unit": 0.18289,
-   "small": "ducks/neko.small.webp?v=143ba9ae74",
+   "small": "ducks/neko.small.webp?v=c7fd49bad2",
    "name": "Neko",
    "reach": [
     19.8,
@@ -43,13 +43,13 @@
    ]
   },
   "super": {
-   "src": "ducks/super.webp?v=8656a2632e",
+   "src": "ducks/super.webp?v=0f45753d9b",
    "w": 346,
    "h": 502,
    "baseX": 165.8,
    "baseY": 500,
    "unit": 0.18902,
-   "small": "ducks/super.small.webp?v=7425bc9ae0",
+   "small": "ducks/super.small.webp?v=3aa133c49c",
    "name": "Goku",
    "reach": [
     18.7,
@@ -57,13 +57,13 @@
    ]
   },
   "ninja": {
-   "src": "ducks/ninja.webp?v=02ac2e5a60",
+   "src": "ducks/ninja.webp?v=632864e618",
    "w": 486,
    "h": 473,
    "baseX": 209.3,
    "baseY": 471,
    "unit": 0.14059,
-   "small": "ducks/ninja.small.webp?v=6c214ebb74",
+   "small": "ducks/ninja.small.webp?v=5e5f37aa72",
    "name": "Ninja",
    "reach": [
     20.6,
@@ -71,13 +71,13 @@
    ]
   },
   "kitsune": {
-   "src": "ducks/kitsune.webp?v=4bf5d9cfda",
+   "src": "ducks/kitsune.webp?v=b0571ec2a7",
    "w": 438,
    "h": 512,
    "baseX": 206.6,
    "baseY": 510.0,
    "unit": 0.14361,
-   "small": "ducks/kitsune.small.webp?v=ecf595495c",
+   "small": "ducks/kitsune.small.webp?v=08335cee86",
    "name": "Kitsune",
    "reach": [
     20.3,
@@ -85,13 +85,13 @@
    ]
   },
   "yukata": {
-   "src": "ducks/yukata.webp?v=db42096ed6",
+   "src": "ducks/yukata.webp?v=b3be0d1422",
    "w": 445,
    "h": 466,
    "baseX": 205.5,
    "baseY": 464,
    "unit": 0.14123,
-   "small": "ducks/yukata.small.webp?v=c635d03d42",
+   "small": "ducks/yukata.small.webp?v=7e3d97222d",
    "name": "Matsuri",
    "reach": [
     21.0,
@@ -99,13 +99,13 @@
    ]
   },
   "samurai": {
-   "src": "ducks/samurai.webp?v=536f647125",
+   "src": "ducks/samurai.webp?v=f514000bab",
    "w": 432,
    "h": 512,
    "baseX": 203.8,
    "baseY": 510.1,
    "unit": 0.14463,
-   "small": "ducks/samurai.small.webp?v=cbb1e349c1",
+   "small": "ducks/samurai.small.webp?v=cab2e8e579",
    "name": "Samurai",
    "reach": [
     20.5,
@@ -113,13 +113,13 @@
    ]
   },
   "king": {
-   "src": "ducks/king.webp?v=a34e163603",
+   "src": "ducks/king.webp?v=3bb81183d0",
    "w": 434,
    "h": 512,
    "baseX": 204.8,
    "baseY": 510.1,
    "unit": 0.14478,
-   "small": "ducks/king.small.webp?v=d3a0495c78",
+   "small": "ducks/king.small.webp?v=0e2ac06f3e",
    "name": "King",
    "reach": [
     20.3,
@@ -127,13 +127,13 @@
    ]
   },
   "astro": {
-   "src": "ducks/astro.webp?v=9bf3833582",
+   "src": "ducks/astro.webp?v=1e6126c5f0",
    "w": 462,
    "h": 512,
    "baseX": 215.7,
    "baseY": 511,
    "unit": 0.14059,
-   "small": "ducks/astro.small.webp?v=c6fc5c72be",
+   "small": "ducks/astro.small.webp?v=776caf7975",
    "name": "Astro",
    "reach": [
     19.7,
@@ -141,83 +141,83 @@
    ]
   },
   "shizuku": {
-   "src": "ducks/shizuku.webp?v=4d129a6ba3",
+   "src": "ducks/shizuku.webp?v=6a3613bd8d",
    "w": 404,
    "h": 436,
    "baseX": 189.7,
    "baseY": 435,
-   "unit": 0.17614,
-   "small": "ducks/shizuku.small.webp?v=9e2af69073",
+   "unit": 0.16187,
+   "small": "ducks/shizuku.small.webp?v=bb4d1c2172",
    "name": "Shizuku",
    "reach": [
-    16.6,
-    87.7
+    19.3,
+    84.7
    ]
   },
   "nurse": {
-   "src": "ducks/nurse.webp?v=eec997e4ff",
+   "src": "ducks/nurse.webp?v=2880c30df9",
    "w": 350,
    "h": 457,
    "baseX": 164.3,
    "baseY": 456,
-   "unit": 0.17816,
-   "small": "ducks/nurse.small.webp?v=ca9dde980d",
+   "unit": 0.16426,
+   "small": "ducks/nurse.small.webp?v=38248cf23e",
    "name": "Nurse",
    "reach": [
-    20.7,
-    83.1
+    23.0,
+    80.5
    ]
   },
   "senku": {
-   "src": "ducks/senku.webp?v=719ff122c0",
+   "src": "ducks/senku.webp?v=c0333579d5",
    "w": 348,
    "h": 512,
    "baseX": 169.2,
    "baseY": 511.0,
-   "unit": 0.18439,
-   "small": "ducks/senku.small.webp?v=ed0f13971a",
+   "unit": 0.17462,
+   "small": "ducks/senku.small.webp?v=c27fe1e500",
    "name": "Senku",
    "reach": [
-    18.8,
-    83.0
+    20.5,
+    81.2
    ]
   },
   "naruto": {
-   "src": "ducks/naruto.webp?v=7329fc0b7e",
+   "src": "ducks/naruto.webp?v=724fecfeca",
    "w": 374,
    "h": 462,
    "baseX": 183.6,
    "baseY": 461,
-   "unit": 0.17614,
-   "small": "ducks/naruto.small.webp?v=590c27f7fc",
+   "unit": 0.1624,
+   "small": "ducks/naruto.small.webp?v=b86b7ca176",
    "name": "Naruto",
    "reach": [
-    17.7,
-    83.5
+    20.2,
+    80.9
    ]
   },
   "loid": {
-   "src": "ducks/loid.webp?v=351fd913b3",
-   "w": 453,
+   "src": "ducks/loid.webp?v=1d5184b2d7",
+   "w": 435,
    "h": 512,
-   "baseX": 217.6,
-   "baseY": 510.7,
-   "unit": 0.13793,
-   "small": "ducks/loid.small.webp?v=8b19e0bb1c",
+   "baseX": 212.7,
+   "baseY": 510.8,
+   "unit": 0.14342,
+   "small": "ducks/loid.small.webp?v=e34e5e8b0e",
    "name": "Loid",
    "reach": [
-    20.0,
-    82.5
+    19.5,
+    81.9
    ]
   },
   "yor": {
-   "src": "ducks/yor.webp?v=d86d18c08b",
+   "src": "ducks/yor.webp?v=120c02f4fe",
    "w": 471,
    "h": 512,
    "baseX": 231.2,
    "baseY": 510.7,
    "unit": 0.13625,
-   "small": "ducks/yor.small.webp?v=4e30305556",
+   "small": "ducks/yor.small.webp?v=69ca91f1a6",
    "name": "Yor",
    "reach": [
     18.5,
@@ -225,13 +225,13 @@
    ]
   },
   "anya": {
-   "src": "ducks/anya.webp?v=36dc4cca1e",
+   "src": "ducks/anya.webp?v=fd66df105e",
    "w": 446,
    "h": 512,
    "baseX": 225.3,
    "baseY": 510.7,
    "unit": 0.14845,
-   "small": "ducks/anya.small.webp?v=77a7a515a3",
+   "small": "ducks/anya.small.webp?v=d4d8faca1b",
    "name": "Anya",
    "reach": [
     16.6,
@@ -239,27 +239,27 @@
    ]
   },
   "kirby": {
-   "src": "ducks/kirby.webp?v=022cd3bf4a",
+   "src": "ducks/kirby.webp?v=13906c4802",
    "w": 410,
    "h": 512,
    "baseX": 185.8,
    "baseY": 510.8,
-   "unit": 0.15589,
-   "small": "ducks/kirby.small.webp?v=7c7f997e09",
+   "unit": 0.14701,
+   "small": "ducks/kirby.small.webp?v=d32fed129d",
    "name": "Kirby",
    "reach": [
-    21.0,
-    85.0
+    22.7,
+    83.0
    ]
   },
   "vegeta": {
-   "src": "ducks/vegeta.webp?v=906d9e464e",
+   "src": "ducks/vegeta.webp?v=79e8b82b79",
    "w": 371,
    "h": 512,
    "baseX": 189.1,
    "baseY": 511.1,
    "unit": 0.1779,
-   "small": "ducks/vegeta.small.webp?v=f80417dba8",
+   "small": "ducks/vegeta.small.webp?v=d66e137749",
    "name": "Vegeta",
    "reach": [
     16.4,
@@ -267,13 +267,13 @@
    ]
   },
   "clive": {
-   "src": "ducks/clive.webp?v=b0f2394edf",
+   "src": "ducks/clive.webp?v=00d7eca689",
    "w": 471,
    "h": 512,
    "baseX": 209.4,
    "baseY": 510.9,
    "unit": 0.15095,
-   "small": "ducks/clive.small.webp?v=df6106113b",
+   "small": "ducks/clive.small.webp?v=93bf4b1b15",
    "name": "Clive",
    "reach": [
     18.4,
@@ -281,41 +281,41 @@
    ]
   },
   "sonic": {
-   "src": "ducks/sonic.webp?v=ad866a5489",
-   "w": 526,
+   "src": "ducks/sonic.webp?v=cb0b1b2c3d",
+   "w": 608,
    "h": 512,
-   "baseX": 206.2,
+   "baseX": 311.5,
    "baseY": 510.9,
-   "unit": 0.14493,
-   "small": "ducks/sonic.small.webp?v=6ec6a88648",
+   "unit": 0.15302,
+   "small": "ducks/sonic.small.webp?v=91f33bf2bd",
    "name": "Sonic",
    "reach": [
-    20.1,
-    96.3
+    2.3,
+    95.4
    ]
   },
   "cloud": {
-   "src": "ducks/cloud.webp?v=1343baf3f9",
+   "src": "ducks/cloud.webp?v=a088704149",
    "w": 461,
    "h": 512,
    "baseX": 228.6,
    "baseY": 511.4,
-   "unit": 0.15905,
-   "small": "ducks/cloud.small.webp?v=f93a4b2bda",
+   "unit": 0.16748,
+   "small": "ducks/cloud.small.webp?v=d60b0d0827",
    "name": "Cloud",
    "reach": [
-    13.6,
-    87.0
+    11.7,
+    88.9
    ]
   },
   "sora": {
-   "src": "ducks/sora.webp?v=626e63d2ec",
+   "src": "ducks/sora.webp?v=9d0ec207a4",
    "w": 544,
    "h": 512,
    "baseX": 237.8,
    "baseY": 510.8,
    "unit": 0.16275,
-   "small": "ducks/sora.small.webp?v=3f54690ab6",
+   "small": "ducks/sora.small.webp?v=ff952b2519",
    "name": "Sora",
    "reach": [
     11.3,
@@ -323,27 +323,27 @@
    ]
   },
   "venus": {
-   "src": "ducks/venus.webp?v=26f5534d2b",
+   "src": "ducks/venus.webp?v=471cd88748",
    "w": 505,
    "h": 512,
    "baseX": 209.9,
    "baseY": 510.9,
-   "unit": 0.14236,
-   "small": "ducks/venus.small.webp?v=c835fc703d",
+   "unit": 0.14962,
+   "small": "ducks/venus.small.webp?v=4cfe10d0b8",
    "name": "Venus",
    "reach": [
-    20.1,
-    92.0
+    18.6,
+    94.2
    ]
   },
   "yu": {
-   "src": "ducks/yu.webp?v=1b7e0dff95",
+   "src": "ducks/yu.webp?v=bd0b210729",
    "w": 421,
    "h": 512,
    "baseX": 203.3,
    "baseY": 510.8,
    "unit": 0.14956,
-   "small": "ducks/yu.small.webp?v=2ecbd14d56",
+   "small": "ducks/yu.small.webp?v=ea456234c7",
    "name": "Yu",
    "reach": [
     19.6,
@@ -351,13 +351,13 @@
    ]
   },
   "makoto": {
-   "src": "ducks/makoto.webp?v=511dab85b1",
+   "src": "ducks/makoto.webp?v=bab0d09e54",
    "w": 460,
    "h": 512,
    "baseX": 232.6,
    "baseY": 510.8,
    "unit": 0.14978,
-   "small": "ducks/makoto.small.webp?v=da30ac4235",
+   "small": "ducks/makoto.small.webp?v=9a7c7819ff",
    "name": "Makoto",
    "reach": [
     15.2,
@@ -365,13 +365,13 @@
    ]
   },
   "joker": {
-   "src": "ducks/joker.webp?v=43fd16ecc7",
+   "src": "ducks/joker.webp?v=4a28f96d80",
    "w": 434,
    "h": 512,
    "baseX": 215.0,
    "baseY": 510.9,
    "unit": 0.15113,
-   "small": "ducks/joker.small.webp?v=49ce8e1e08",
+   "small": "ducks/joker.small.webp?v=bd6a860881",
    "name": "Joker",
    "reach": [
     17.5,
@@ -379,13 +379,13 @@
    ]
   },
   "kiryu": {
-   "src": "ducks/kiryu.webp?v=490acad6a1",
+   "src": "ducks/kiryu.webp?v=f8ee7aee34",
    "w": 436,
    "h": 512,
    "baseX": 204.4,
    "baseY": 510.9,
    "unit": 0.14355,
-   "small": "ducks/kiryu.small.webp?v=ac5c3dbe7e",
+   "small": "ducks/kiryu.small.webp?v=cc395e055a",
    "name": "Kiryu",
    "reach": [
     20.7,
@@ -393,13 +393,13 @@
    ]
   },
   "link": {
-   "src": "ducks/link.webp?v=866d94ab93",
+   "src": "ducks/link.webp?v=5eda3055b5",
    "w": 526,
    "h": 512,
    "baseX": 202.8,
    "baseY": 511.4,
    "unit": 0.14577,
-   "small": "ducks/link.small.webp?v=be8264e5cc",
+   "small": "ducks/link.small.webp?v=d5a0484257",
    "name": "Link",
    "reach": [
     20.4,
@@ -407,13 +407,13 @@
    ]
   },
   "zelda": {
-   "src": "ducks/zelda.webp?v=6108968a07",
+   "src": "ducks/zelda.webp?v=2e869b836c",
    "w": 504,
    "h": 512,
    "baseX": 228.1,
    "baseY": 510.8,
    "unit": 0.13457,
-   "small": "ducks/zelda.small.webp?v=f5df160892",
+   "small": "ducks/zelda.small.webp?v=28ffe72e6d",
    "name": "Zelda",
    "reach": [
     19.3,
@@ -421,97 +421,97 @@
    ]
   },
   "miku": {
-   "src": "ducks/miku.webp?v=f5b7a26192",
-   "w": 715,
+   "src": "ducks/miku.webp?v=d37e12c258",
+   "w": 714,
    "h": 512,
-   "baseX": 374.3,
-   "baseY": 510.6,
-   "unit": 0.14031,
-   "small": "ducks/miku.small.webp?v=d2ddfb21e2",
+   "baseX": 402.5,
+   "baseY": 509.4,
+   "unit": 0.15093,
+   "small": "ducks/miku.small.webp?v=5963628790",
    "name": "Miku",
    "reach": [
-    -2.5,
-    97.8
+    -10.7,
+    97.0
    ]
   },
   "bocchi": {
-   "src": "ducks/bocchi.webp?v=cc867bc8e3",
-   "w": 473,
+   "src": "ducks/bocchi.webp?v=a37d0f5ad9",
+   "w": 476,
    "h": 512,
-   "baseX": 218.1,
+   "baseX": 226.0,
    "baseY": 510.7,
-   "unit": 0.14899,
-   "small": "ducks/bocchi.small.webp?v=629563e2d5",
+   "unit": 0.15919,
+   "small": "ducks/bocchi.small.webp?v=732d77f5c4",
    "name": "Bocchi",
    "reach": [
-    17.5,
-    88.0
+    14.0,
+    89.8
    ]
   },
   "monika": {
-   "src": "ducks/monika.webp?v=0de0c666bc",
-   "w": 533,
+   "src": "ducks/monika.webp?v=b44660bd09",
+   "w": 531,
    "h": 512,
-   "baseX": 215.1,
+   "baseX": 218.9,
    "baseY": 510.8,
-   "unit": 0.14641,
-   "small": "ducks/monika.small.webp?v=5b193ac6f5",
+   "unit": 0.15735,
+   "small": "ducks/monika.small.webp?v=055b76c2e7",
    "name": "Monika",
    "reach": [
-    18.5,
-    96.5
+    15.6,
+    99.1
    ]
   },
   "trunks": {
-   "src": "ducks/trunks.webp?v=3c2348f88c",
-   "w": 482,
+   "src": "ducks/trunks.webp?v=f2c9eb4f47",
+   "w": 471,
    "h": 512,
-   "baseX": 240.4,
+   "baseX": 243.3,
    "baseY": 510.7,
-   "unit": 0.13855,
-   "small": "ducks/trunks.small.webp?v=95d2351bbb",
+   "unit": 0.14276,
+   "small": "ducks/trunks.small.webp?v=733f45d6c6",
    "name": "Trunks",
    "reach": [
-    16.7,
-    83.5
+    15.3,
+    82.5
    ]
   },
   "godzilla": {
-   "src": "ducks/godzilla.webp?v=800727017b",
-   "w": 495,
+   "src": "ducks/godzilla.webp?v=8efec05327",
+   "w": 507,
    "h": 512,
-   "baseX": 216.0,
-   "baseY": 510.7,
-   "unit": 0.1517,
-   "small": "ducks/godzilla.small.webp?v=d45407aa66",
+   "baseX": 218.5,
+   "baseY": 511.4,
+   "unit": 0.16191,
+   "small": "ducks/godzilla.small.webp?v=88cf62332d",
    "name": "Godzilla",
    "reach": [
-    17.2,
-    92.3
+    14.6,
+    96.7
    ]
   },
   "snoopy": {
-   "src": "ducks/snoopy.webp?v=d1bf520bb3",
+   "src": "ducks/snoopy.webp?v=2b9a26e736",
    "w": 391,
    "h": 512,
    "baseX": 201.9,
    "baseY": 510.8,
-   "unit": 0.17067,
-   "small": "ducks/snoopy.small.webp?v=a085f8b48c",
+   "unit": 0.16145,
+   "small": "ducks/snoopy.small.webp?v=ab0a9fc825",
    "name": "Snoopy",
    "reach": [
-    15.5,
-    82.3
+    17.4,
+    80.5
    ]
   },
   "ike": {
-   "src": "ducks/ike.webp?v=09861102c1",
+   "src": "ducks/ike.webp?v=e86f296ff4",
    "w": 531,
    "h": 512,
    "baseX": 212.2,
    "baseY": 510.8,
    "unit": 0.14173,
-   "small": "ducks/ike.small.webp?v=970cb8c8a2",
+   "small": "ducks/ike.small.webp?v=3ad30f556d",
    "name": "Ike",
    "reach": [
     19.9,
@@ -519,13 +519,13 @@
    ]
   },
   "witch": {
-   "src": "ducks/witch.webp?v=7bfa92f705",
+   "src": "ducks/witch.webp?v=efe4398781",
    "w": 455,
    "h": 512,
    "baseX": 225.6,
    "baseY": 510.7,
    "unit": 0.15644,
-   "small": "ducks/witch.small.webp?v=6dd9dd328e",
+   "small": "ducks/witch.small.webp?v=70e2cdc1df",
    "name": "Witch",
    "reach": [
     14.7,
@@ -533,27 +533,27 @@
    ]
   },
   "harvest": {
-   "src": "ducks/harvest.webp?v=bc78bbb3a9",
-   "w": 429,
+   "src": "ducks/harvest.webp?v=dc1580f652",
+   "w": 422,
    "h": 512,
-   "baseX": 202.0,
+   "baseX": 199.0,
    "baseY": 510.8,
-   "unit": 0.14564,
-   "small": "ducks/harvest.small.webp?v=d878898731",
+   "unit": 0.15129,
+   "small": "ducks/harvest.small.webp?v=d9251309c6",
    "name": "Harvest",
    "reach": [
-    20.6,
-    83.1
+    19.9,
+    83.7
    ]
   },
   "santa": {
-   "src": "ducks/santa.webp?v=4d23f638c2",
+   "src": "ducks/santa.webp?v=87081814f9",
    "w": 504,
    "h": 512,
    "baseX": 216.7,
    "baseY": 510.7,
    "unit": 0.14168,
-   "small": "ducks/santa.small.webp?v=6ece94c713",
+   "small": "ducks/santa.small.webp?v=2cee429f8c",
    "name": "Santa",
    "reach": [
     19.3,
@@ -561,27 +561,27 @@
    ]
   },
   "shulk": {
-   "src": "ducks/shulk.webp?v=53ea9ba152",
+   "src": "ducks/shulk.webp?v=ac49c52a8c",
    "w": 509,
    "h": 512,
    "baseX": 217.2,
    "baseY": 511.4,
-   "unit": 0.15426,
-   "small": "ducks/shulk.small.webp?v=6f0c9ffcd3",
+   "unit": 0.14793,
+   "small": "ducks/shulk.small.webp?v=fd59da0986",
    "name": "Shulk",
    "reach": [
-    16.5,
-    95.0
+    17.9,
+    93.2
    ]
   },
   "yagami": {
-   "src": "ducks/yagami.webp?v=34f356f297",
+   "src": "ducks/yagami.webp?v=72bf8fd396",
    "w": 466,
    "h": 512,
    "baseX": 235.8,
    "baseY": 510.6,
    "unit": 0.14519,
-   "small": "ducks/yagami.small.webp?v=5ee6d00271",
+   "small": "ducks/yagami.small.webp?v=d0ae51b4f7",
    "name": "Yagami",
    "reach": [
     15.8,
@@ -589,13 +589,13 @@
    ]
   },
   "eve": {
-   "src": "ducks/eve.webp?v=53e4fc740f",
+   "src": "ducks/eve.webp?v=fe09748baa",
    "w": 515,
    "h": 512,
    "baseX": 201.4,
    "baseY": 511.4,
    "unit": 0.14868,
-   "small": "ducks/eve.small.webp?v=1f4e1da9b2",
+   "small": "ducks/eve.small.webp?v=697637ab5b",
    "name": "EVE",
    "reach": [
     20.1,
@@ -603,55 +603,55 @@
    ]
   },
   "nagisa": {
-   "src": "ducks/nagisa.webp?v=2fbfdb18d6",
+   "src": "ducks/nagisa.webp?v=48c1bf7876",
    "w": 453,
    "h": 512,
    "baseX": 211.3,
    "baseY": 510.9,
-   "unit": 0.16942,
-   "small": "ducks/nagisa.small.webp?v=5b2f294c85",
+   "unit": 0.14994,
+   "small": "ducks/nagisa.small.webp?v=6a465a7d5b",
    "name": "Nagisa",
    "reach": [
-    14.2,
-    90.9
+    18.3,
+    86.2
    ]
   },
   "monokuma": {
-   "src": "ducks/monokuma.webp?v=255a331ece",
-   "w": 402,
+   "src": "ducks/monokuma.webp?v=29ae94d2aa",
+   "w": 407,
    "h": 512,
-   "baseX": 201.4,
-   "baseY": 511.0,
-   "unit": 0.15979,
-   "small": "ducks/monokuma.small.webp?v=bafbbff35a",
+   "baseX": 201.1,
+   "baseY": 510.8,
+   "unit": 0.15217,
+   "small": "ducks/monokuma.small.webp?v=5f9a98c1d3",
    "name": "Monokuma",
    "reach": [
-    17.8,
-    82.1
+    19.4,
+    81.3
    ]
   },
   "yuta": {
-   "src": "ducks/yuta.webp?v=f541dacc8f",
-   "w": 529,
+   "src": "ducks/yuta.webp?v=eaca421cfc",
+   "w": 484,
    "h": 512,
-   "baseX": 229.3,
-   "baseY": 510.6,
-   "unit": 0.14594,
-   "small": "ducks/yuta.small.webp?v=13e879862c",
+   "baseX": 211.1,
+   "baseY": 510.7,
+   "unit": 0.14916,
+   "small": "ducks/yuta.small.webp?v=3aec10843c",
    "name": "Yuta",
    "reach": [
-    16.5,
-    93.7
+    18.5,
+    90.7
    ]
   },
   "kazuma": {
-   "src": "ducks/kazuma.webp?v=aede007d63",
+   "src": "ducks/kazuma.webp?v=dcfd569eac",
    "w": 442,
    "h": 512,
    "baseX": 225.6,
    "baseY": 510.7,
    "unit": 0.15063,
-   "small": "ducks/kazuma.small.webp?v=473c4f4670",
+   "small": "ducks/kazuma.small.webp?v=12b882f720",
    "name": "Kazuma",
    "reach": [
     16.0,
@@ -659,45 +659,787 @@
    ]
   },
   "denji": {
-   "src": "ducks/denji.webp?v=8672f1ed9c",
+   "src": "ducks/denji.webp?v=a65df2bd29",
    "w": 607,
    "h": 512,
    "baseX": 401.0,
    "baseY": 510.8,
-   "unit": 0.16782,
-   "small": "ducks/denji.small.webp?v=81eef3c6bb",
+   "unit": 0.16094,
+   "small": "ducks/denji.small.webp?v=827a9eaaa9",
    "name": "Denji",
    "reach": [
-    -17.3,
-    84.6
+    -14.5,
+    83.2
    ]
   },
   "kid": {
-   "src": "ducks/kid.webp?v=17b72d4478",
-   "w": 443,
+   "src": "ducks/kid.webp?v=112f269302",
+   "w": 448,
    "h": 512,
-   "baseX": 217.7,
+   "baseX": 224.2,
    "baseY": 510.8,
-   "unit": 0.14646,
-   "small": "ducks/kid.small.webp?v=983d27bc71",
+   "unit": 0.14661,
+   "small": "ducks/kid.small.webp?v=21c4654e94",
    "name": "Kid",
    "reach": [
-    18.1,
-    83.0
+    17.1,
+    82.8
    ]
   },
   "randy": {
-   "src": "ducks/randy.webp?v=b36568625a",
+   "src": "ducks/randy.webp?v=7fc05b9598",
    "w": 464,
    "h": 512,
    "baseX": 220.6,
    "baseY": 510.7,
-   "unit": 0.14542,
-   "small": "ducks/randy.small.webp?v=3878262a95",
+   "unit": 0.13699,
+   "small": "ducks/randy.small.webp?v=7c156a4789",
    "name": "Randy",
    "reach": [
-    17.9,
-    85.4
+    19.8,
+    83.3
+   ]
+  },
+  "scholar": {
+   "src": "ducks/scholar.webp?v=eb80a618ab",
+   "w": 428,
+   "h": 512,
+   "baseX": 211.3,
+   "baseY": 510.8,
+   "unit": 0.15007,
+   "small": "ducks/scholar.small.webp?v=4e3d0fe42a",
+   "name": "Scholar",
+   "reach": [
+    18.3,
+    82.5
+   ]
+  },
+  "knight": {
+   "src": "ducks/knight.webp?v=d5086f6aec",
+   "w": 408,
+   "h": 512,
+   "baseX": 180.6,
+   "baseY": 510.6,
+   "unit": 0.17281,
+   "small": "ducks/knight.small.webp?v=d7b7f0214f",
+   "name": "Knight",
+   "reach": [
+    18.8,
+    89.3
+   ]
+  },
+  "dragon": {
+   "src": "ducks/dragon.webp?v=60adf75738",
+   "w": 386,
+   "h": 512,
+   "baseX": 172.5,
+   "baseY": 511.0,
+   "unit": 0.16095,
+   "small": "ducks/dragon.small.webp?v=aaedb90388",
+   "name": "Dragon",
+   "reach": [
+    22.2,
+    84.4
+   ]
+  },
+  "tenshi": {
+   "src": "ducks/tenshi.webp?v=89c6b19739",
+   "w": 516,
+   "h": 512,
+   "baseX": 213.3,
+   "baseY": 510.3,
+   "unit": 0.1477,
+   "small": "ducks/tenshi.small.webp?v=04bae4fbbf",
+   "name": "Angel",
+   "reach": [
+    18.5,
+    94.7
+   ]
+  },
+  "phoenix": {
+   "src": "ducks/phoenix.webp?v=a4d1d3f95f",
+   "w": 514,
+   "h": 512,
+   "baseX": 178.3,
+   "baseY": 511.0,
+   "unit": 0.19034,
+   "small": "ducks/phoenix.small.webp?v=e0409d918a",
+   "name": "Phoenix",
+   "reach": [
+    16.1,
+    113.9
+   ]
+  },
+  "kin": {
+   "src": "ducks/kin.webp?v=e302d863ca",
+   "w": 454,
+   "h": 512,
+   "baseX": 218.0,
+   "baseY": 511.0,
+   "unit": 0.13892,
+   "small": "ducks/kin.small.webp?v=15ea4a0e0f",
+   "name": "Golden",
+   "reach": [
+    19.7,
+    82.8
+   ]
+  },
+  "kappa": {
+   "src": "ducks/kappa.webp?v=5eea122343",
+   "w": 448,
+   "h": 512,
+   "baseX": 213.5,
+   "baseY": 511.3,
+   "unit": 0.14156,
+   "small": "ducks/kappa.small.webp?v=05a47b10c0",
+   "name": "Kappa",
+   "reach": [
+    19.8,
+    83.2
+   ]
+  },
+  "tanuki": {
+   "src": "ducks/tanuki.webp?v=5ce48cd100",
+   "w": 577,
+   "h": 512,
+   "baseX": 207.4,
+   "baseY": 510.8,
+   "unit": 0.14612,
+   "small": "ducks/tanuki.small.webp?v=5dae1f88a8",
+   "name": "Tanuki",
+   "reach": [
+    19.7,
+    104.0
+   ]
+  },
+  "ramen": {
+   "src": "ducks/ramen.webp?v=471b21bf09",
+   "w": 569,
+   "h": 512,
+   "baseX": 235.2,
+   "baseY": 510.6,
+   "unit": 0.1262,
+   "small": "ducks/ramen.small.webp?v=83965ec5c3",
+   "name": "Ramen",
+   "reach": [
+    20.3,
+    92.1
+   ]
+  },
+  "cowboy": {
+   "src": "ducks/cowboy.webp?v=57a90f92a3",
+   "w": 450,
+   "h": 512,
+   "baseX": 225.5,
+   "baseY": 510.9,
+   "unit": 0.14974,
+   "small": "ducks/cowboy.small.webp?v=78b8270bae",
+   "name": "Cowboy",
+   "reach": [
+    16.2,
+    83.6
+   ]
+  },
+  "hellokitty": {
+   "src": "ducks/hellokitty.webp?v=c1a4f16a0a",
+   "w": 443,
+   "h": 512,
+   "baseX": 217.3,
+   "baseY": 510.8,
+   "unit": 0.15023,
+   "small": "ducks/hellokitty.small.webp?v=e40c814e08",
+   "name": "Hello Kitty",
+   "reach": [
+    17.4,
+    83.9
+   ]
+  },
+  "kuromi": {
+   "src": "ducks/kuromi.webp?v=ba633ffaaf",
+   "w": 420,
+   "h": 512,
+   "baseX": 205.9,
+   "baseY": 511.0,
+   "unit": 0.17047,
+   "small": "ducks/kuromi.small.webp?v=3b96099984",
+   "name": "Kuromi",
+   "reach": [
+    14.9,
+    86.5
+   ]
+  },
+  "cinnamoroll": {
+   "src": "ducks/cinnamoroll.webp?v=2e3f94c511",
+   "w": 693,
+   "h": 512,
+   "baseX": 360.1,
+   "baseY": 510.7,
+   "unit": 0.14494,
+   "small": "ducks/cinnamoroll.small.webp?v=31ab9679e9",
+   "name": "Cinnamoroll",
+   "reach": [
+    -2.2,
+    98.3
+   ]
+  },
+  "pompompurin": {
+   "src": "ducks/pompompurin.webp?v=3a18ecd2b6",
+   "w": 502,
+   "h": 512,
+   "baseX": 272.9,
+   "baseY": 510.9,
+   "unit": 0.15094,
+   "small": "ducks/pompompurin.small.webp?v=e0f5d1dac3",
+   "name": "Pompompurin",
+   "reach": [
+    8.8,
+    84.6
+   ]
+  },
+  "totoro": {
+   "src": "ducks/totoro.webp?v=130bfb0f3a",
+   "w": 399,
+   "h": 512,
+   "baseX": 192.9,
+   "baseY": 510.9,
+   "unit": 0.16032,
+   "small": "ducks/totoro.small.webp?v=de26cc1718",
+   "name": "Totoro",
+   "reach": [
+    19.1,
+    83.0
+   ]
+  },
+  "tidus": {
+   "src": "ducks/tidus.webp?v=59be82b32c",
+   "w": 452,
+   "h": 512,
+   "baseX": 215.9,
+   "baseY": 510.6,
+   "unit": 0.1484,
+   "small": "ducks/tidus.small.webp?v=6d406af4cc",
+   "name": "Tidus",
+   "reach": [
+    18.0,
+    85.0
+   ]
+  },
+  "squall": {
+   "src": "ducks/squall.webp?v=12365ec9ea",
+   "w": 546,
+   "h": 512,
+   "baseX": 261.2,
+   "baseY": 510.4,
+   "unit": 0.13466,
+   "small": "ducks/squall.small.webp?v=c7c8dcb6d8",
+   "name": "Squall",
+   "reach": [
+    14.8,
+    88.4
+   ]
+  },
+  "noctis": {
+   "src": "ducks/noctis.webp?v=b29dda87d3",
+   "w": 417,
+   "h": 512,
+   "baseX": 187.2,
+   "baseY": 510.9,
+   "unit": 0.15492,
+   "small": "ducks/noctis.small.webp?v=7f2650157a",
+   "name": "Noctis",
+   "reach": [
+    21.0,
+    85.6
+   ]
+  },
+  "zidane": {
+   "src": "ducks/zidane.webp?v=657d79df5a",
+   "w": 555,
+   "h": 512,
+   "baseX": 210.8,
+   "baseY": 510.7,
+   "unit": 0.13574,
+   "small": "ducks/zidane.small.webp?v=778b298c3f",
+   "name": "Zidane",
+   "reach": [
+    21.4,
+    96.7
+   ]
+  },
+  "lightning": {
+   "src": "ducks/lightning.webp?v=9812fbc5f1",
+   "w": 463,
+   "h": 512,
+   "baseX": 208.4,
+   "baseY": 510.7,
+   "unit": 0.15227,
+   "small": "ducks/lightning.small.webp?v=3ccad718d6",
+   "name": "Lightning",
+   "reach": [
+    18.3,
+    88.8
+   ]
+  },
+  "terra": {
+   "src": "ducks/terra.webp?v=20c2c9b3d7",
+   "w": 465,
+   "h": 512,
+   "baseX": 209.4,
+   "baseY": 510.9,
+   "unit": 0.1454,
+   "small": "ducks/terra.small.webp?v=8eb4c52c2d",
+   "name": "Terra",
+   "reach": [
+    19.6,
+    87.2
+   ]
+  },
+  "majima": {
+   "src": "ducks/majima.webp?v=1092f740b2",
+   "w": 490,
+   "h": 512,
+   "baseX": 240.1,
+   "baseY": 511.3,
+   "unit": 0.13573,
+   "small": "ducks/majima.small.webp?v=b04e149f82",
+   "name": "Majima",
+   "reach": [
+    17.4,
+    83.9
+   ]
+  },
+  "gohan": {
+   "src": "ducks/gohan.webp?v=c4a55142cb",
+   "w": 384,
+   "h": 512,
+   "baseX": 170.3,
+   "baseY": 510.8,
+   "unit": 0.17141,
+   "small": "ducks/gohan.small.webp?v=a708a339d8",
+   "name": "Gohan",
+   "reach": [
+    20.8,
+    86.6
+   ]
+  },
+  "estelle": {
+   "src": "ducks/estelle.webp?v=ecf8cbe664",
+   "w": 550,
+   "h": 512,
+   "baseX": 246.4,
+   "baseY": 510.7,
+   "unit": 0.15347,
+   "small": "ducks/estelle.small.webp?v=4c198b2664",
+   "name": "Estelle",
+   "reach": [
+    12.2,
+    96.6
+   ]
+  },
+  "okabe": {
+   "src": "ducks/okabe.webp?v=317b01932c",
+   "w": 438,
+   "h": 512,
+   "baseX": 221.0,
+   "baseY": 510.6,
+   "unit": 0.15095,
+   "small": "ducks/okabe.small.webp?v=6bed1f9a7c",
+   "name": "Okabe",
+   "reach": [
+    16.6,
+    82.8
+   ]
+  },
+  "hachiman": {
+   "src": "ducks/hachiman.webp?v=b8b3b6fe04",
+   "w": 445,
+   "h": 512,
+   "baseX": 235.8,
+   "baseY": 510.7,
+   "unit": 0.16352,
+   "small": "ducks/hachiman.small.webp?v=fcae6df93a",
+   "name": "Hachiman",
+   "reach": [
+    11.4,
+    84.2
+   ]
+  },
+  "geralt": {
+   "src": "ducks/geralt.webp?v=1a1cb23462",
+   "w": 559,
+   "h": 512,
+   "baseX": 231.5,
+   "baseY": 510.6,
+   "unit": 0.13782,
+   "small": "ducks/geralt.small.webp?v=7e21fb371b",
+   "name": "Geralt",
+   "reach": [
+    18.1,
+    95.1
+   ]
+  },
+  "yui": {
+   "src": "ducks/yui.webp?v=1e2052e1c4",
+   "w": 559,
+   "h": 512,
+   "baseX": 262.1,
+   "baseY": 510.8,
+   "unit": 0.14027,
+   "small": "ducks/yui.small.webp?v=3024920e18",
+   "name": "Yui",
+   "reach": [
+    13.2,
+    91.6
+   ]
+  },
+  "mio": {
+   "src": "ducks/mio.webp?v=c80e2fd2de",
+   "w": 495,
+   "h": 512,
+   "baseX": 201.3,
+   "baseY": 510.8,
+   "unit": 0.16694,
+   "small": "ducks/mio.small.webp?v=b1a4d67d00",
+   "name": "Mio",
+   "reach": [
+    16.4,
+    99.0
+   ]
+  },
+  "ritsu": {
+   "src": "ducks/ritsu.webp?v=015267f30d",
+   "w": 507,
+   "h": 512,
+   "baseX": 225.2,
+   "baseY": 510.7,
+   "unit": 0.138,
+   "small": "ducks/ritsu.small.webp?v=816059713b",
+   "name": "Ritsu",
+   "reach": [
+    18.9,
+    88.9
+   ]
+  },
+  "mugi": {
+   "src": "ducks/mugi.webp?v=cce3266025",
+   "w": 541,
+   "h": 512,
+   "baseX": 233.4,
+   "baseY": 510.7,
+   "unit": 0.13881,
+   "small": "ducks/mugi.small.webp?v=6be94255c1",
+   "name": "Mugi",
+   "reach": [
+    17.6,
+    92.7
+   ]
+  },
+  "azusa": {
+   "src": "ducks/azusa.webp?v=0394ac1009",
+   "w": 589,
+   "h": 512,
+   "baseX": 258.0,
+   "baseY": 510.6,
+   "unit": 0.13855,
+   "small": "ducks/azusa.small.webp?v=c6d2fde33f",
+   "name": "Azusa",
+   "reach": [
+    14.3,
+    95.9
+   ]
+  },
+  "leon": {
+   "src": "ducks/leon.webp?v=5242aaab83",
+   "w": 427,
+   "h": 512,
+   "baseX": 215.1,
+   "baseY": 510.9,
+   "unit": 0.14974,
+   "small": "ducks/leon.small.webp?v=54ada8d055",
+   "name": "Leon",
+   "reach": [
+    17.8,
+    81.7
+   ]
+  },
+  "moogle": {
+   "src": "ducks/moogle.webp?v=a6d73bac19",
+   "w": 402,
+   "h": 512,
+   "baseX": 170.4,
+   "baseY": 510.9,
+   "unit": 0.18381,
+   "small": "ducks/moogle.small.webp?v=861cc55981",
+   "name": "Moogle",
+   "reach": [
+    18.7,
+    92.6
+   ]
+  },
+  "taiko": {
+   "src": "ducks/taiko.webp?v=c517359564",
+   "w": 519,
+   "h": 512,
+   "baseX": 221.0,
+   "baseY": 510.7,
+   "unit": 0.14295,
+   "small": "ducks/taiko.small.webp?v=670db6a623",
+   "name": "Don-chan",
+   "reach": [
+    18.4,
+    92.6
+   ]
+  },
+  "gustave": {
+   "src": "ducks/gustave.webp?v=edb97bd467",
+   "w": 482,
+   "h": 512,
+   "baseX": 226.5,
+   "baseY": 510.5,
+   "unit": 0.14842,
+   "small": "ducks/gustave.small.webp?v=fd3333fcfd",
+   "name": "Gustave",
+   "reach": [
+    16.4,
+    87.9
+   ]
+  },
+  "lune": {
+   "src": "ducks/lune.webp?v=c8048b1958",
+   "w": 536,
+   "h": 512,
+   "baseX": 247.7,
+   "baseY": 510.5,
+   "unit": 0.15124,
+   "small": "ducks/lune.small.webp?v=5ec8da73f6",
+   "name": "Lune",
+   "reach": [
+    12.5,
+    93.6
+   ]
+  },
+  "maelle": {
+   "src": "ducks/maelle.webp?v=c874cd44c6",
+   "w": 526,
+   "h": 512,
+   "baseX": 236.4,
+   "baseY": 510.7,
+   "unit": 0.15736,
+   "small": "ducks/maelle.small.webp?v=2fcf20a2b0",
+   "name": "Maelle",
+   "reach": [
+    12.8,
+    95.6
+   ]
+  },
+  "sciel": {
+   "src": "ducks/sciel.webp?v=8edf4d6bc1",
+   "w": 514,
+   "h": 512,
+   "baseX": 207.9,
+   "baseY": 510.9,
+   "unit": 0.15638,
+   "small": "ducks/sciel.small.webp?v=1d590d2de8",
+   "name": "Sciel",
+   "reach": [
+    17.5,
+    97.9
+   ]
+  },
+  "verso": {
+   "src": "ducks/verso.webp?v=6eb0fd1aaa",
+   "w": 522,
+   "h": 512,
+   "baseX": 239.2,
+   "baseY": 510.7,
+   "unit": 0.15428,
+   "small": "ducks/verso.small.webp?v=170861b911",
+   "name": "Verso",
+   "reach": [
+    13.3,
+    93.6
+   ]
+  },
+  "monoco": {
+   "src": "ducks/monoco.webp?v=76192c6bc8",
+   "w": 422,
+   "h": 512,
+   "baseX": 177.6,
+   "baseY": 511.1,
+   "unit": 0.22373,
+   "small": "ducks/monoco.small.webp?v=f09cdd887e",
+   "name": "Monoco",
+   "reach": [
+    10.3,
+    104.7
+   ]
+  },
+  "shadowheart": {
+   "src": "ducks/shadowheart.webp?v=6989b63e9c",
+   "w": 446,
+   "h": 512,
+   "baseX": 184.9,
+   "baseY": 510.9,
+   "unit": 0.1549,
+   "small": "ducks/shadowheart.small.webp?v=56684c54d8",
+   "name": "Shadowheart",
+   "reach": [
+    21.4,
+    90.4
+   ]
+  },
+  "astarion": {
+   "src": "ducks/astarion.webp?v=688fc0701d",
+   "w": 475,
+   "h": 512,
+   "baseX": 213.6,
+   "baseY": 510.7,
+   "unit": 0.14912,
+   "small": "ducks/astarion.small.webp?v=3a4fea2bba",
+   "name": "Astarion",
+   "reach": [
+    18.1,
+    89.0
+   ]
+  },
+  "shinguji": {
+   "src": "ducks/shinguji.webp?v=c2556f4d9f",
+   "w": 484,
+   "h": 512,
+   "baseX": 194.4,
+   "baseY": 510.9,
+   "unit": 0.14554,
+   "small": "ducks/shinguji.small.webp?v=c39e81f527",
+   "name": "Sakura",
+   "reach": [
+    21.7,
+    92.1
+   ]
+  },
+  "yorha": {
+   "src": "ducks/yorha.webp?v=f0ba88063c",
+   "w": 500,
+   "h": 512,
+   "baseX": 223.8,
+   "baseY": 510.8,
+   "unit": 0.15005,
+   "small": "ducks/yorha.small.webp?v=bee1176ed8",
+   "name": "2B",
+   "reach": [
+    16.4,
+    91.4
+   ]
+  },
+  "harry": {
+   "src": "ducks/harry.webp?v=24032b0bb9",
+   "w": 419,
+   "h": 512,
+   "baseX": 206.0,
+   "baseY": 510.7,
+   "unit": 0.15245,
+   "small": "ducks/harry.small.webp?v=ef46948dad",
+   "name": "Harry",
+   "reach": [
+    18.6,
+    82.5
+   ]
+  },
+  "gandalf": {
+   "src": "ducks/gandalf.webp?v=a80e7de93c",
+   "w": 466,
+   "h": 512,
+   "baseX": 214.4,
+   "baseY": 510.8,
+   "unit": 0.16501,
+   "small": "ducks/gandalf.small.webp?v=d9dae57973",
+   "name": "Gandalf",
+   "reach": [
+    14.6,
+    91.5
+   ]
+  },
+  "spiderman": {
+   "src": "ducks/spiderman.webp?v=5f65e2ff5f",
+   "w": 435,
+   "h": 512,
+   "baseX": 207.5,
+   "baseY": 510.6,
+   "unit": 0.15431,
+   "small": "ducks/spiderman.small.webp?v=a1066607a9",
+   "name": "Spider-Man",
+   "reach": [
+    18.0,
+    85.1
+   ]
+  },
+  "natsu": {
+   "src": "ducks/natsu.webp?v=4ab8cf2825",
+   "w": 480,
+   "h": 512,
+   "baseX": 212.8,
+   "baseY": 510.2,
+   "unit": 0.14938,
+   "small": "ducks/natsu.small.webp?v=78d96fcf9f",
+   "name": "Natsu",
+   "reach": [
+    18.2,
+    89.9
+   ]
+  },
+  "tsuna": {
+   "src": "ducks/tsuna.webp?v=16786a6c56",
+   "w": 431,
+   "h": 512,
+   "baseX": 213.2,
+   "baseY": 510.6,
+   "unit": 0.18439,
+   "small": "ducks/tsuna.small.webp?v=e46c8a7ba8",
+   "name": "Tsuna",
+   "reach": [
+    10.7,
+    90.2
+   ]
+  },
+  "nagito": {
+   "src": "ducks/nagito.webp?v=ecc91835a3",
+   "w": 453,
+   "h": 512,
+   "baseX": 238.9,
+   "baseY": 510.1,
+   "unit": 0.16433,
+   "small": "ducks/nagito.small.webp?v=fb2ec8661f",
+   "name": "Nagito",
+   "reach": [
+    10.7,
+    85.2
+   ]
+  },
+  "chiaki": {
+   "src": "ducks/chiaki.webp?v=fb68b3ad77",
+   "w": 441,
+   "h": 512,
+   "baseX": 216.4,
+   "baseY": 510.7,
+   "unit": 0.15566,
+   "small": "ducks/chiaki.small.webp?v=5190015ada",
+   "name": "Chiaki",
+   "reach": [
+    16.5,
+    85.0
+   ]
+  },
+  "crono": {
+   "src": "ducks/crono.webp?v=93134a85d0",
+   "w": 419,
+   "h": 512,
+   "baseX": 207.7,
+   "baseY": 510.8,
+   "unit": 0.17549,
+   "small": "ducks/crono.small.webp?v=ed21ead6ad",
+   "name": "Crono",
+   "reach": [
+    13.6,
+    87.1
    ]
   }
  },

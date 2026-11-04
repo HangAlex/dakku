@@ -272,6 +272,18 @@
     return { ...SNAP.group, group: groups()[0], people: people(), pond: [...SNAP.group.pond, ...yours] };
   }
 
+  /* ── someone's own pond: a friend's as the snapshot had it; yours, with what you've hatched since ── */
+  function pondView(pid) {
+    const snap = SNAP.ponds?.[pid];
+    if (!snap) throw new ApiError(404, 'No such person.');
+    if (pid !== 'me') return snap;
+    const list = [...sessions.values()].filter((s) => !s.deleted).sort((a, b) => a.start - b.start);
+    const done = list.filter((s) => s.status === 'done');
+    return { ...snap, person: people().find((x) => x.id === 'me') || snap.person, theme: settings.pondTheme || snap.theme, decor: settings.decor || snap.decor,
+      pond: list.map(({ id, start, minutes, species, status, tag }) => ({ id, start, minutes, species, status, tag })),
+      total: done.reduce((n, s) => n + s.minutes, 0), ducks: done.length, kinds: new Set(done.map((s) => s.species)).size };
+  }
+
   function route(method, path, query, body) {
     const p = path.replace(/^\/api/, '');
     if (method === 'GET') {
@@ -284,6 +296,7 @@
       if (p === '/anki') return SNAP.anki;
       if (p === '/devices') return { devices: [], current: 'demo' };
       if (p.startsWith('/groups/')) return groupView(decodeURIComponent(p.slice(8)));
+      if (/^\/people\/[^/]+\/pond$/.test(p)) return pondView(decodeURIComponent(p.split('/')[2]));
       if (p === '/health') return { ok: true, app: 'dakku', version: me.version, demo: true };
       throw new ApiError(404, 'Not found.');
     }
@@ -315,10 +328,13 @@
   };
   const live = new Set();
   class DemoEvents {
-    constructor() { this.readyState = 1; this.handlers = {}; live.add(this); setTimeout(() => this.onopen?.(), 30); }
+    constructor() {
+      this.readyState = 1; this.handlers = {}; live.add(this); setTimeout(() => this.onopen?.(), 30);
+      this.beat = setInterval(() => { for (const fn of this.handlers.ping || []) fn({ data: '{}' }); }, 20_000); // (as the PC's pings: still here)
+    }
     addEventListener(type, fn) { (this.handlers[type] ||= []).push(fn); }
     removeEventListener(type, fn) { this.handlers[type] = (this.handlers[type] || []).filter((f) => f !== fn); }
-    close() { this.readyState = 2; live.delete(this); }
+    close() { this.readyState = 2; clearInterval(this.beat); live.delete(this); }
   }
   DemoEvents.CONNECTING = 0; DemoEvents.OPEN = 1; DemoEvents.CLOSED = 2;
   window.EventSource = DemoEvents;

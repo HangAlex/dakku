@@ -291,24 +291,44 @@ const Art = (() => {
   const spriteFor = (kind, cold) => (cold ? sprites.cold : sprites.kinds[kindOf(kind)]);
 
   /** The inside of a 100 × 120 box: a duck (or a cold egg), as SVG markup. */
+  // 金: the Golden duck (500 hours) comes with its own light wherever it's drawn (a pond, a tile, its page,
+  // a hatching): a soft gold glow behind it, and little stars twinkling around it. Both sit in the duck's
+  // own frame, so they scale with it. `--gd` on a <use> shifts the stars' timing, so two Golden ducks on
+  // one pond don't twinkle in step.
+  const GOLD = '#F2C14E';
+  const STARS = [[11, 44, 4.4, 0], [89, 38, 3.6, 1.1], [18, 90, 3, 2.3], [86, 86, 4, 0.6], [50, 17, 3.3, 1.7], [6, 68, 2.5, 2.9], [94, 62, 2.8, 0.3], [30, 23, 2.2, 2.1]];
+  const star = (x, y, r) => `M${x} ${r1(y - r)}Q${x} ${y} ${r1(x + r)} ${y}Q${x} ${y} ${x} ${r1(y + r)}Q${x} ${y} ${r1(x - r)} ${y}Q${x} ${y} ${x} ${r1(y - r)}Z`;
+  const golden = (kind, cold) => !cold && kindOf(kind) === 'kin';
+  const goldGlow = () => `<radialGradient id="dakku-gold"><stop offset="0" stop-color="${GOLD}" stop-opacity=".5"/><stop offset=".55" stop-color="${GOLD}" stop-opacity=".18"/><stop offset="1" stop-color="${GOLD}" stop-opacity="0"/></radialGradient>` +
+    `<ellipse class="gold-glow" cx="50" cy="68" rx="50" ry="46" fill="url(#dakku-gold)"/>`;
+  const goldStars = () => `<g class="gold-stars">${STARS.map(([x, y, r, d], i) => `<path class="spark" d="${star(x, y, r)}" fill="${GOLD}" style="--d:${d}s;--t:${r1(2.2 + (i % 3) * 0.6)}s"/>`).join('')}</g>`;
   function duckInner(kind, cold = false) {
     const s = spriteFor(kind, cold);
-    if (s) return imageSVG(s);
+    const gold = golden(kind, cold);
+    const wrap = (inner) => (gold ? goldGlow() + inner + goldStars() : inner);
+    if (s) return wrap(imageSVG(s));
     if (cold) return pathsSVG(coldEgg());
-    return `<g transform="matrix(-1 0 0 1 100 0)">${pathsSVG(outfit(kindOf(kind)))}</g>`; // face left
+    return wrap(`<g transform="matrix(-1 0 0 1 100 0)">${pathsSVG(outfit(kindOf(kind)))}</g>`); // face left
   }
   // On its own (the picker, the log, the collection, a hatching), a duck gets a frame without the
   // headroom the pond needs, so it shows bigger. 84 × 100 keeps the 5:6 shape of those spots. Every
   // duck is drawn the same size in it: hair, a ponytail or a sword that reaches further shows past
   // the frame instead of being cut off (so leave a little room around it). `big`: shown big (its own page,
   // a hatching), so its full picture is fetched in place of the small copy. `fit`: in a tile, where
-  // there's no room around it, the frame widens to take in all of a duck that reaches past it (Sonic's
-  // quills, Denji's chainsaw), so the duck stays inside its tile, drawn a little smaller.
+  // there's no room around it: every duck gets the same frame, wide enough for the widest (Miku's twin
+  // tails, 108; Denji's chainsaw, the Phoenix's flames), so all of them are drawn the same size and stay
+  // inside their tiles. A duck that reaches past it on one side has the frame slid over to take that in;
+  // only one wider than the frame itself would be drawn smaller.
+  const FIT_W = 110;
   function duckSVG(kind, { cold = false, cls = '', big = false, fit = false } = {}) {
     if (big && !cold) sharpen([kind]);
-    const [l, r] = (fit && spriteFor(kind, cold)?.reach) || [8, 92];
-    const x0 = Math.min(8, l - 1), x1 = Math.max(92, r + 1);
-    return `<svg class="${cls}" viewBox="${r1(x0)} 14 ${r1(x1 - x0)} 100" preserveAspectRatio="xMidYMax meet" style="overflow:visible" aria-hidden="true">${duckInner(kind, cold)}</svg>`;
+    let x0 = 7, w = 86;
+    if (fit) {
+      const [l, r] = spriteFor(kind, cold)?.reach || [8, 92];
+      w = Math.max(FIT_W, r - l + 2);
+      x0 = Math.max(Math.min(50 - w / 2, l - 1), r + 1 - w);
+    }
+    return `<svg class="${cls}" viewBox="${r1(x0)} 14 ${r1(w)} 100" preserveAspectRatio="xMidYMax meet" style="overflow:visible" aria-hidden="true">${duckInner(kind, cold)}</svg>`;
   }
   /** The egg in its nest at `progress` (0 to 1): whole, then a crack, then a peek. */
   function eggInner(progress) {
@@ -590,7 +610,7 @@ const Art = (() => {
         const ring = (attrs) => `<use href="#${prefix}-ring${n}"${attrs}/>`;
         const rings = b ? ring(` class="wave" style="--w:${b.w}s;--wd:${b.wd}s"`) + ring(` class="swell" style="--t:${b.t}s;--d:${b.d}s"`) : ring('');
         inner = (flip ? `<g transform="matrix(-1 0 0 1 100 0)">${rings}</g>` : rings) +
-          `<g clip-path="url(#${prefix}-cut)"><use href="#${prefix}-${key}"${b ? ` class="bob" style="--t:${b.t}s;--d:${b.d}s"` : ''}/></g><use href="#${prefix}-line"/>`;
+          `<g clip-path="url(#${prefix}-cut)"><use href="#${prefix}-${key}"${b ? ` class="bob" style="--t:${b.t}s;--d:${b.d}s;--gd:${r1(-b.d * 0.7)}s"` : ''}/></g><use href="#${prefix}-line"/>`;
       }
       parts.push(`<g transform="matrix(${k} 0 0 ${k} ${r1(d.x)} ${r1(d.y)})">${inner}</g>`);
     }
@@ -630,14 +650,20 @@ const Art = (() => {
       if (r) { const p = ringAt(r); ctx.drawImage(r.img, p.x, p.y, p.w, p.h); } else drawShapes(ctx, DASHES);
       ctx.restore();
     }
-    const s = spriteFor(kind, cold);
+    const s = spriteFor(kind, cold), gold = golden(kind, cold);
     ctx.save();
     if (water && !cold) ctx.clip(new Path2D(CUT));
+    if (gold) {
+      const glow = ctx.createRadialGradient(50, 68, 0, 50, 68, 48);
+      glow.addColorStop(0, 'rgba(242,193,78,.5)'); glow.addColorStop(0.55, 'rgba(242,193,78,.18)'); glow.addColorStop(1, 'rgba(242,193,78,0)');
+      ctx.fillStyle = glow; ctx.fillRect(0, 14, 100, 100);
+    }
     if (s) { const p = placed(s); ctx.drawImage(s.img, p.x, p.y, p.w, p.h); }
     else if (cold) drawShapes(ctx, coldEgg());
     else { ctx.transform(-1, 0, 0, 1, 100, 0); drawShapes(ctx, outfit(kindOf(kind))); } // face left
     ctx.restore();
     if (water && !cold) drawShapes(ctx, CONTACT);
+    if (gold) { ctx.fillStyle = GOLD; for (const [x, y, r] of STARS) ctx.fill(new Path2D(star(x, y, r))); }
   }
   /** Draws a pond scene `width` pixels wide with its top left at (x, y); returns its height. */
   function drawPond(ctx, scene, x, y, width, people = null) {
@@ -691,5 +717,5 @@ const Art = (() => {
     ctx.restore();
   }
 
-  return { KINDS, ORDER, kindOf, duckSVG, duckInner, eggInner, pond, pondSVG, pondThemes, drawShapes, drawPond, drawDuck, loadSprites, sharpen, ready, sprites, rng, WATER, INK };
+  return { KINDS, ORDER, kindOf, duckSVG, duckInner, eggInner, goldStars, pond, pondSVG, pondThemes, drawShapes, drawPond, drawDuck, loadSprites, sharpen, ready, sprites, rng, WATER, INK };
 })();

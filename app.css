@@ -293,12 +293,14 @@ input, select, textarea { font-size: 16px; } /* no zoom-on-focus on iPhone */
 .dial-face { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
 .dial-track { fill: none; stroke: var(--grow-soft); stroke-width: 10; }
 .dial-arc { fill: none; stroke: var(--grow); stroke-width: 10; stroke-linecap: round; transition: stroke .3s; }
-.dial-knob { fill: var(--surface); stroke: var(--grow); stroke-width: 3.5; filter: drop-shadow(0 2px 3px rgb(var(--shadow) / .25)); cursor: grab; }
+/* the knob has a layer of its own, over an event's ring (the dial's line is under it): only the knob itself takes a touch */
+.dial-top { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; pointer-events: none; }
+.dial-knob { fill: var(--surface); stroke: var(--grow); stroke-width: 3.5; filter: drop-shadow(0 2px 3px rgb(var(--shadow) / .25)); cursor: grab; pointer-events: auto; touch-action: none; }
 .dial-tick { stroke: var(--ink-3); stroke-width: 1.2; stroke-linecap: round; opacity: .55; }
 .dial-tick.major { stroke-width: 2; opacity: .8; }
 .dial.paused .dial-arc { stroke: var(--ink-3); }
-.dial.running .dial-knob, .dial.paused .dial-knob { display: none; }
-.dial.dragging .dial-knob { cursor: grabbing; }
+.dial.running ~ .dial-top .dial-knob, .dial.paused ~ .dial-top .dial-knob { display: none; }
+.dial.dragging ~ .dial-top .dial-knob { cursor: grabbing; }
 .grow { position: absolute; inset: 0; pointer-events: none; }
 .grow svg { width: 100%; height: 100%; display: block; overflow: visible; }
 .grow .wobble { transform-origin: 150px 200px; }
@@ -327,7 +329,7 @@ input, select, textarea { font-size: 16px; } /* no zoom-on-focus on iPhone */
   .chips.scroll::-webkit-scrollbar-track, .species-row::-webkit-scrollbar-track { background: transparent; }
 }
 .sp { flex: none; width: 62px; display: grid; justify-items: center; gap: 2px; padding: 6px 2px 5px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); position: relative; }
-.sp svg { width: 40px; height: 48px; }
+.sp svg { width: 53px; height: 48px; }
 .sp .n { font: 700 13px/1 var(--small-jp); }
 .sp[aria-pressed="true"] { border-color: var(--grow); background: color-mix(in srgb, var(--grow) 12%, var(--surface)); }
 .sp.locked { opacity: .55; }
@@ -336,7 +338,7 @@ input, select, textarea { font-size: 16px; } /* no zoom-on-focus on iPhone */
 .sp:disabled { cursor: default; }
 #species-row .sp { flex: 1 1 0; min-width: 0; max-width: 72px; } /* four ducks and All share the row */
 .sp.all { color: var(--ink-2); }
-.sp.all .all-n { display: grid; place-items: center; width: 40px; height: 48px; font: 600 19px/1 var(--body); }
+.sp.all .all-n { display: grid; place-items: center; width: 53px; height: 48px; font: 600 19px/1 var(--body); }
 .run-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .run-meta .chip { cursor: default; }
 .run-buttons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
@@ -381,6 +383,20 @@ button.srow:hover { background: var(--surface-2); }
 .koi { transform-box: fill-box; transform-origin: center; animation: koi var(--t, 18s) ease-in-out var(--d, 0s) infinite; }
 @keyframes koi { 0%, 100% { transform: translate(-14px, 0) rotate(-3deg); } 50% { transform: translate(14px, 5px) rotate(3deg); } }
 @keyframes swell { 0%, 100% { transform: scale(.96); } 50% { transform: scale(1.05); } }
+/* 金: the Golden duck's own light (art.js duckInner): its glow breathes, its stars twinkle out of step */
+.gold-glow { transform-box: fill-box; transform-origin: center; animation: gold-glow 3.6s ease-in-out infinite; }
+.spark { transform-box: fill-box; transform-origin: center; opacity: .8; animation: twinkle var(--t, 2.4s) ease-in-out calc(var(--d, 0s) + var(--gd, 0s)) infinite; }
+@keyframes gold-glow { 0%, 100% { opacity: .6; transform: scale(.94); } 50% { opacity: 1; transform: scale(1.04); } }
+@keyframes twinkle { 0%, 100% { opacity: 0; transform: scale(.3) rotate(0deg); } 50% { opacity: 1; transform: scale(1.15) rotate(45deg); } }
+/* gold rays turning slowly behind it, on its page and on its hatching */
+.gold-rays { position: relative; }
+.gold-rays::before { content: ""; position: absolute; left: 50%; top: var(--rays-y, 50%); width: 560px; height: 560px; transform: translate(-50%, -50%); pointer-events: none; z-index: 0;
+  background: repeating-conic-gradient(from 0deg, rgb(242 193 78 / .26) 0 5deg, rgb(242 193 78 / 0) 5deg 24deg);
+  -webkit-mask: radial-gradient(circle, #000 0, rgb(0 0 0 / .6) 28%, transparent 62%); mask: radial-gradient(circle, #000 0, rgb(0 0 0 / .6) 28%, transparent 62%);
+  animation: rays 36s linear infinite; }
+.gold-rays > * { position: relative; z-index: 1; }
+@keyframes rays { to { transform: translate(-50%, -50%) rotate(360deg); } }
+.duck-big.gold-rays { --rays-y: 56%; }
 @keyframes wave { 0% { transform: scale(1); opacity: 0; } 4% { opacity: .75; } 32% { transform: scale(1.75); opacity: 0; } 100% { transform: scale(1.75); opacity: 0; } }
 .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 14px 0; }
 .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; }
@@ -472,8 +488,8 @@ button.srow:hover { background: var(--surface-2); }
 
 /* the three ducks you've hatched most, and the way to every duck */
 .podium { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.specimen { position: relative; display: grid; justify-items: center; text-align: center; gap: 2px; padding: 10px 6px; border: 0; border-radius: 14px; background: var(--surface-2); color: var(--ink); }
-.specimen svg { width: min(76px, 100%); height: auto; aspect-ratio: 76 / 91; }
+.specimen { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; gap: 2px; padding: 10px 6px; border: 0; border-radius: 14px; background: var(--surface-2); color: var(--ink); }
+.specimen svg { width: min(100px, 100%); height: auto; aspect-ratio: 110 / 100; }
 .specimen .rank { position: absolute; top: 8px; left: 10px; font: 700 14px/1 var(--small-jp); color: var(--accent); }
 .specimen .n { font: 700 15px/1.2 var(--small-jp); }
 .specimen .e { font-size: 12px; color: var(--ink-2); }
@@ -491,6 +507,8 @@ dialog.sheet.ducks-sheet { width: min(100%, 640px); }
 .duck-shelf:first-child, .shop-bar + .duck-shelf, .shelf-grid + .duck-shelf { margin-top: 16px; }
 .duck-shelf .jp { color: var(--accent); font: 700 13px/1 var(--small-jp); }
 .duck-shelf small { color: var(--ink-3); font-weight: 400; }
+.duck-sort { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin: 12px 2px 8px; font-size: 13px; color: var(--ink-2); }
+.duck-sort select { padding: 6px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); }
 .dtile.locked svg { opacity: .28; filter: grayscale(1); }
 .dtile.unhatched:not(.locked) svg { opacity: .7; } /* yours, just not hatched yet: in color, unlike one still to get */
 .dtile .c.lock { color: var(--accent); font-weight: 600; }
@@ -525,14 +543,14 @@ dialog.sheet.ducks-sheet { width: min(100%, 640px); }
 .request p { margin: 3px 0 0; color: var(--ink-2); font-size: 14px; }
 .request-acts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .request-acts select { padding: 6px 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); max-width: 160px; }
-.dtile { display: grid; justify-items: center; align-content: start; gap: 2px; padding: 8px 4px 7px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); text-align: center; }
-.dtile svg { width: min(56px, 100%); height: auto; aspect-ratio: 56 / 67; }
+.dtile { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: start; gap: 2px; padding: 8px 4px 7px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); text-align: center; }
+.dtile svg { width: min(74px, 100%); height: auto; aspect-ratio: 110 / 100; } /* a duck's frame in a tile (art.js duckSVG fit) */
 .dtile .n { font: 700 14px/1.2 var(--small-jp); }
 .dtile .e { font-size: 12px; line-height: 1.25; color: var(--ink-2); }
 .dtile .c { font-size: 11.5px; line-height: 1.25; color: var(--ink-3); }
 .dtile[aria-pressed="true"] { border-color: var(--grow); background: color-mix(in srgb, var(--grow) 14%, var(--surface-2)); }
 .dtile.unhatched svg { opacity: .45; }
-.duck-detail { display: grid; justify-items: center; gap: 6px; text-align: center; }
+.duck-detail { display: grid; justify-items: center; gap: 6px; text-align: center; overflow: clip; } /* (the Golden duck's rays reach past the sheet) */
 .duck-detail [data-back] { justify-self: start; }
 .duck-big svg { display: block; width: min(56vw, 210px); height: auto; margin: 12px 0 6px; }
 .duck-name { font: 600 22px/1.2 var(--display); white-space: nowrap; }
@@ -610,12 +628,14 @@ dialog.sheet.ducks-sheet { width: min(100%, 640px); }
 .theme .sw i:last-child { background: var(--a); }
 .theme .nm .jp { font-size: 14px; margin-right: 3px; }
 .theme[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
-.device { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 10px 0; border-top: 1px solid var(--line); align-items: center; }
+.device { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 10px 0; border-top: 1px solid var(--line); align-items: center; }
 .device:first-child { border-top: 0; }
-.device .nm { font-weight: 500; }
+.device .nm { font-weight: 500; min-width: 0; }
 .device .nm em { font-style: normal; font-size: 12px; color: var(--grow); margin-left: 6px; }
-.device .meta { font-size: 12.5px; color: var(--ink-2); grid-column: 1; }
-.device .acts { grid-row: 1 / span 2; grid-column: 2; display: flex; gap: 6px; }
+.device .meta { font-size: 12.5px; color: var(--ink-2); grid-column: 1 / -1; } /* (under the name and its buttons, all the way across) */
+.device .meta em { font-style: normal; color: var(--grow); }
+.device .meta .behind { color: var(--accent); }
+.device .acts { grid-row: 1; grid-column: 2; display: flex; gap: 6px; }
 .passcode { font: 500 17px/1.4 var(--body); letter-spacing: .02em; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); word-break: break-word; user-select: all; -webkit-user-select: all; }
 .addr { display: grid; gap: 2px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 13.5px; }
 .addr:first-child { border-top: 0; }
@@ -644,6 +664,12 @@ dialog.sheet.ducks-sheet { width: min(100%, 640px); }
 .done-stats span { font-size: 12px; color: var(--ink-2); }
 .done-actions { display: flex; gap: 10px; margin-top: 10px; }
 .done-card.withered .done-kanji { color: var(--ink-2); }
+/* the Golden duck's hatching, and the moment it's reached: a gold card, shimmering letters, gold stars falling */
+.done-card.golden { border-color: #E2B33C; box-shadow: 0 0 0 1px rgb(226 179 60 / .5), 0 20px 60px -16px rgb(226 179 60 / .55); --rays-y: 120px; }
+.done-card.golden .done-kanji, .done-card.golden .done-title { background: linear-gradient(100deg, #B8860B 0%, #F6E27A 35%, #D4A017 50%, #FFF3B0 65%, #B8860B 100%) 0 0 / 200% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 2.8s linear infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+.feathers b { position: absolute; top: -20px; font: 400 15px/1 var(--body); color: #F2C14E; opacity: .95; animation: fall linear forwards; }
 /* (the hatched card's own feathers: not .petals, which is the page's drift and a theme turns into bats or snow) */
 .feathers { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .feathers i { position: absolute; top: -20px; width: 10px; height: 8px; border-radius: 80% 10% 80% 10%; opacity: .85; animation: fall linear forwards; }
@@ -740,9 +766,33 @@ dialog.sheet[open] { animation: slide .28s cubic-bezier(.2, .9, .3, 1) both; }
 .room { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
 .room:first-child { border-top: 0; padding-top: 2px; }
 .room .what { display: grid; min-width: 0; font-size: 14.5px; }
-.room .what .muted { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.room.mine .what b { color: var(--accent); }
+.room .what .muted { overflow-wrap: anywhere; } /* (on two lines if it must: the clock and the round both show) */
+.room.mine .what .name-link { color: var(--accent); }
 .room-acts { display: flex; gap: 6px; align-items: center; }
+
+/* someone's badge and name open their pond */
+.name-link, .pond-link, button.legend-who { background: none; border: 0; padding: 0; margin: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.name-link { font-weight: 600; display: inline-flex; align-items: center; gap: 6px; max-width: 100%; }
+.name-link:hover, button.legend-who:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line); }
+.pond-link { display: inline-grid; border-radius: 50%; }
+dialog.sheet.pond-sheet { width: min(100%, 560px); }
+.pond-sheet .sheet-body { grid-auto-rows: max-content; } /* (it scrolls: nothing in it is squeezed to fit) */
+.pond-sheet .profile { margin-bottom: 0; }
+.pond-sheet .profile .who { display: flex; align-items: center; gap: 8px; }
+.pond-sheet .profile .who em { font-style: normal; font-size: 12px; color: var(--grow); }
+.pond-live:empty { display: none; }
+.pond-live .room { border-top: 0; padding: 0; }
+#pond-range { justify-self: center; }
+.pond-wrap { position: relative; }
+.pond-wrap .tree-pop { position: absolute; }
+
+/* a new version of Dakku is in */
+.update-bar { position: fixed; left: 50%; bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 14px); transform: translateX(-50%); z-index: 61;
+  width: min(92vw, 420px); display: flex; align-items: center; gap: 10px; padding: 10px 8px 10px 16px;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--accent); border-radius: 16px; box-shadow: 0 8px 24px rgb(0 0 0 / .22); animation: toast .3s ease both; }
+.update-text { display: grid; flex: 1; min-width: 0; font-size: 14px; line-height: 1.35; }
+.update-text small { color: var(--ink-2); font-size: 12.5px; }
+.update-later { flex: none; width: 34px; height: 34px; border: 0; border-radius: 50%; background: none; color: var(--ink-3); font-size: 15px; }
 
 /* cheers: one tap to send, and a bubble over the egg when one comes in */
 .cheer-text { width: 100%; min-height: 44px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
@@ -750,6 +800,17 @@ dialog.sheet[open] { animation: slide .28s cubic-bezier(.2, .9, .3, 1) both; }
 .cheer-pop { max-width: 100%; padding: 8px 13px; border-radius: 16px; background: var(--surface); border: 1px solid var(--accent); box-shadow: 0 6px 18px rgb(var(--shadow) / .22); font-size: 14px; text-align: center; animation: cheer 8s ease forwards; }
 .cheer-pop b { color: var(--accent); margin-right: 4px; }
 @keyframes cheer { 0% { opacity: 0; transform: translateY(14px) scale(.9); } 8% { opacity: 1; transform: none; } 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(-18px); } }
+/* the cheers you got this session stay under the clock until the duck hatches */
+.cheer-tray { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; margin: 10px auto 0; max-width: 440px; }
+.cheer-tray[hidden] { display: none; }
+.cheer-tray-title { width: 100%; text-align: center; font-size: 12px; color: var(--ink-2); letter-spacing: .04em; }
+.cheer-tray-title .jp { margin-right: 6px; }
+.cheer-item { padding: 5px 11px; border-radius: 14px; background: var(--surface); border: 1px solid var(--accent); font-size: 13px; box-shadow: 0 2px 8px rgb(var(--shadow) / .12); }
+.cheer-item b { color: var(--accent); margin-right: 4px; }
+.cheer-item.new { animation: cheer-in .5s ease both, cheer-glow 2.4s ease 3; }
+.cheer-more { font-size: 12px; color: var(--ink-2); }
+@keyframes cheer-in { from { opacity: 0; transform: translateY(6px) scale(.95); } }
+@keyframes cheer-glow { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 30%, transparent); } }
 
 .together .card + .card, .together .stats-grid, .together .stats-grid + .card { margin-top: 14px; }
 .empty-together { display: grid; justify-items: center; text-align: center; gap: 10px; padding: 28px 18px; }
